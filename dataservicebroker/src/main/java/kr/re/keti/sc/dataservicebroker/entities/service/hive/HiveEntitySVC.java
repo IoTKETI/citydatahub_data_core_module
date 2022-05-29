@@ -67,6 +67,49 @@ public class HiveEntitySVC extends DefaultEntitySVC {
     	this.entityDAO = entityDAO;
 	}
 
+    @Override
+    protected Object getGeometryAttrData(DynamicEntityDaoVO dynamicEntityDaoVO, String columnName) {
+        if (dynamicEntityDaoVO.get(columnName) != null && dynamicEntityDaoVO.get(columnName) instanceof String) {
+            Object geometry = dynamicEntityDaoVO.get(columnName);
+
+            if (geometry != null) {
+                Map<String, Object> convertedGeometry = null;
+                try {
+                    convertedGeometry = objectMapper.readValue((String) geometry, Map.class);
+                    return convertedGeometry.get("geometry");
+                } catch (JsonProcessingException e) {
+                    log.error("Error while parsing geometry", e);
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected Object getArrayAttrData(AttributeValueType attributeValueType, DynamicEntityDaoVO dynamicEntityDaoVO, String columnName) {
+
+        String arrayValue = (String) dynamicEntityDaoVO.get(columnName);
+
+        if (arrayValue != null) {
+            String[] values = arrayValue.replaceAll("\\[", "").replaceAll("\\]", "").replaceAll("\\s", "").split(",");
+            List<Object> castedValues = new ArrayList<>();
+
+            for (String value : values) {
+                if (attributeValueType == AttributeValueType.ARRAY_INTEGER) {
+                    castedValues.add(Integer.parseInt(value));
+                } else if (attributeValueType == AttributeValueType.ARRAY_DOUBLE) {
+                    castedValues.add(Double.parseDouble(value));
+                } else if (attributeValueType == AttributeValueType.ARRAY_BOOLEAN) {
+                    castedValues.add(Boolean.parseBoolean(value));
+                } else if (attributeValueType == AttributeValueType.ARRAY_STRING) {
+                    castedValues.add(value.replace("{", "").replace("}", "").replace("\"", ""));
+                }
+            }
+            return castedValues;
+        }
+        return null;
+    }
+
     /**
      * Operation 정상처리 항목 이력 저장
      *
@@ -226,466 +269,5 @@ public class HiveEntitySVC extends DefaultEntitySVC {
             }
         }
     }
-    
-    @Override
-    public CommonEntityVO daoVOToFullRepresentationVO(DynamicEntityDaoVO dynamicEntityDaoVO, DataModelCacheVO dataModelCacheVO, boolean includeSysAttrs, List<String> attrs) {
-    	CommonEntityFullVO commonEntityFullVO = initFullRepresentationVO(dynamicEntityDaoVO, dataModelCacheVO);
 
-        Map<String, DataModelDbColumnVO> dbColumnInfoVOMap = dataModelCacheVO.getDataModelStorageMetadataVO().getDbColumnInfoVOMap();
-
-        for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
-            String columnName = dbColumnInfoVO.getColumnName();
-            Object attributeValue = dynamicEntityDaoVO.get(columnName); // rdb에서는 lowercase 를 하는데, hive에서는 하지 않음
-            List<String> attributeIds = dbColumnInfoVO.getHierarchyAttributeIds();
-
-            //부모 attributeId 가져오기
-            String rootAttrId = attributeIds.get(0);
-            Attribute rootAttribute = dataModelCacheVO.getRootAttribute(rootAttrId);
-
-            //이미 한거면 SKIP
-            // 1. DB조회 결과에 attribute value가 없을 경우, SKIP
-            if (attributeValue == null || commonEntityFullVO.containsKey(rootAttrId)) {
-                continue;
-            }
-
-            HashMap<String, AttributeVO> resultMap = (HashMap<String, AttributeVO>) convertDaoToAttribute(dynamicEntityDaoVO, dbColumnInfoVOMap, rootAttribute, null);
-            commonEntityFullVO.putAll(resultMap);
-        }
-
-        return commonEntityFullVO;
-    }
-
-    @Override
-    public CommonEntityVO daoVOToSimpleRepresentationVO(DynamicEntityDaoVO dynamicEntityDaoVO, DataModelCacheVO entitySchemaCacheVO, List<String> attrs) {
-    	CommonEntityVO commonEntityVO = daoVOToFullRepresentationVO(dynamicEntityDaoVO, entitySchemaCacheVO, false, attrs);
-
-
-        for (String key : commonEntityVO.keySet()) {
-
-            Object object = commonEntityVO.get(key);
-            if (object instanceof PropertyVO) {
-                PropertyVO objectValue = (PropertyVO) commonEntityVO.get(key);
-                commonEntityVO.replace(key, objectValue.getValue());
-            } else if (object instanceof RelationshipVO) {
-                RelationshipVO objectValue = (RelationshipVO) commonEntityVO.get(key);
-
-                commonEntityVO.replace(key, objectValue.getObject());
-            } else if (object instanceof GeoPropertyVO) {
-                GeoPropertyVO objectValue = (GeoPropertyVO) commonEntityVO.get(key);
-
-                commonEntityVO.replace(key, objectValue.getValue());
-            } else {
-                commonEntityVO.replace(key, commonEntityVO.get(key));
-
-            }
-
-        }
-
-        return commonEntityVO;
-    }
-
-    @Override
-    public List<CommonEntityVO> daoVOToTemporalFullRepresentationVO(List<DynamicEntityDaoVO> entityDaoVOList, DataModelCacheVO dataModelCacheVO, Integer lastN, String accept) {
-    	List<CommonEntityVO> commonEntityVOS = daoVOToTemporalNormalizedHistoryRepresentationVO(entityDaoVOList, dataModelCacheVO, accept);
-
-
-        Map<String, CommonEntityVO> filterdMap = new HashMap<>();
-        Map<String, String> tempDatasetMap = new HashMap<>();
-
-        for (CommonEntityVO commonEntityVO : commonEntityVOS) {
-
-            CommonEntityVO observedAtEntityVO = (CommonEntityVO) commonEntityVO.clone();
-            String id = (String) commonEntityVO.get(DefaultAttributeKey.ID.getCode());
-            tempDatasetMap.put(id, (String) commonEntityVO.get(DefaultAttributeKey.DATASET_ID.getCode()));
-            List<String> context = null;
-            if (accept.equals(Constants.APPLICATION_LD_JSON_VALUE)) {
-
-                context = dataModelCacheVO.getDataModelVO().getContext();
-            }
-
-
-            //observedAt이 아닌 항목 제거!
-            for (String key : commonEntityVO.keySet()) {
-
-                Attribute rootAttribute = dataModelCacheVO.getRootAttribute(key);
-                if (rootAttribute == null || rootAttribute.getHasObservedAt() == null || !rootAttribute.getHasObservedAt()) {
-                    observedAtEntityVO.remove(key);
-                }
-            }
-
-
-            if (filterdMap.containsKey(id)) {
-                CommonEntityVO innerCommonEntityVO = filterdMap.get(id);
-                for (String key : observedAtEntityVO.keySet()) {
-
-                    if (innerCommonEntityVO.get(key) instanceof List) {
-                        // 기 존재하는 리스트에 값을 추가
-                        AttributeVO attributeVO = (AttributeVO) observedAtEntityVO.get(key);
-                        List<AttributeVO> attributeVOList = (List<AttributeVO>) innerCommonEntityVO.get(key);
-                        attributeVOList.add(attributeVO);
-                        observedAtEntityVO.replace(key, attributeVOList);
-
-                    } else if (innerCommonEntityVO.get(key) instanceof AttributeVO) {
-
-                        // 리스트를 생성하여 값 추가
-                        AttributeVO attributeVO = (AttributeVO) observedAtEntityVO.get(key);
-                        List<AttributeVO> attributeVOList = new ArrayList<>();
-                        attributeVOList.add(attributeVO);
-                        observedAtEntityVO.replace(key, attributeVOList);
-
-                    }
-
-                }
-                filterdMap.put(id, innerCommonEntityVO);
-
-            } else {
-
-                for (String key : observedAtEntityVO.keySet()) {
-                    if (observedAtEntityVO.get(key) instanceof AttributeVO) {
-                        AttributeVO attributeVO = (AttributeVO) observedAtEntityVO.get(key);
-
-                        List<AttributeVO> attributeVOList = new ArrayList<>();
-                        attributeVOList.add(attributeVO);
-                        observedAtEntityVO.replace(key, attributeVOList);
-
-                    }
-
-                }
-
-
-                if (observedAtEntityVO != null && observedAtEntityVO.size() > 0) {
-
-                    if (accept.equals(Constants.APPLICATION_LD_JSON_VALUE)) {
-                        observedAtEntityVO.setContext(context);
-                    }
-                    filterdMap.put(id, observedAtEntityVO);
-
-                }
-            }
-        }
-
-        List<CommonEntityVO> filteredList = new ArrayList<>();
-        for (String id : filterdMap.keySet()) {
-
-            CommonEntityFullVO commonEntityVO = (CommonEntityFullVO) filterdMap.get(id);
-
-            // lastN 옵션 처리
-            if(lastN != null && lastN > 0 ){
-                commonEntityVO = retrieveLastN(commonEntityVO, lastN);
-            }
-            commonEntityVO.setId(id);
-            commonEntityVO.setType(dataModelCacheVO.getDataModelVO().getType());
-            filteredList.add(commonEntityVO);
-            if(UseYn.YES.getCode().equals(retrieveIncludeDatasetid)
-            		&& tempDatasetMap.get(id) != null) {
-            	commonEntityVO.setDatasetId(tempDatasetMap.get(id));
-            }
-        }
-
-        return filteredList;
-    }
-    
-    
-
-    @Override
-    public List<CommonEntityVO> daoVOToTemporalNormalizedHistoryRepresentationVO(List<DynamicEntityDaoVO> entityDaoVOList, DataModelCacheVO dataModelCacheVO, String accept) {
-    	throw new UnsupportedOperationException("HiveEntitySVC not supported 'daoVOToTemporalNormalizedHistoryRepresentationVO'");
-    }
-
-    @Override
-    public List<CommonEntityVO> daoVOToTemporalTemporalValuesRepresentationVO(List<CommonEntityVO> commonEntityVOList) {
-        throw new UnsupportedOperationException("HiveEntitySVC not supported 'daoVOToTemporalTemporalValuesRepresentationVO'");
-    }
-
-
-
-    /**
-     * DB 조회 결과(dao) -> Map(attribute)으로 전환
-     *
-     * @param upperId
-     * @param rootAttribute
-     * @param dbColumnInfoVOMap
-     * @param dynamicEntityDaoVO
-     * @return
-     */
-    private Map convertDaoToAttribute(DynamicEntityDaoVO dynamicEntityDaoVO, Map<String, DataModelDbColumnVO> dbColumnInfoVOMap, Attribute rootAttribute, String upperId) {
-        String id;
-        if (upperId != null) {
-            id = upperId + "_" + rootAttribute.getName();
-        } else {
-            id = rootAttribute.getName();
-        }
-
-        List<Attribute> hasAttributes = rootAttribute.getChildAttributes();
-        List<ObjectMember> objectMembers = rootAttribute.getObjectMembers();
-        HashMap<String, Object> convertedMap = new HashMap<>();
-
-        if (hasAttributes != null) {
-
-            HashMap<String, Object> childAttributeMap = new HashMap<>();
-            for (Attribute hasAttribute : hasAttributes) {
-                //자식 value -> AttributeVO로 변경
-                HashMap<String, Object> subChildAttributeMap = (HashMap<String, Object>) convertDaoToAttribute(dynamicEntityDaoVO, dbColumnInfoVOMap, hasAttribute, id);
-                childAttributeMap.putAll(subChildAttributeMap);
-            }
-
-            DataModelDbColumnVO dbColumnInfoVO = dbColumnInfoVOMap.get(id);
-            if(dbColumnInfoVO != null) {
-            	Object value = dynamicEntityDaoVO.get(dbColumnInfoVO.getColumnName()); // rdb에서는 lowercase를 하는데 hive 에서는 하지 않음
-
-                AttributeVO attributeVO = null;
-                if (rootAttribute.getAttributeType() == AttributeType.PROPERTY && value != null) {
-
-                    PropertyVO propertyVO = new PropertyVO();
-                    propertyVO.setValue(value);
-                    attributeVO = propertyVO;
-
-                    childAttributeMap.put(DataServiceBrokerCode.AttributeResultType.VALUE.getCode(), value);
-
-                } else if (rootAttribute.getAttributeType() == AttributeType.RELATIONSHIP && value != null) {
-                    RelationshipVO relationshipVO = new RelationshipVO();
-                    relationshipVO.setObject(value);
-                    attributeVO = relationshipVO;
-                    childAttributeMap.put(DataServiceBrokerCode.AttributeResultType.OBJECT.getCode(), value);
-                } else {
-                    attributeVO = new AttributeVO();
-                }
-
-                attributeVO.putAll(childAttributeMap);
-                convertedMap.put(id, attributeVO);
-            }
-        }
-
-        if (objectMembers != null) {
-
-            HashMap<String, Object> objectMemberMap = new HashMap<>();
-            for (ObjectMember objectMember : objectMembers) {
-
-                String objectMemberId = objectMember.getName();
-                DataModelDbColumnVO vo = dbColumnInfoVOMap.get(id + "_" + objectMemberId);
-                Object value = dynamicEntityDaoVO.get(vo.getColumnName()); // rdb에서 lowercase를 사용하지만 hive에서는 하지 않음
-                objectMemberMap.put(objectMemberId, value);
-            }
-
-            AttributeVO attributeVO;
-            if (rootAttribute.getValueType() == AttributeValueType.ARRAY_OBJECT) {
-            	// TODO: Hive에서 조회한 값이 Array형태여야 하는데, String형태라서 파싱 에러남. 수정 필요
-//                attributeVO = valueToAttributeVO(rootAttribute, objectMemberMapToArrayObject(objectMemberMap));
-            	attributeVO = null;
-            	
-            	
-            } else {
-                attributeVO = valueToAttributeVO(rootAttribute, objectMemberMap);
-            }
-            
-            if (rootAttribute.getHasObservedAt() != null && rootAttribute.getHasObservedAt()) {
-                attributeVO = addObservedAt(dynamicEntityDaoVO, dbColumnInfoVOMap, attributeVO, id);
-            }
-            convertedMap.put(id, attributeVO);
-
-        }
-
-        if (rootAttribute.getObjectMembers() == null && rootAttribute.getChildAttributes() == null) {
-
-            AttributeVO attributeVO = null;
-
-            if (rootAttribute.getValueType() == AttributeValueType.GEO_JSON) {
-            	DataModelDbColumnVO dbColumnInfoVO = dbColumnInfoVOMap.get(id + "_" + DEFAULT_SRID);
-
-            	if (dynamicEntityDaoVO.get(dbColumnInfoVO.getColumnName()) != null && dynamicEntityDaoVO.get(dbColumnInfoVO.getColumnName()) instanceof String) {
-            	    Object geometry = dynamicEntityDaoVO.get(dbColumnInfoVO.getColumnName());
-
-            		if (geometry != null) {
-                        Map<String, Object> convertedGeometry = null;
-            		    try {
-                            convertedGeometry = objectMapper.readValue((String) geometry, Map.class);
-            		    } catch (JsonProcessingException e) {
-                            log.error("Error while parsing geometry", e);
-                        }
-
-                        attributeVO = valueToAttributeVO(rootAttribute, convertedGeometry.get("geometry"));
-					}
-            	}
-            } else if (isArrayType(rootAttribute.getValueType())) {
-                DataModelDbColumnVO dbColumnInfoVO = dbColumnInfoVOMap.get(id);
-                String arrayValue = (String) dynamicEntityDaoVO.get(dbColumnInfoVO.getColumnName()); // rdb에서는 lowercase를 하는데 hive 에서는 하지 않음
-
-                if (arrayValue != null) {
-                    String[] values = arrayValue.replaceAll("\\[", "").replaceAll("\\]", "").replaceAll("\\s", "").split(",");
-                    List<Object> castedValues = new ArrayList<>();
-
-                    for (String value : values) {
-                        if (rootAttribute.getValueType() == AttributeValueType.ARRAY_INTEGER) {
-                            castedValues.add(Integer.parseInt(value));
-                        } else if (rootAttribute.getValueType() == AttributeValueType.ARRAY_DOUBLE) {
-                            castedValues.add(Double.parseDouble(value));
-                        } else if (rootAttribute.getValueType() == AttributeValueType.ARRAY_BOOLEAN) {
-                            castedValues.add(Boolean.parseBoolean(value));
-                        } else if (rootAttribute.getValueType() == AttributeValueType.ARRAY_STRING) {
-                            castedValues.add(value.replace("{", "").replace("}", "").replace("\"", ""));
-                        }
-                    }
-
-                    attributeVO = valueToAttributeVO(rootAttribute, castedValues);
-                }
-            } else {
-            	DataModelDbColumnVO dbColumnInfoVO = dbColumnInfoVOMap.get(id);
-                Object value = dynamicEntityDaoVO.get(dbColumnInfoVO.getColumnName()); // rdb에서는 lowercase를 하는데 hive 에서는 하지 않음
-
-                if (value != null) {
-                    attributeVO = valueToAttributeVO(rootAttribute, value);
-                }
-            }
-
-            if (attributeVO != null) {
-                convertedMap.put(rootAttribute.getName(), attributeVO);
-            }
-
-            if (rootAttribute.getHasObservedAt() != null && rootAttribute.getHasObservedAt()) {
-                addObservedAt(dynamicEntityDaoVO, dbColumnInfoVOMap, attributeVO, id);
-            }
-        }
-
-        return convertedMap;
-    }
-
-    private boolean isArrayType(AttributeValueType valueType) {
-        return (valueType == AttributeValueType.ARRAY_STRING
-                || valueType == AttributeValueType.ARRAY_INTEGER
-                || valueType == AttributeValueType.ARRAY_BOOLEAN
-                || valueType == AttributeValueType.ARRAY_DOUBLE
-                || valueType == AttributeValueType.ARRAY_OBJECT);
-    }
-    
-    private AttributeVO addObservedAt(DynamicEntityDaoVO dynamicEntityDaoVO, Map<String, DataModelDbColumnVO> dbColumnInfoVOMap, AttributeVO attributeVO, String id) {
-    	DataModelDbColumnVO dbColumnInfoVO = dbColumnInfoVOMap.get(id + "_" + PropertyKey.OBSERVED_AT.getCode());
-        Object value = dynamicEntityDaoVO.get(dbColumnInfoVO.getColumnName()); // rdb에서는 lowercase를 하는데 hive 에서는 하지 않음
-        if(value != null && attributeVO != null) {
-        	attributeVO.setObservedAt(new Date(((java.sql.Timestamp)value).getTime()));
-        }
-
-        return attributeVO;
-    }
-    
-    
-    /**
-     * map - arr, arr 형식을  arr -> map 으로 변환 (* congestionIndexPrediction 케이스)
-     *
-     * @param objectMemberMap
-     * @return
-     */
-    private Object objectMemberMapToArrayObject(HashMap<String, Object> objectMemberMap){
-
-        List<Object> arrayObject = new ArrayList<>();
-
-        objectMemberMap.forEach((key, obj) -> {
-
-            Object[] objectArr = (Object[]) obj;
-            if(objectArr != null) {
-            	for (int idx = 0; idx < objectArr.length; idx++) {
-
-                    if (idx >= arrayObject.size()) {
-                        HashMap tmp = new HashMap();
-                        tmp.put(key, objectArr[idx]);
-
-                        arrayObject.add(tmp);
-
-                    } else {
-                        HashMap tmp = (HashMap) arrayObject.get(idx);
-                        tmp.put(key, objectArr[idx]);
-
-                        arrayObject.set(idx, tmp);
-                    }
-
-                }
-            }
-        });
-
-        return arrayObject;
-    }
-    
-    /**
-     * attribute 결과를  AttributeVO(*PropertyVO or RelationShipVO) 객체로 변환
-     * @param rootAttribute
-     * @param result
-     * @return
-     */
-    private AttributeVO valueToAttributeVO(Attribute rootAttribute, Object result) {
-
-        AttributeVO attributeVO = null;
-        if (rootAttribute.getAttributeType() == AttributeType.PROPERTY) {
-            PropertyVO propertyVO = new PropertyVO();
-            propertyVO.setValue(result);
-            attributeVO = propertyVO;
-        } else if (rootAttribute.getAttributeType() == AttributeType.RELATIONSHIP) {
-
-            RelationshipVO relationshipVO = new RelationshipVO();
-            relationshipVO.setObject(result);
-            attributeVO = relationshipVO;
-
-        } else if (rootAttribute.getAttributeType() == AttributeType.GEO_PROPERTY) {
-            GeoPropertyVO geoPropertyVO = new GeoPropertyVO();
-            geoPropertyVO.setValue(result);
-            attributeVO = geoPropertyVO;
-        }
-
-        return attributeVO;
-    }
-    
-    /**
-     * lastN 옵션 처리, 시간 내 시간 속성의 마지막 N개의 타임스템프에 해당하는 속성을 내림차순으로 리턴
-     *
-     * The lastN parameter refers to a number, n, of Attribute instances which shall correspond
-     * to the last n timestamps (in descending ordering) of the temporal property (by default observedAt)
-     * within the concerned temporal interval.
-     * @param commonEntityVO
-     * @param lastN
-     * @return
-     */
-    private CommonEntityFullVO retrieveLastN(CommonEntityFullVO commonEntityVO, Integer lastN) {
-
-        for (String key : commonEntityVO.keySet()) {
-
-            //key가 @context의 경우, 처리하지 않음
-            if (key.equalsIgnoreCase(DefaultAttributeKey.CONTEXT.getCode()))
-                continue;
-
-            List list = (List) commonEntityVO.get(key);
-            if (list.size() > lastN) {
-                list = list.subList(0, lastN);
-            }
-
-            Collections.sort(list, new ObservedAtReverseOrder());
-            commonEntityVO.replace(key, list);
-
-        }
-
-
-        return commonEntityVO;
-    }
-    
-    
-    /**
-     * FullRepresentationVO 필수 설정 (id, type, createAt, modifiedAt)
-     * FullRepresentationVO 선택 설정 (datasetId)
-     */
-    private CommonEntityFullVO initFullRepresentationVO(DynamicEntityDaoVO dynamicEntityDaoVO, DataModelCacheVO entitySchemaCacheVO) {
-        CommonEntityFullVO commonEntityFullVO = new CommonEntityFullVO();
-
-        commonEntityFullVO.setId(dynamicEntityDaoVO.getId());
-        commonEntityFullVO.setType(entitySchemaCacheVO.getDataModelVO().getType());
-
-        if (dynamicEntityDaoVO.containsKey(DefaultDbColumnName.CREATED_AT.getCode())) {
-            commonEntityFullVO.setCreatedAt((Date) dynamicEntityDaoVO.get(DefaultDbColumnName.CREATED_AT.getCode()));
-        }
-        if (dynamicEntityDaoVO.containsKey(DefaultDbColumnName.MODIFIED_AT.getCode())) {
-            commonEntityFullVO.setModifiedAt((Date) dynamicEntityDaoVO.get(DefaultDbColumnName.MODIFIED_AT.getCode()));
-        }
-
-        if (UseYn.YES.getCode().equals(retrieveIncludeDatasetid) 
-        		&& dynamicEntityDaoVO.containsKey(DefaultDbColumnName.DATASET_ID.getCode())) {
-            commonEntityFullVO.setDatasetId((String) dynamicEntityDaoVO.get(DefaultDbColumnName.DATASET_ID.getCode()));
-        }
-        return commonEntityFullVO;
-    }
 }
