@@ -497,7 +497,7 @@ public class DataModelSVC {
 				String attributeDdl = null;
 				switch(updateDataModelProcessVO.getAttributeUpdateProcessType()) {
 					case NEW_ATTRIBUTE:  {
-						// test by yj <-- generateAddOrDropColumnDdl에 들어갈 storageMetadataVO를
+						// generateAddOrDropColumnDdl에 들어갈 storageMetadataVO를
 						// afterStorageMetadataVO로 수정
 						attributeDdl = bigDataTableSqlProvider.generateAddOrDropColumnDdl(id, afterAttribute,afterStorageMetadataVO, DbOperation.ADD_COLUMN);
 						break;
