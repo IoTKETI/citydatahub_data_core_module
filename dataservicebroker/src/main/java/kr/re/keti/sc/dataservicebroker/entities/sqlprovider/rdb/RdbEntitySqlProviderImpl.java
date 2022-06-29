@@ -2,7 +2,9 @@ package kr.re.keti.sc.dataservicebroker.entities.sqlprovider.rdb;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import kr.re.keti.sc.dataservicebroker.datamodel.service.hbase.HBaseTableSVC;
 import org.apache.ibatis.jdbc.SQL;
 
 import kr.re.keti.sc.dataservicebroker.common.code.Constants;
@@ -109,48 +111,51 @@ public class RdbEntitySqlProviderImpl {
                     }
 
                     // 3. Dynamic Entity Column 설정
+                    Set<String> updateQueryCols = entityDaoVO.keySet();
                     for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
 
-                        String daoAttributeId = dbColumnInfoVO.getDaoAttributeId();
                         String columnName = dbColumnInfoVO.getColumnName();
-                        DbColumnType dbColumnType = dbColumnInfoVO.getColumnType();
 
-                        // property에 포함된 속성인 createdAt 은 null 인 경우만 입력
-                        if(dbColumnType == DbColumnType.TIMESTAMP && daoAttributeId.endsWith(Constants.COLUMN_DELIMITER + PropertyKey.CREATED_AT.getCode())) {
-                        	SET(columnName + " = COALESCE( " + columnName + ", #{" + DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode() + ", jdbcType=TIMESTAMP})");
-                        	continue;
-                        }
-                        
-                        // replace 요청이기 때문에 property의 modifiedAt은 모두 MODIFIED_AT 시간으로 업데이트
-                        if(dbColumnType == DbColumnType.TIMESTAMP && daoAttributeId.endsWith(Constants.COLUMN_DELIMITER + PropertyKey.MODIFIED_AT.getCode())) {
-                        	SET(columnName + " = #{" + DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode() + "}");
-                        	continue;
-                        }
+                        if (updateQueryCols.contains(columnName)) { // yj <-- update 되는 값에 대해서만 쿼리를 구성하도록 필터링 추가
+                            // property에 포함된 속성인 createdAt 은 null 인 경우만 입력
+                            String daoAttributeId = dbColumnInfoVO.getDaoAttributeId();
+                            DbColumnType dbColumnType = dbColumnInfoVO.getColumnType();
+                            if (dbColumnType == DbColumnType.TIMESTAMP && daoAttributeId.endsWith(Constants.COLUMN_DELIMITER + PropertyKey.CREATED_AT.getCode())) {
+                                SET(columnName + " = COALESCE( " + columnName + ", #{" + DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode() + ", jdbcType=TIMESTAMP})");
+                                continue;
+                            }
 
-                        if (dbColumnType == DbColumnType.VARCHAR) {
-                            SET(columnName + " = #{" + daoAttributeId + ", jdbcType=VARCHAR}");
-                        } else if (dbColumnType == DbColumnType.INTEGER) {
-                            SET(columnName + " = #{" + daoAttributeId + ", jdbcType=INTEGER}");
-                        } else if (dbColumnType == DbColumnType.FLOAT) {
-                            SET(columnName + " = #{" + daoAttributeId + ", jdbcType=FLOAT}");
-                        } else if (dbColumnType == DbColumnType.ARRAY_VARCHAR) {
-                            SET(columnName + " = #{" + daoAttributeId + ", typeHandler=" + StringArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}::VARCHAR[]");
-                        } else if (dbColumnType == DbColumnType.ARRAY_INTEGER) {
-                            SET(columnName + " = #{" + daoAttributeId + ", typeHandler=" + IntegerArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}::INT[]");
-                        } else if (dbColumnType == DbColumnType.ARRAY_FLOAT) {
-                            SET(columnName + " = #{" + daoAttributeId + ", typeHandler=" + FloatArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}::FLOAT[]");
-                        } else if (dbColumnType == DbColumnType.ARRAY_BOOLEAN) {
-                            SET(columnName + " = #{" + daoAttributeId + ", typeHandler=" + BooleanArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}::BOOLEAN[]");
-                        } else if (dbColumnType == DbColumnType.ARRAY_TIMESTAMP) {
-                            SET(columnName + " = #{" + daoAttributeId + ", typeHandler=" + DateArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}::TIMESTAMP WITH TIME ZONE[]");
-                        } else if (dbColumnType == DbColumnType.TIMESTAMP) {
-                            SET(columnName + " = #{" + daoAttributeId + ", jdbcType=TIMESTAMP}");
-                        } else if (dbColumnType == DbColumnType.GEOMETRY_4326) {
-                            SET(columnName + " = ST_SetSRID(ST_GeomFromGeoJSON(#{" + daoAttributeId + "}), 4326)");
-                        } else if (dbColumnType == DbColumnType.GEOMETRY_3857) {
-                            SET(columnName + " = ST_Transform(ST_SetSRID(ST_GeomFromGeoJSON(#{" + daoAttributeId + "}), 4326), 3857)");
-                        } else {
-                            SET(columnName + " = #{" + daoAttributeId + "}");
+                            // replace 요청이기 때문에 property의 modifiedAt은 모두 MODIFIED_AT 시간으로 업데이트
+                            if (dbColumnType == DbColumnType.TIMESTAMP && daoAttributeId.endsWith(Constants.COLUMN_DELIMITER + PropertyKey.MODIFIED_AT.getCode())) {
+                                SET(columnName + " = #{" + DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode() + "}");
+                                continue;
+                            }
+
+                            if (dbColumnType == DbColumnType.VARCHAR) {
+                                SET(columnName + " = #{" + daoAttributeId + ", jdbcType=VARCHAR}");
+                            } else if (dbColumnType == DbColumnType.INTEGER) {
+                                SET(columnName + " = #{" + daoAttributeId + ", jdbcType=INTEGER}");
+                            } else if (dbColumnType == DbColumnType.FLOAT) {
+                                SET(columnName + " = #{" + daoAttributeId + ", jdbcType=FLOAT}");
+                            } else if (dbColumnType == DbColumnType.ARRAY_VARCHAR) {
+                                SET(columnName + " = #{" + daoAttributeId + ", typeHandler=" + StringArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}::VARCHAR[]");
+                            } else if (dbColumnType == DbColumnType.ARRAY_INTEGER) {
+                                SET(columnName + " = #{" + daoAttributeId + ", typeHandler=" + IntegerArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}::INT[]");
+                            } else if (dbColumnType == DbColumnType.ARRAY_FLOAT) {
+                                SET(columnName + " = #{" + daoAttributeId + ", typeHandler=" + FloatArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}::FLOAT[]");
+                            } else if (dbColumnType == DbColumnType.ARRAY_BOOLEAN) {
+                                SET(columnName + " = #{" + daoAttributeId + ", typeHandler=" + BooleanArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}::BOOLEAN[]");
+                            } else if (dbColumnType == DbColumnType.ARRAY_TIMESTAMP) {
+                                SET(columnName + " = #{" + daoAttributeId + ", typeHandler=" + DateArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}::TIMESTAMP WITH TIME ZONE[]");
+                            } else if (dbColumnType == DbColumnType.TIMESTAMP) {
+                                SET(columnName + " = #{" + daoAttributeId + ", jdbcType=TIMESTAMP}");
+                            } else if (dbColumnType == DbColumnType.GEOMETRY_4326) {
+                                SET(columnName + " = ST_SetSRID(ST_GeomFromGeoJSON(#{" + daoAttributeId + "}), 4326)");
+                            } else if (dbColumnType == DbColumnType.GEOMETRY_3857) {
+                                SET(columnName + " = ST_Transform(ST_SetSRID(ST_GeomFromGeoJSON(#{" + daoAttributeId + "}), 4326), 3857)");
+                            } else {
+                                SET(columnName + " = #{" + daoAttributeId + "}");
+                            }
                         }
                     }
                 }

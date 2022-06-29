@@ -10,9 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import kr.re.keti.sc.dataservicebroker.common.vo.*;
-import kr.re.keti.sc.dataservicebroker.datamodel.vo.*;
-import kr.re.keti.sc.dataservicebroker.util.ObservedAtReverseOrder;
 import org.apache.commons.lang.SerializationUtils;
 import org.geojson.GeoJsonObject;
 import org.postgis.PGgeometry;
@@ -40,11 +37,14 @@ import kr.re.keti.sc.dataservicebroker.common.exception.ngsild.NgsiLdBadRequestE
 import kr.re.keti.sc.dataservicebroker.common.exception.ngsild.NgsiLdInternalServerErrorException;
 import kr.re.keti.sc.dataservicebroker.common.exception.ngsild.NgsiLdNoExistTypeException;
 import kr.re.keti.sc.dataservicebroker.common.exception.ngsild.NgsiLdResourceNotFoundException;
+import kr.re.keti.sc.dataservicebroker.common.vo.*;
 import kr.re.keti.sc.dataservicebroker.common.vo.entities.DynamicEntityDaoVO;
 import kr.re.keti.sc.dataservicebroker.common.vo.entities.DynamicEntityFullVO;
+import kr.re.keti.sc.dataservicebroker.datamodel.vo.*;
 import kr.re.keti.sc.dataservicebroker.datamodel.DataModelManager;
 import kr.re.keti.sc.dataservicebroker.entities.dao.EntityDAOInterface;
 import kr.re.keti.sc.dataservicebroker.entities.vo.EntityDataModelVO;
+import kr.re.keti.sc.dataservicebroker.util.ObservedAtReverseOrder;
 import kr.re.keti.sc.dataservicebroker.util.CommonParamUtil;
 import kr.re.keti.sc.dataservicebroker.util.DateUtil;
 import kr.re.keti.sc.dataservicebroker.util.ValidateUtil;
@@ -753,7 +753,6 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
         }
         return true;
     }
-
 
     /**
      * primitive object 유효성 체크

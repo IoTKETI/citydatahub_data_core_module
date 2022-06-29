@@ -11,6 +11,7 @@ import kr.re.keti.sc.dataservicebroker.common.vo.entities.DynamicEntityFullVO;
 import kr.re.keti.sc.dataservicebroker.entities.dao.hive.HiveEntityDAO;
 import kr.re.keti.sc.dataservicebroker.entities.dao.rdb.RdbEntityDAO;
 import kr.re.keti.sc.dataservicebroker.entities.service.EntitySVCInterface;
+import kr.re.keti.sc.dataservicebroker.entities.service.hbase.HbaseEntitySVC;
 import kr.re.keti.sc.dataservicebroker.entities.service.hive.HiveEntitySVC;
 import kr.re.keti.sc.dataservicebroker.entities.service.rdb.RdbEntitySVC;
 
@@ -48,5 +49,14 @@ public class EntityConfiguration {
 	protected HiveEntityDAO hiveEntityDAO() {
         return new HiveEntityDAO();
     }
-	
+
+	// test by yj <--이 부분이 필요한듯
+	@Bean
+	@Qualifier("hbaseDynamicEntitySVC")
+	protected EntitySVCInterface<DynamicEntityFullVO, DynamicEntityDaoVO> hbaseDynamicEntitySVC() {
+		HbaseEntitySVC hbaseEntitySVC = new HbaseEntitySVC();
+		hbaseEntitySVC.setEntityDAOInterface(hiveEntityDAO());
+		return hbaseEntitySVC;
+	}
+
 }

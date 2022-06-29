@@ -39,6 +39,7 @@ import kr.re.keti.sc.dataservicebroker.csource.CsourceRegistrationManager;
 import kr.re.keti.sc.dataservicebroker.csource.vo.CsourceRegistrationVO;
 import kr.re.keti.sc.dataservicebroker.datafederation.service.DataFederationService;
 import kr.re.keti.sc.dataservicebroker.datamodel.DataModelManager;
+import kr.re.keti.sc.dataservicebroker.entities.service.hbase.HbaseEntitySVC;
 import kr.re.keti.sc.dataservicebroker.entities.service.hive.HiveEntitySVC;
 import kr.re.keti.sc.dataservicebroker.entities.service.rdb.RdbEntitySVC;
 import kr.re.keti.sc.dataservicebroker.entities.vo.EntityRetrieveVO;
@@ -56,6 +57,9 @@ public class EntityRetrieveSVC {
 	@Autowired(required = false)
 	@Qualifier("hiveDynamicEntitySVC")
 	private HiveEntitySVC hiveEntitySVC;
+	@Autowired(required = false)
+	@Qualifier("hbaseDynamicEntitySVC")
+	private HbaseEntitySVC hbaseEntitySVC;
 	@Autowired
 	private DataModelManager dataModelManager;
 	@Autowired
@@ -278,7 +282,8 @@ public class EntityRetrieveSVC {
 			entities = hiveEntitySVC.selectAll(queryVO, accept);
 
 		} else if (BigDataStorageType.HBASE == dataStorageType) {
-			// TODO: 구현
+			// test by yj <--hiveEntitySVC랑 거의 같음
+			entities = hbaseEntitySVC.selectAll(queryVO, accept);
 		} else {
 			// default
 			totalCount = rdbEntitySVC.selectCount(queryVO);
@@ -553,6 +558,34 @@ public class EntityRetrieveSVC {
 			resultList = new CommonEntityVO();
 		}
 		return resultList;
+	}
+
+	public Integer queryTemporalEntityCountByIdStandalone(QueryVO queryVO) {
+		// 3. 조회할 storageType 설정
+		BigDataStorageType dataStorageType = BigDataStorageType.parseType(queryVO.getDataStorageType());
+		if (dataStorageType == null) {
+			dataStorageType = defaultStorageType;
+		}
+
+		// 4. 리소스 조회
+		int totalCount = 0;
+		if (BigDataStorageType.RDB == dataStorageType) {
+			CommonEntityVO commonEntityVO = rdbEntitySVC.selectTemporalById(queryVO, queryVO.getType());
+			if (commonEntityVO != null) {
+				totalCount = 1;
+			}
+		} else if (BigDataStorageType.HIVE == dataStorageType) {
+			totalCount = hiveEntitySVC.selectTemporalCount(queryVO);
+
+		} else if (BigDataStorageType.HBASE == dataStorageType) {
+			// TODO: 구현
+		} else {
+			CommonEntityVO commonEntityVO = rdbEntitySVC.selectTemporalById(queryVO, queryVO.getType());
+			if (commonEntityVO != null) {
+				totalCount = 1;
+			}
+		}
+		return totalCount;
 	}
 
 	public Integer getTemporalEntityCount(QueryVO queryVO, String queryString, String link) {

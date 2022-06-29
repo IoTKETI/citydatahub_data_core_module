@@ -1,8 +1,6 @@
 package kr.re.keti.sc.dataservicebroker.entities.sqlprovider.hive;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import kr.re.keti.sc.dataservicebroker.common.datamapperhandler.*;
 import org.apache.ibatis.jdbc.SQL;
@@ -12,7 +10,9 @@ import kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode;
 import kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode.DbColumnType;
 import kr.re.keti.sc.dataservicebroker.common.vo.CommonEntityDaoVO;
 import kr.re.keti.sc.dataservicebroker.common.vo.DbConditionVO;
+import kr.re.keti.sc.dataservicebroker.common.vo.entities.DynamicEntityDaoVO;
 import kr.re.keti.sc.dataservicebroker.datamodel.vo.DataModelDbColumnVO;
+import kr.re.keti.sc.dataservicebroker.util.DateUtil;
 import kr.re.keti.sc.dataservicebroker.util.StringUtil;
 
 public class HiveEntitySqlProviderImpl {
@@ -33,6 +33,221 @@ public class HiveEntitySqlProviderImpl {
 	public String refreshTable(CommonEntityDaoVO entityDaoVO) {
 		StringBuilder sql = new StringBuilder();
 		sql.append("REFRESH").append(SPACE).append(entityDaoVO.getDbTableName());
+
+		return sql.toString();
+	}
+
+	public String bulkCreate(List<DynamicEntityDaoVO> entityDaoVOList) {
+		CommonEntityDaoVO commonEntityDaoVO = entityDaoVOList.get(0);
+
+		List<String> tableColumns = commonEntityDaoVO.getTableColumns();
+
+		StringBuilder sql = new StringBuilder();
+		StringBuilder insertBuilder = new StringBuilder();
+		StringBuilder selectBuilder = new StringBuilder();
+		StringBuilder asBuilder = new StringBuilder();
+		StringBuilder valueBuilder = new StringBuilder();
+
+		List<String> compareColumnList = new ArrayList<>(tableColumns);
+
+		insertBuilder.append("INSERT INTO TABLE").append(SPACE);
+		insertBuilder.append(commonEntityDaoVO.getDbTableName()).append(SPACE);
+
+		selectBuilder.append("select").append(SPACE);
+		asBuilder.append(" as (ID, DATASET_ID, CREATED_AT, MODIFIED_AT");
+
+		valueBuilder.append("VALUES ");
+
+		for (int i = 0; i<entityDaoVOList.size(); i++) {
+			CommonEntityDaoVO entityDaoVO = entityDaoVOList.get(i);
+
+			Map<String, DataModelDbColumnVO> dbColumnInfoVOMap = entityDaoVO.getDbColumnInfoVOMap();
+			valueBuilder.append("(");
+			if (dbColumnInfoVOMap != null) {
+				// 2. Default Column 설정
+				valueBuilder.append("'").append(entityDaoVO.get(DataServiceBrokerCode.DefaultAttributeKey.ID.getCode())).append("'")
+						.append(COMMA_WITH_SPACE);
+				valueBuilder.append("'").append(entityDaoVO.get(DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode()))
+						.append("'").append(COMMA_WITH_SPACE);
+				valueBuilder.append("from_utc_timestamp('")
+						.append(DateUtil.dateToDbFormatString((Date) entityDaoVO.get(DataServiceBrokerCode.DefaultAttributeKey.CREATED_AT.getCode()))).append("', 'UTC')")
+						.append(COMMA_WITH_SPACE);
+				valueBuilder.append("from_utc_timestamp('")
+						.append(DateUtil.dateToDbFormatString((Date) entityDaoVO.get(DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode()))).append("', 'UTC')")
+						.append(COMMA_WITH_SPACE);
+
+				compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase("DATASET_ID"));
+				compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase("CREATED_AT"));
+				compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase("MODIFIED_AT"));
+				compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase("ID"));
+
+				// 3. Dynamic Entity Column 설정
+				for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
+
+					if (entityDaoVO.get(dbColumnInfoVO.getDaoAttributeId()) == null) {
+						continue;
+					}
+
+					String daoAttributeId = dbColumnInfoVO.getDaoAttributeId();
+					String columnName = dbColumnInfoVO.getColumnName();
+					DbColumnType dbColumnType = dbColumnInfoVO.getColumnType();
+
+					if (i < 1) asBuilder.append(COMMA_WITH_SPACE).append(columnName);
+
+					compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase(columnName.toUpperCase()));
+
+					if (dbColumnType == DbColumnType.ARRAY_VARCHAR) {
+						ArrayList<String> parameterList = (ArrayList) entityDaoVO.get(daoAttributeId);
+
+						StringBuilder str = new StringBuilder();
+						for(String parameter : parameterList) {
+							if(parameter == null) {
+								str.append("null").append(",");
+								continue;
+							}
+							if(parameter.indexOf("\"") > 0) {
+								parameter = parameter.replace("\"", "\\\"");
+							}
+							str.append("\"").append(parameter).append("\"").append(",");
+						}
+						str.deleteCharAt(str.length() - 1);
+
+						valueBuilder.append("split('").append(str.toString()).append("', ',')")
+								.append(COMMA_WITH_SPACE);
+					} else if (dbColumnType == DbColumnType.ARRAY_INTEGER) {
+						ArrayList<Integer> parameterList = (ArrayList) entityDaoVO.get(daoAttributeId);
+
+						StringBuilder str = new StringBuilder();
+						boolean isNotNull = false;
+
+						for (Integer parameter : parameterList) {
+							if (parameter != null) {
+								isNotNull = true;
+								str.append(parameter.intValue()).append(",");
+							}
+						}
+
+						if (isNotNull) str.deleteCharAt(str.length() - 1);
+
+						valueBuilder.append("split('").append(str.toString()).append("', ',')")
+								.append(COMMA_WITH_SPACE);
+						tableColumns.replaceAll(e -> (e.equals(columnName)) ? "ST_ARRAYINT(" + columnName + ")" : e);
+					} else if (dbColumnType == DbColumnType.ARRAY_FLOAT) {
+						ArrayList<Double> parameterList = (ArrayList) entityDaoVO.get(daoAttributeId);
+
+						StringBuilder str = new StringBuilder();
+						boolean isNotNull = false;
+
+						for (int idx = 0; idx<parameterList.size(); idx++) {
+							Double parameter = parameterList.get(idx);
+
+							if (parameter != null) {
+								isNotNull = true;
+								str.append(parameter.doubleValue()).append(",");
+							}
+						}
+
+						if (isNotNull) {
+							str.deleteCharAt(str.length() - 1);
+						}
+
+						valueBuilder.append("split('").append(str.toString()).append("', ',')")
+								.append(COMMA_WITH_SPACE);
+						tableColumns.replaceAll(e -> (e.equals(columnName)) ? "ST_ARRAYDOUBLE(" + columnName + ")" : e);
+					} else if (dbColumnType == DbColumnType.ARRAY_TIMESTAMP) {
+						ArrayList<Date> parameterList = (ArrayList) entityDaoVO.get(daoAttributeId);
+
+						StringBuilder str = new StringBuilder();
+						boolean isNotNull = false;
+
+						for (Date parameter : parameterList) {
+							if (parameter != null) {
+								isNotNull = true;
+								str.append(DateUtil.dateToDbFormatString(parameter)).append(",");
+							}
+						}
+
+						if (isNotNull) str.deleteCharAt(str.length() - 1);
+
+						valueBuilder.append("split('").append(str.toString()).append("', ',')")
+								.append(COMMA_WITH_SPACE);
+						tableColumns
+								.replaceAll(e -> (e.equals(columnName)) ? "ST_ARRAYTIMESTAMP(" + columnName + ")" : e);
+					} else if (dbColumnType == DbColumnType.ARRAY_BOOLEAN) {
+						ArrayList<Boolean> parameterList = (ArrayList) entityDaoVO.get(daoAttributeId);
+
+						StringBuilder str = new StringBuilder();
+						boolean isNotNull = false;
+
+						for (Boolean parameter : parameterList) {
+							if (parameter != null) {
+								isNotNull = true;
+								str.append(parameter).append(",");
+							}
+						}
+
+						if (isNotNull) str.deleteCharAt(str.length() - 1);
+
+						valueBuilder.append("split('").append(str.toString()).append("', ',')")
+								.append(COMMA_WITH_SPACE);
+						tableColumns
+								.replaceAll(e -> (e.equals(columnName)) ? "ST_ARRAYBOOLEAN(" + columnName + ")" : e);
+					} else if (dbColumnType == DbColumnType.TIMESTAMP) {
+						// valueBuilder.append("from_utc_timestamp('").append(entityDaoVO.get(daoAttributeId)).append("','UTC')")
+						// .append(COMMA_WITH_SPACE);
+						// test by yj <-- 일반 테이블에서 컬럼_createdat, 컬럼_modifiedat 컬럼의 경우 시간이 기록되지 않는 문제 때문에
+						// create나 createFullHist에 있는 코드로 변경
+						valueBuilder.append("from_utc_timestamp(#{").append(daoAttributeId).append("},'UTC')")
+								.append(COMMA_WITH_SPACE);
+					} else if (dbColumnType == DbColumnType.GEOMETRY_4326) {
+						tableColumns.replaceAll(e -> (e.equalsIgnoreCase(columnName))
+								? "ST_AsGeoJson(ST_GeomFromGeoJSON(" + columnName + "))"
+								: (e.equalsIgnoreCase(columnName + "_idx"))
+										? "ST_DISKINDEX(ST_asText(ST_GeomFromGeoJSON(" + columnName + ")))"
+										: e);
+
+						compareColumnList.remove(columnName + "_idx");
+
+						valueBuilder.append("'").append(entityDaoVO.get(daoAttributeId)).append("'").append(COMMA_WITH_SPACE);
+					} else if (dbColumnType == DbColumnType.GEOMETRY_3857) {
+						tableColumns.replaceAll(e -> (e.equalsIgnoreCase(columnName))
+								? "ST_AsGeoJson(ST_Transform(ST_FlipCoordinates(ST_GeomFromGeoJSON(" + columnName
+										+ ")), 'epsg:4326','epsg:3857'))"
+								: e);
+						valueBuilder.append("'").append(entityDaoVO.get(daoAttributeId)).append("'").append(COMMA_WITH_SPACE);
+					} else if (dbColumnType == DbColumnType.BOOLEAN) {
+						valueBuilder.append("'").append(entityDaoVO.get(daoAttributeId)).append("'")
+								.append(COMMA_WITH_SPACE);
+					} else {
+						valueBuilder.append("'").append(entityDaoVO.get(daoAttributeId)).append("'")
+								.append(COMMA_WITH_SPACE);
+					}
+				}
+
+				if (i < 1) {
+					if (!compareColumnList.isEmpty()) {
+						for (String column : compareColumnList) {
+							if (column.equalsIgnoreCase("key")) {
+								asBuilder.append(COMMA_WITH_SPACE).append(column);
+								valueBuilder.append("'").append(entityDaoVO.get(DataServiceBrokerCode.DefaultAttributeKey.ID.getCode()))
+										.append("'").append(COMMA_WITH_SPACE);
+							} else {
+								asBuilder.append(COMMA_WITH_SPACE).append(column);
+								valueBuilder.append("null").append(COMMA_WITH_SPACE);
+							}
+						}
+					}
+
+					String fields = String.join(", ", tableColumns);
+					selectBuilder.append(fields).append(SPACE).append("FROM").append(SPACE);
+				}
+				valueBuilder.deleteCharAt(valueBuilder.length() - 2).append("), ");
+			}
+		}
+		valueBuilder.deleteCharAt(valueBuilder.length() - 2);
+
+		sql.append(insertBuilder.toString()).append(selectBuilder.toString()).append(valueBuilder.toString())
+				.append(asBuilder.toString()).append(")");
 
 		return sql.toString();
 	}
@@ -179,61 +394,159 @@ public class HiveEntitySqlProviderImpl {
 	 * @return 생성된 sql문
 	 */
 	public String replaceAttr(CommonEntityDaoVO entityDaoVO) {
+		StringBuilder sql = new StringBuilder();
+		StringBuilder select = new StringBuilder();
+		StringBuilder update = new StringBuilder();
+		StringBuilder insertColumns = new StringBuilder();
+		StringBuilder insertValues = new StringBuilder();
 
-		SQL sql = new SQL() {
-			{
-				// 1. 테이블명 설정
-				UPDATE(entityDaoVO.getDbTableName());
-				Map<String, DataModelDbColumnVO> dbColumnInfoVOMap = entityDaoVO.getDbColumnInfoVOMap();
-				if (dbColumnInfoVOMap != null) {
+		sql.append("MERGE INTO").append(SPACE).append(entityDaoVO.getDbTableName()).append(SPACE).append("as target")
+				.append(SPACE);
+		sql.append("USING (select").append(SPACE);
+		Map<String, DataModelDbColumnVO> dbColumnInfoVOMap = entityDaoVO.getDbColumnInfoVOMap();
+		if (dbColumnInfoVOMap != null) {
 
-					// 2. Default Column 설정
-					SET("MODIFIED_AT = #{" + DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode() + "}");
+			// 2. Default Column 설정
+			select.append("#{" + DataServiceBrokerCode.DefaultAttributeKey.ID.getCode() + "} as ID")
+					.append(COMMA_WITH_SPACE);
 
-					if (entityDaoVO.get(DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode()) != null) {
-						SET("DATASET_ID = #{" + DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode() + "}");
-					}
+			select.append("from_utc_timestamp(#{")
+					.append(DataServiceBrokerCode.DefaultAttributeKey.CREATED_AT.getCode())
+					.append("}, 'UTC') as CREATED_AT").append(COMMA_WITH_SPACE);
 
-					// 3. Dynamic Entity Column 설정
-					for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
+			// select.append("from_utc_timestamp(#{").append(
+			// "#{" + DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode() + "},
+			// 'UTC') as MODIFIED_AT")
+			// .append(COMMA_WITH_SPACE);
+			// test by yj <-- #{ 가 2개여서 하나 삭제
+			select.append("from_utc_timestamp(#{").append(
+					DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode() + "}, 'UTC') as MODIFIED_AT")
+					.append(COMMA_WITH_SPACE);
 
-						String daoAttributeId = dbColumnInfoVO.getDaoAttributeId();
-						String columnName = dbColumnInfoVO.getColumnName();
-						DbColumnType dbColumnType = dbColumnInfoVO.getColumnType();
+			if (entityDaoVO.get(DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode()) != null) {
+				select.append("#{" + DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode() + "} as DATASET_ID")
+						.append(COMMA_WITH_SPACE);
+			}
 
-						if (dbColumnType == DbColumnType.VARCHAR) {
-							SET(columnName + " = #{" + daoAttributeId + ", jdbcType=VARCHAR}");
-						} else if (dbColumnType == DbColumnType.INTEGER) {
-							SET(columnName + " = #{" + daoAttributeId + ", jdbcType=INTEGER}");
-						} else if (dbColumnType == DbColumnType.FLOAT) {
-							SET(columnName + " = #{" + daoAttributeId + ", jdbcType=FLOAT}");
-						} else if (dbColumnType == DbColumnType.ARRAY_VARCHAR) {
-							SET(columnName + " = split(#{" + daoAttributeId + ", typeHandler=" + StringArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ',')");
-						} else if (dbColumnType == DbColumnType.ARRAY_INTEGER) {
-							SET(columnName + " = ST_ARRAYINT(split(#{" + daoAttributeId + ", typeHandler=" + HiveIntegerArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ','))");
-						} else if (dbColumnType == DbColumnType.ARRAY_FLOAT) {
-							SET(columnName + " = ST_ARRAYDOUBLE(split(#{" + daoAttributeId + ", typeHandler=" + HiveDoubleArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ','))");
-						} else if (dbColumnType == DbColumnType.ARRAY_BOOLEAN) {
-							SET(columnName + " = ST_ARRAYBOOLEAN(split(#{" + daoAttributeId + ", typeHandler=" + HiveBooleanArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ','))");
-						} else if (dbColumnType == DbColumnType.ARRAY_TIMESTAMP) {
-							SET(columnName + " = ST_ARRAYTIMESTAMP(split(#{" + daoAttributeId + ", typeHandler=" + HiveDateArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ','))");
-						} else if (dbColumnType == DbColumnType.TIMESTAMP) {
-							SET(columnName + " = #{" + daoAttributeId + ", jdbcType=TIMESTAMP}");
-						} else if (dbColumnType == DbColumnType.GEOMETRY_4326) {
-							SET(columnName + " = ST_AsGeoJson(ST_GeomFromGeoJSON(#{" + daoAttributeId + "}))");
-							SET(columnName + "_idx" + " = ST_DISKINDEX(ST_asText(ST_GeomFromGeoJSON(#{" + daoAttributeId + "})))");
-						} else if (dbColumnType == DbColumnType.GEOMETRY_3857) {
-							SET(columnName + " = ST_AsGeoJson(ST_Transform(ST_FlipCoordinates(ST_GeomFromGeoJSON(#{" + daoAttributeId + "})), 'epsg:4326','epsg:3857'))");
-						} else {
-							SET(columnName + " = #{" + daoAttributeId + "}");
-						}
+			update.append("MODIFIED_AT = source.MODIFIED_AT").append(COMMA_WITH_SPACE);
+
+			if (entityDaoVO.get(DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode()) != null) {
+				update.append("DATASET_ID = source.DATASET_ID").append(COMMA_WITH_SPACE);
+			}
+
+			insertColumns.append("ID").append(COMMA_WITH_SPACE);
+			insertColumns.append("CREATED_AT").append(COMMA_WITH_SPACE);
+			insertColumns.append("MODIFIED_AT").append(COMMA_WITH_SPACE);
+
+			if (entityDaoVO.get(DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode()) != null) {
+				insertColumns.append("DATASET_ID").append(COMMA_WITH_SPACE);
+			}
+
+			insertValues.append("source.ID").append(COMMA_WITH_SPACE);
+			insertValues.append("source.CREATED_AT").append(COMMA_WITH_SPACE);
+			insertValues.append("source.MODIFIED_AT").append(COMMA_WITH_SPACE);
+
+			if (entityDaoVO.get(DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode()) != null) {
+				insertValues.append("source.DATASET_ID").append(COMMA_WITH_SPACE);
+			}
+
+			// 3. Dynamic Entity Column 설정
+			Set<String> updateQueryCols = entityDaoVO.keySet();
+			for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
+				String daoAttributeId = dbColumnInfoVO.getDaoAttributeId();
+				String columnName = dbColumnInfoVO.getColumnName();
+				DbColumnType dbColumnType = dbColumnInfoVO.getColumnType();
+
+				if (dbColumnType == DbColumnType.VARCHAR) {
+					select.append("#{" + daoAttributeId + ", jdbcType=VARCHAR} as ").append(columnName)
+							.append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.INTEGER) {
+					select.append("#{" + daoAttributeId + ", jdbcType=INTEGER} as ").append(columnName)
+							.append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.FLOAT) {
+					select.append("#{" + daoAttributeId + ", jdbcType=FLOAT} as ").append(columnName)
+							.append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.BOOLEAN) {
+					select.append("#{").append(daoAttributeId).append(", jdbcType=BOOLEAN} as ").append(columnName)
+							.append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.ARRAY_VARCHAR) {
+					select.append("split(#{" + daoAttributeId + ", typeHandler="
+							+ StringArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ',') as ")
+							.append(columnName).append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.ARRAY_INTEGER) {
+					select.append("ST_ARRAYINT(split(#{" + daoAttributeId + ", typeHandler="
+							+ HiveIntegerArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ',')) as ")
+							.append(columnName).append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.ARRAY_FLOAT) {
+					select.append("ST_ARRAYDOUBLE(split(#{" + daoAttributeId + ", typeHandler="
+							+ HiveDoubleArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ',')) as ")
+							.append(columnName).append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.ARRAY_BOOLEAN) {
+					select.append("ST_ARRAYBOOLEAN(split(#{" + daoAttributeId + ", typeHandler="
+							+ HiveBooleanArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ',')) as ")
+							.append(columnName).append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.ARRAY_TIMESTAMP) {
+					select.append("ST_ARRAYTIMESTAMP(split(#{" + daoAttributeId + ", typeHandler="
+							+ HiveDateArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ',')) as ")
+							.append(columnName).append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.TIMESTAMP) {
+					select.append("#{" + daoAttributeId + ", jdbcType=TIMESTAMP} as ").append(columnName)
+							.append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.GEOMETRY_4326) {
+					select.append("ST_AsGeoJson(ST_GeomFromGeoJSON(#{" + daoAttributeId + "})) as ").append(columnName)
+							.append(COMMA_WITH_SPACE);
+					select.append("ST_DISKINDEX(ST_asText(ST_GeomFromGeoJSON(#{" + daoAttributeId + "}))) as ")
+							.append(columnName).append("_idx").append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.GEOMETRY_3857) {
+					select.append("ST_AsGeoJson(ST_Transform(ST_FlipCoordinates(ST_GeomFromGeoJSON(#{" + daoAttributeId
+							+ "})), 'epsg:4326','epsg:3857')) as ").append(columnName).append(COMMA_WITH_SPACE);
+				} else {
+					select.append("#{" + daoAttributeId + "} as ").append(columnName).append(COMMA_WITH_SPACE);
+				}
+
+				// yj <-- update 되는 값에 대해서만 set 쿼리를 구성하도록 필터링 추가
+				if (updateQueryCols.contains(columnName)) {
+					update.append(columnName).append(" = ").append("source.").append(columnName).append(COMMA_WITH_SPACE);
+
+					if (dbColumnType == DbColumnType.GEOMETRY_4326) {
+						update.append(columnName).append("_idx").append(" = ").append("source.").append(columnName)
+								.append("_idx").append(COMMA_WITH_SPACE);
 					}
 				}
-				// 4. WHERE 절 설정
-				WHERE("ID = #{id}");
-				WHERE("MODIFIED_AT <= #{modifiedAt}");
+
+				insertColumns.append(columnName).append(COMMA_WITH_SPACE);
+
+				if (dbColumnType == DbColumnType.GEOMETRY_4326) {
+					insertColumns.append(columnName).append("_idx").append(COMMA_WITH_SPACE);
+				}
+
+				insertValues.append("source.").append(columnName).append(COMMA_WITH_SPACE);
+
+				if (dbColumnType == DbColumnType.GEOMETRY_4326) {
+					insertValues.append("source.").append(columnName).append("_idx").append(COMMA_WITH_SPACE);
+				}
 			}
-		};
+		}
+
+		// 마지막 콤마 제거 ex) column, ) -> column)
+		select.deleteCharAt(select.length() - 2);
+		sql.append(select).append(") as source").append(SPACE);
+
+		sql.append("ON target.ID = source.ID").append(SPACE);
+
+		sql.append("WHEN MATCHED THEN UPDATE SET").append(SPACE);
+
+		update.deleteCharAt(update.length() - 2);
+		sql.append(update).append(SPACE);
+
+		sql.append("WHEN NOT MATCHED THEN INSERT (");
+
+		insertColumns.deleteCharAt(insertColumns.length() - 2);
+		sql.append(insertColumns).append(") VALUES (");
+
+		insertValues.deleteCharAt(insertValues.length() - 2);
+		sql.append(insertValues).append(");");
+
 		return sql.toString();
 	}
 

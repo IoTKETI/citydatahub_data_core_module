@@ -83,7 +83,6 @@ public class DatasetFlowSVC {
 		}
 	}
 
-
 	/**
 	 * 데이터 셋 흐름 생성
 	 * @param to 데이터 셋 정보 수정 요청 수신 url
@@ -149,7 +148,10 @@ public class DatasetFlowSVC {
 				if(useBigDataStorage(datasetFlowBaseVO.getBigDataStorageTypes())) {
 
 					try {
-						createBigdataTable(dataModelCacheVO.getDataModelVO(), datasetFlowBaseVO.getBigDataStorageTypes());
+						// createBigdataTable(dataModelCacheVO.getDataModelVO(),
+						// datasetFlowBaseVO.getBigDataStorageTypes());
+						// test by yj <-- createBigdataTable이 dataModelVO가 아닌 dataModelCacheVO를 받아오도록 수정
+						createBigdataTable(dataModelCacheVO, datasetFlowBaseVO.getBigDataStorageTypes());
 					} catch (Exception e) {
 						throw new InternalServerErrorException(ErrorCode.CREATE_ENTITY_TABLE_ERROR,
 			                    "Create Bigdata Table error. datasetId=" + datasetId + ", dataModel=" + dataModelBaseVO.getDataModel());
@@ -210,15 +212,16 @@ public class DatasetFlowSVC {
 		dataModelSVC.updateDataModelStorage(dataModelBaseVO);
 	}
 
-
 	/**
-     * HBase 및 Hive 테이블 생성
-     * @param dataModelVO 테이터모델 정보
-     * @param bigDataStorageTypes 빅데이터 저장 유형 리스트
-     * @throws Exception
-     */
-    private void createBigdataTable(DataModelVO dataModelVO, List<BigDataStorageType> bigDataStorageTypes) throws Exception {
-    	String ddl = hiveDataModelSqlProvider.generateCreateTableDdl(dataModelVO);
+	 * HBase 및 Hive 테이블 생성
+	 *
+	 * @param dataModelCacheVO    데이터모델캐시 정보
+	 * @param bigDataStorageTypes 빅데이터 저장 유형 리스트
+	 * @throws Exception
+	 */
+	private void createBigdataTable(DataModelCacheVO dataModelCacheVO, List<BigDataStorageType> bigDataStorageTypes)
+			throws Exception {
+		String ddl = hiveDataModelSqlProvider.generateCreateTableDdl(dataModelCacheVO);
 		String[] sqls = ddl.split(" CREATEHIVETABLE ");
 		
 		boolean storeInHbase = false;
@@ -424,7 +427,7 @@ public class DatasetFlowSVC {
 
     /**
      * DatasetFlow API 요청 파라미터를 DB입력 VO 로 변환
-     * @param datasetFlowVO
+     * @param datasetFlowProvisioningVO
      * @return
      */
     private DatasetFlowBaseVO datasetFlowVOToDatasetFlowBaseVO(DatasetFlowProvisioningVO datasetFlowProvisioningVO) {
@@ -458,9 +461,7 @@ public class DatasetFlowSVC {
 
     /**
      * 데이터 모델 정보 기반으로 데이터 셋 흐름 정보 조회
-     * @param namespace 데이터모델 namespace
-     * @param type 데이터모델 type
-     * @param version 데이터모델 version
+     * @param dataModelId 데이터모델 ID
      * @return
      */
     public List<DatasetFlowBaseVO> getDatasetFlowByDataModel(String dataModelId) {
@@ -535,4 +536,3 @@ public class DatasetFlowSVC {
     	return false;
 	}
 }
-

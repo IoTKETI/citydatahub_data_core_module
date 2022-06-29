@@ -21,6 +21,7 @@ import kr.re.keti.sc.dataservicebroker.common.vo.CommonEntityFullVO;
 import kr.re.keti.sc.dataservicebroker.common.vo.EntityProcessVO;
 import kr.re.keti.sc.dataservicebroker.common.vo.IngestMessageVO;
 import kr.re.keti.sc.dataservicebroker.datamodel.DataModelManager;
+import kr.re.keti.sc.dataservicebroker.datamodel.vo.DataModelCacheVO;
 import kr.re.keti.sc.dataservicebroker.entities.service.EntitySVCInterface;
 import kr.re.keti.sc.dataservicebroker.notification.NotificationManager;
 import kr.re.keti.sc.dataservicebroker.notification.vo.NotificationProcessVO;
@@ -38,6 +39,9 @@ public class EntityBulkProcessor<T1 extends CommonEntityFullVO, T2 extends Commo
 	@Autowired(required = false)
 	@Qualifier("hiveDynamicEntitySVC")
 	private EntitySVCInterface<T1, T2> hiveEntitySVC;
+	@Autowired(required = false)
+	@Qualifier("hbaseDynamicEntitySVC")
+	private EntitySVCInterface<T1, T2> hbaseEntitySVC;
 	@Autowired
 	private NotificationManager notificationManager;
 	@Autowired
@@ -88,8 +92,10 @@ public class EntityBulkProcessor<T1 extends CommonEntityFullVO, T2 extends Commo
 		        storeErrorHistory(processVOList);
 			}
 			// HBASE 적재 (추후 분기하여 구현)
-			if(bigDataStorageTypes.contains(BigDataStorageType.HBASE)) {
-				
+			if (bigDataStorageTypes.contains(BigDataStorageType.HBASE)) {
+				processVOList = hiveEntitySVC.processBulk(requestMessageVOList);
+				// 에러 발생 시 이력 저장
+				storeErrorHistory(processVOList);
 			}
 		}
 
@@ -118,23 +124,29 @@ public class EntityBulkProcessor<T1 extends CommonEntityFullVO, T2 extends Commo
             	
             	T2 entityDaoVO = entityProcessVO.getEntityDaoVO();
 
-            	// 실제 수행된 Operation이 DELETE_ENTITY 인 경우 Notification 전송 하지 않음
-            	Operation processOperation = entityProcessVO.getProcessResultVO().getProcessOperation();
-            	if(processOperation == Operation.DELETE_ENTITY) {
-            		continue;
-            	}
+				// 실제 수행된 Operation이 CREATE_ENTITY or DELETE_ENTITY 인 경우 Notification 전송 하지 않음
+				Operation processOperation = entityProcessVO.getProcessResultVO().getProcessOperation();
+				if (processOperation == Operation.CREATE_ENTITY || processOperation == Operation.DELETE_ENTITY) {
+					continue;
+				}
+				// 21-12-09	EntityTypeUri를 가져오기 위해 dataModelCacheVO 객체 추가
+				// by Logan
+				DataModelCacheVO dataModelCacheVO = entityProcessVO.getDataModelCacheVO();
 
-            	NotificationProcessVO notificationProcessVO = new NotificationProcessVO();
-            	notificationProcessVO.setEntityId(entityDaoVO.getId());
-            	notificationProcessVO.setEntityType(entityProcessVO.getEntityFullVO().getType());
-            	notificationProcessVO.setEntityTypeUri(entityProcessVO.getDataModelCacheVO().getDataModelVO().getTypeUri());
-            	notificationProcessVO.setDatasetId(entityProcessVO.getDatasetId());
-            	notificationProcessVO.setEventTime(entityDaoVO.getModifiedAt());
-            	notificationProcessVO.setRequestEntityFullVO(entityProcessVO.getEntityFullVO());
-            	notificationManager.produceData(notificationProcessVO);
-            }
-    	}
-    }
+				NotificationProcessVO notificationProcessVO = new NotificationProcessVO();
+				notificationProcessVO.setEntityId(entityDaoVO.getId());
+				// DatasetId , EntityTypeUri 추가로 보내줌.
+				// by Logan
+				notificationProcessVO.setDatasetId(entityDaoVO.getDatasetId());
+				notificationProcessVO.setEntityTypeUri(dataModelCacheVO.getDataModelVO().getTypeUri());
+
+				notificationProcessVO.setEntityType(entityProcessVO.getEntityFullVO().getType());
+				notificationProcessVO.setEventTime(entityDaoVO.getModifiedAt());
+				notificationProcessVO.setRequestEntityFullVO(entityProcessVO.getEntityFullVO());
+				notificationManager.produceData(notificationProcessVO);
+			}
+		}
+	}
 
     /**
      * 처리결과가 false인 항목들에 대해 에러 처리
