@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
+import kr.re.keti.sc.dataservicebroker.dataset.service.DatasetRetrieveSVC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DataLifeCycleProcessor {
 
     @Autowired
-    private DatasetSVC datasetSVC;
+    private DatasetRetrieveSVC datasetRetrieveSVC;
     @Autowired
     private DataLifeCyleDAO dataLifeCyleDAO;
     @Autowired
@@ -32,7 +33,7 @@ public class DataLifeCycleProcessor {
     public void excute() {
 
 
-        List<DatasetBaseVO> datasetBaseVOList = datasetSVC.getDatasetVOList();
+        List<DatasetBaseVO> datasetBaseVOList = datasetRetrieveSVC.getDatasetVOList();
 
         for (DatasetBaseVO datasetBaseVO : datasetBaseVOList) {
 

@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.Map;
 
 import kr.re.keti.sc.dataservicebroker.common.code.Constants;
+import kr.re.keti.sc.dataservicebroker.datafederation.service.DataFederationProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -46,25 +48,19 @@ import kr.re.keti.sc.dataservicebroker.util.QueryUtil;
 import kr.re.keti.sc.dataservicebroker.util.ValidateUtil;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nullable;
+
 @Service
 @Slf4j
 public class EntityRetrieveSVC {
 
-	@Autowired
-	@Qualifier("rdbDynamicEntitySVC")
-	private RdbEntitySVC rdbEntitySVC;
-	@Autowired(required = false)
-	@Qualifier("hiveDynamicEntitySVC")
-	private HiveEntitySVC hiveEntitySVC;
-	@Autowired
-	private DataModelManager dataModelManager;
-	@Autowired
-	private CsourceRegistrationManager csourceRegistrationManager;
-	@Autowired
-	private RestTemplate restTemplate;
-	@Autowired
-	private DataFederationService dataFederationSVC;
-	
+	private final RdbEntitySVC rdbEntitySVC;
+	private final HiveEntitySVC hiveEntitySVC;
+	private final DataModelManager dataModelManager;
+	private final CsourceRegistrationManager csourceRegistrationManager;
+	private final RestTemplate restTemplate;
+	private final DataFederationProperty federationProperty;
+
 	private final String BROKER_URI_GET_ENTITY = "/entities";
 	private final String BROKER_URI_GET_ENTITY_COUNT = "/entitycount";
 	private final String BROKER_URI_GET_TEMPORAL_ENTITY = "/temporal/entities";
@@ -75,10 +71,26 @@ public class EntityRetrieveSVC {
 	@Value("${entity.validation.id-pattern.enabled:true}")
 	private Boolean validateIdPatternEnabled;
 
+	public EntityRetrieveSVC(
+			RdbEntitySVC rdbDynamicEntitySVC,
+			@Nullable HiveEntitySVC hiveDynamicEntitySVC,
+			DataModelManager dataModelManager,
+			CsourceRegistrationManager csourceRegistrationManager,
+			RestTemplate restTemplate,
+			DataFederationProperty federationProperty
+	) {
+		this.rdbEntitySVC = rdbDynamicEntitySVC;
+		this.hiveEntitySVC = hiveDynamicEntitySVC;
+		this.dataModelManager = dataModelManager;
+		this.csourceRegistrationManager = csourceRegistrationManager;
+		this.restTemplate = restTemplate;
+		this.federationProperty = federationProperty;
+	}
+
 	public CommonEntityVO getEntityById(QueryVO queryVO, String queryString, String accept, String link) {
 
 		// standalone 으로 동작
-		if (!dataFederationSVC.enableFederation()) {
+		if (federationProperty.getStandalone()) {
 			return queryEntityByIdStandalone(queryVO, accept);
 			
 		// data-registry 연계
@@ -94,7 +106,7 @@ public class EntityRetrieveSVC {
 				for(CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationVOs) {
 
 					// 3-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
-					if(dataFederationSVC.getFederationCsourceId().equals(csourceRegistrationVO.getId())) {
+					if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
 
 						try {
 							entity = queryEntityByIdStandalone(queryVO, accept);
@@ -125,12 +137,16 @@ public class EntityRetrieveSVC {
 		}
 	}
 
+	public EntityRetrieveVO getEntityStandalone(QueryVO queryVO, String queryString, String accept, String link) {
+		return queryEntityStandalone(queryVO, accept);
+	}
+
 	public EntityRetrieveVO getEntity(QueryVO queryVO, String queryString, String accept, String link) {
 
 		// standalone 으로 동작
-		if (!dataFederationSVC.enableFederation()) {
+		if (federationProperty.getStandalone()) {
 			return queryEntityStandalone(queryVO, accept);
-			
+
 		// data-registry 연계
 		} else {
 
@@ -144,7 +160,7 @@ public class EntityRetrieveSVC {
 				for(CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationVOs) {
 
 					// 3-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
-					if(dataFederationSVC.getFederationCsourceId().equals(csourceRegistrationVO.getId())) {
+					if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
 						EntityRetrieveVO entityRetrieveVO = queryEntityStandalone(queryVO, accept);
 						entityRetrieveVOs.add(entityRetrieveVO);
 					// 3-2. 대상이 원격 서비스브로커인 경우 HTTP 로 요청
@@ -188,7 +204,7 @@ public class EntityRetrieveSVC {
 	public Integer getEntityCount(QueryVO queryVO, String queryString, String link) {
 
 		// standalone 으로 동작
-		if (!dataFederationSVC.enableFederation()) {
+		if (federationProperty.getStandalone()) {
 			return queryEntityCountStandalone(queryVO);
 			
 		// data-registry 연계
@@ -204,7 +220,7 @@ public class EntityRetrieveSVC {
 				for(CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationVOs) {
 
 					// 3-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
-					if(dataFederationSVC.getFederationCsourceId().equals(csourceRegistrationVO.getId())) {
+					if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
 						
 						totalCount += queryEntityCountStandalone(queryVO);
 
@@ -409,7 +425,7 @@ public class EntityRetrieveSVC {
 	public List<CommonEntityVO> getTemporalEntity(QueryVO queryVO, String queryString, String accept, String link) {
 
 		// standalone 으로 동작
-		if (!dataFederationSVC.enableFederation()) {
+		if (federationProperty.getStandalone()) {
 			return queryTemporalEntityStandalone(queryVO, accept);
 			
 		// data-registry 연계
@@ -425,7 +441,7 @@ public class EntityRetrieveSVC {
 				for(CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationVOs) {
 
 					// 3-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
-					if(dataFederationSVC.getFederationCsourceId().equals(csourceRegistrationVO.getId())) {
+					if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
 						List<CommonEntityVO> entities = queryTemporalEntityStandalone(queryVO, accept);
 						if(entities != null) {
 							totalEntities.addAll(entities);
@@ -453,7 +469,7 @@ public class EntityRetrieveSVC {
 	public CommonEntityVO getTemporalEntityById(QueryVO queryVO, String queryString, String accept, String link) {
 
 		// standalone 으로 동작
-		if (!dataFederationSVC.enableFederation()) {
+		if (federationProperty.getStandalone()) {
 			return queryTemporalEntityByIdStandalone(queryVO, accept);
 			
 		// data-registry 연계
@@ -468,7 +484,7 @@ public class EntityRetrieveSVC {
 				for(CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationVOs) {
 
 					// 3-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
-					if(dataFederationSVC.getFederationCsourceId().equals(csourceRegistrationVO.getId())) {
+					if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
 						
 						try {
 							CommonEntityVO entity = queryTemporalEntityByIdStandalone(queryVO, accept);
@@ -558,7 +574,7 @@ public class EntityRetrieveSVC {
 	public Integer getTemporalEntityCount(QueryVO queryVO, String queryString, String link) {
 
 		// standalone 으로 동작
-		if (!dataFederationSVC.enableFederation()) {
+		if (federationProperty.getStandalone()) {
 			return queryTemporalEntityCountStandalone(queryVO);
 			
 		// data-registry 연계
@@ -574,7 +590,7 @@ public class EntityRetrieveSVC {
 				for(CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationVOs) {
 
 					// 3-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
-					if(dataFederationSVC.getFederationCsourceId().equals(csourceRegistrationVO.getId())) {
+					if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
 						
 						totalCount += queryTemporalEntityCountStandalone(queryVO);
 

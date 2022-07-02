@@ -6,11 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
-import kr.re.keti.sc.dataservicebroker.common.vo.entities.DynamicEntityDaoVO;
-import kr.re.keti.sc.dataservicebroker.common.vo.entities.DynamicEntityFullVO;
 import kr.re.keti.sc.dataservicebroker.entities.dao.hive.HiveEntityDAO;
 import kr.re.keti.sc.dataservicebroker.entities.dao.rdb.RdbEntityDAO;
-import kr.re.keti.sc.dataservicebroker.entities.service.EntitySVCInterface;
 import kr.re.keti.sc.dataservicebroker.entities.service.hive.HiveEntitySVC;
 import kr.re.keti.sc.dataservicebroker.entities.service.rdb.RdbEntitySVC;
 
@@ -20,7 +17,7 @@ public class EntityConfiguration {
 	@Bean
 	@Primary
 	@Qualifier("rdbDynamicEntitySVC")
-    protected EntitySVCInterface<DynamicEntityFullVO, DynamicEntityDaoVO> rdbDynamicEntitySVC() {
+    protected RdbEntitySVC rdbDynamicEntitySVC() {
 		RdbEntitySVC rdbEntitySVC = new RdbEntitySVC();
 		rdbEntitySVC.setEntityDAOInterface(rdbEntityDAO());
         return rdbEntitySVC;
@@ -36,7 +33,7 @@ public class EntityConfiguration {
 	@Bean
 	@Qualifier("hiveDynamicEntitySVC")
 	@ConditionalOnProperty(value="datasource.hive.use.yn", havingValue = "Y", matchIfMissing = false)
-	protected EntitySVCInterface<DynamicEntityFullVO, DynamicEntityDaoVO> hiveDynamicEntitySVC() {
+	protected HiveEntitySVC hiveDynamicEntitySVC() {
 		HiveEntitySVC hiveEntitySVC = new HiveEntitySVC();
 		hiveEntitySVC.setEntityDAOInterface(hiveEntityDAO());
         return hiveEntitySVC;

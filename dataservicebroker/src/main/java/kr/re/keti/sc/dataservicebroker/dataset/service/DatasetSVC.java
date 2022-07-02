@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import kr.re.keti.sc.dataservicebroker.datasetflow.service.DatasetFlowRetrieveSVC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,19 +24,27 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DatasetSVC {
 
-    @Autowired
-    private DatasetDAO datasetDAO;
-    @Autowired
-    private DatasetFlowSVC datasetFlowSVC;
-    @Autowired
-    private DataModelManager dataModelManager;
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final DatasetDAO datasetDAO;
+    private final DatasetFlowRetrieveSVC datasetFlowRetrieveSVC;
+    private final DataModelManager dataModelManager;
+    private final ObjectMapper objectMapper;
+
     /** dataset request uri pattern */
     private final Pattern URI_PATTERN_DATASET = Pattern.compile("/datasets/(?<datasetId>.+)");
 
+	public DatasetSVC(
+			DatasetDAO datasetDAO,
+			DatasetFlowRetrieveSVC datasetFlowRetrieveSVC,
+			DataModelManager dataModelManager,
+			ObjectMapper objectMapper
+	) {
+		this.datasetDAO = datasetDAO;
+		this.datasetFlowRetrieveSVC = datasetFlowRetrieveSVC;
+		this.dataModelManager = dataModelManager;
+		this.objectMapper = objectMapper;
+	}
 
-    /**
+	/**
      * 데이터 셋 정보 생성
      * @param requestBody 요청 Body
      * @param requestId Provisioning Request Id
@@ -120,7 +129,7 @@ public class DatasetSVC {
 	        String updateDataModelId = datasetBaseVO.getDataModelId();
 	        if(currentDataModelId != null && updateDataModelId != null && !currentDataModelId.equals(updateDataModelId)) {
 	        	// 데이터모델은 데이터셋 흐름이 생성되어 있지 않은 경우만 수정이 가능
-	        	if(datasetFlowSVC.getDatasetFlowBaseVOById(datasetBaseVO.getId()) != null) {
+	        	if(datasetFlowRetrieveSVC.getDatasetFlowBaseVOById(datasetBaseVO.getId()) != null) {
 	            	throw new BadRequestException(ErrorCode.INVALID_PARAMETER, 
 	            			"Cannot change dataModel. Using in datasetFlow."
 	            			+ "datasetId=" + datasetBaseVO.getId() + ", using dataModelId=" + currentDataModelId);
@@ -195,12 +204,6 @@ public class DatasetSVC {
     	return false;
 	}
 
-    public List<DatasetBaseVO> getDatasetVOList() {
-        return datasetDAO.getDatasetVOList();
-    }
 
-    public DatasetBaseVO getDatasetVOById(String id) {
-        return datasetDAO.getDatasetVOById(id);
-    }
 
 }

@@ -10,7 +10,11 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import kr.re.keti.sc.dataservicebroker.acl.rule.service.AclRuleRetrieveSVC;
 import kr.re.keti.sc.dataservicebroker.common.exception.ngsild.NgsiLdBadRequestException;
+import kr.re.keti.sc.dataservicebroker.datamodel.service.DataModelRetrieveSVC;
+import kr.re.keti.sc.dataservicebroker.dataset.service.DatasetRetrieveSVC;
+import kr.re.keti.sc.dataservicebroker.datasetflow.service.DatasetFlowRetrieveSVC;
 import kr.re.keti.sc.dataservicebroker.jsonldcontext.service.JsonldContextSVC;
 import kr.re.keti.sc.dataservicebroker.jsonldcontext.vo.JsonldContextBaseVO;
 import kr.re.keti.sc.dataservicebroker.jsonldcontext.vo.JsonldContextCacheVO;
@@ -66,49 +70,47 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DataModelManager {
 
-    @Autowired
-    private DataModelSVC dataModelSVC;
-    @Autowired
-    private DatasetSVC datasetSVC;
-    @Autowired
-    private DatasetFlowSVC datasetFlowSVC;
-    @Autowired
-    private AclRuleSVC aclRuleSVC;
-    @Autowired
-    private JsonldContextSVC jsonldContextSVC;
-    
-    @Autowired
-    private ObjectMapper objectMapper;
-    @Autowired
-    private RestTemplate restTemplate;
+    private final DataModelRetrieveSVC dataModelRetrieveSVC;
+    private final DatasetRetrieveSVC datasetRetrieveSVC;
+    private final DatasetFlowRetrieveSVC datasetFlowRetrieveSVC;
+    private final AclRuleRetrieveSVC aclRuleRetrieveSVC;
+    private final JsonldContextSVC jsonldContextSVC;
+    private final ObjectMapper objectMapper;
+    private final RestTemplate restTemplate;
 
     @Value("${cache.jsonld-context.max-age-second:3600}")
     private Integer defaultJsonldContextCacheAge;
 
-    /**
-     * DataModelBaseVO 메모리 저장 캐쉬
-     */
+    /** DataModelBaseVO 메모리 저장 캐쉬 */
     private Map<String, DataModelCacheVO> dataModelCache;
-    /**
-     * DatasetBaseVO 메모리 저장 캐쉬
-     */
+    /** DatasetBaseVO 메모리 저장 캐쉬 */
     private Map<String, DatasetBaseVO> datasetCache;
-    /**
-     * DatasetFlowBaseVO 메모리 저장 캐쉬
-     */
+    /** DatasetFlowBaseVO 메모리 저장 캐쉬 */
     private Map<String, DatasetFlowBaseVO> datasetFlowCache;
-    /**
-     * AclRuleVO 메모리 저장 캐쉬
-     */
+    /** AclRuleVO 메모리 저장 캐쉬 */
     private Map<String, AclRuleVO> aclRuleCache;
-    /**
-     * cache load lock object
-     */
+    /** cache load lock object */
     private final Object lock = new Object();
 
     private Map<String, JsonldContextCacheVO> contextCache;
-    
-    public DataModelManager() {
+
+    public DataModelManager(
+            DataModelRetrieveSVC dataModelRetrieveSVC,
+            DatasetRetrieveSVC datasetRetrieveSVC,
+            DatasetFlowRetrieveSVC datasetFlowRetrieveSVC,
+            AclRuleRetrieveSVC aclRuleRetrieveSVC,
+            JsonldContextSVC jsonldContextSVC,
+            ObjectMapper objectMapper,
+            RestTemplate restTemplate
+    ) {
+        this.dataModelRetrieveSVC = dataModelRetrieveSVC;
+        this.datasetRetrieveSVC = datasetRetrieveSVC;
+        this.datasetFlowRetrieveSVC = datasetFlowRetrieveSVC;
+        this.aclRuleRetrieveSVC = aclRuleRetrieveSVC;
+        this.jsonldContextSVC = jsonldContextSVC;
+        this.objectMapper = objectMapper;
+        this.restTemplate = restTemplate;
+
         dataModelCache = new ConcurrentHashMap<>();
         datasetCache = new HashMap<>();
         datasetFlowCache = new HashMap<>();
@@ -328,7 +330,7 @@ public class DataModelManager {
             }
 
             // 1. 데이터모델 캐쉬 로딩
-            List<DataModelBaseVO> dataModelBaseVOList = dataModelSVC.getDataModelBaseVOList();
+            List<DataModelBaseVO> dataModelBaseVOList = dataModelRetrieveSVC.getDataModelBaseVOList();
             if (dataModelBaseVOList != null) {
                 for (DataModelBaseVO dataModelBaseVO : dataModelBaseVOList) {
                     putDataModelCache(dataModelBaseVO);
@@ -336,7 +338,7 @@ public class DataModelManager {
             }
 
             // 2. 데이터셋 캐쉬 로딩
-            List<DatasetBaseVO> datasetBaseVOList = datasetSVC.getDatasetVOList();
+            List<DatasetBaseVO> datasetBaseVOList = datasetRetrieveSVC.getDatasetVOList();
             if (datasetBaseVOList != null) {
                 for (DatasetBaseVO datasetBaseVO : datasetBaseVOList) {
                     putDatasetCache(datasetBaseVO);
@@ -344,7 +346,7 @@ public class DataModelManager {
             }
 
             // 3. 데이터셋 흐름 캐쉬 로딩
-            List<DatasetFlowBaseVO> datasetFlowBaseVOList = datasetFlowSVC.getDatasetFlowBaseVOList();
+            List<DatasetFlowBaseVO> datasetFlowBaseVOList = datasetFlowRetrieveSVC.getDatasetFlowBaseVOList();
             if (datasetFlowBaseVOList != null) {
                 for (DatasetFlowBaseVO datasetFlowBaseVO : datasetFlowBaseVOList) {
                     putDatasetFlowCache(datasetFlowBaseVO);
@@ -352,7 +354,7 @@ public class DataModelManager {
             }
 
             // 4. 접근제어 룰  캐쉬 로딩
-            List<AclRuleVO> aclRuleVOList = aclRuleSVC.getAclRuleVOList(null);
+            List<AclRuleVO> aclRuleVOList = aclRuleRetrieveSVC.getAclRuleVOList(null);
             if (aclRuleVOList != null) {
                 for (AclRuleVO aclRuleVO : aclRuleVOList) {
                     putAclRuleCache(aclRuleVO);
@@ -400,7 +402,7 @@ public class DataModelManager {
 
     	log.info("RELOAD DataModel cache. id={}", dataModelId);
 
-    	DataModelBaseVO dataModelBaseVO = dataModelSVC.getDataModelBaseVOById(dataModelId);
+    	DataModelBaseVO dataModelBaseVO = dataModelRetrieveSVC.getDataModelBaseVOById(dataModelId);
     	if(dataModelBaseVO == null) {
     		return;
     	}

@@ -38,7 +38,6 @@ import kr.re.keti.sc.dataservicebroker.datamodel.vo.DataModelVO;
 import kr.re.keti.sc.dataservicebroker.datamodel.vo.ObjectMember;
 import kr.re.keti.sc.dataservicebroker.datamodel.vo.UpdateDataModelProcessVO;
 import kr.re.keti.sc.dataservicebroker.datamodel.vo.UpdateDataModelProcessVO.AttributeUpdateProcessType;
-import kr.re.keti.sc.dataservicebroker.datasetflow.service.DatasetFlowSVC;
 import kr.re.keti.sc.dataservicebroker.util.ValidateUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,32 +45,42 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DataModelSVC {
 	
-	@Autowired
     private DataModelManager dataModelManager;
-	@Autowired
+	private DataModelRetrieveSVC dataModelRetrieveSVC;
     private RdbTableSqlProvider rdbDataModelSqlProvider;
-	@Autowired
 	private BigdataTableSqlProvider bigDataTableSqlProvider;
-	@Autowired
 	private BigdataTableSqlProvider bigdataDataModelSqlProvider;
-    @Autowired
     private DataModelDAO dataModelDAO;
-    @Autowired
-    private DatasetFlowSVC datasetFlowSVC;
-    @Autowired
     private HBaseTableSVC hBaseTableSVC;
-    @Autowired
     private ObjectMapper objectMapper;
-    @Autowired
     private DataFederationService dataFederationService;
-    
-    @Value("${data-federation.standalon:true}")
-	private Boolean federationStandalone;
-    
+	
     public static final String URI_PATTERN_CREATE_DATA_MODEL = "/datamodels";
     public static final Pattern URI_PATTERN_DATA_MODEL = Pattern.compile("/datamodels/(?<id>.+)");
 
-    public enum DbOperation {
+	public DataModelSVC(
+			DataModelManager dataModelManager,
+			DataModelRetrieveSVC dataModelRetrieveSVC,
+			RdbTableSqlProvider rdbDataModelSqlProvider,
+			BigdataTableSqlProvider bigDataTableSqlProvider,
+			BigdataTableSqlProvider bigdataDataModelSqlProvider,
+			DataModelDAO dataModelDAO,
+			HBaseTableSVC hBaseTableSVC,
+			ObjectMapper objectMapper,
+			DataFederationService dataFederationService
+	) {
+		this.dataModelManager = dataModelManager;
+		this.dataModelRetrieveSVC = dataModelRetrieveSVC;
+		this.rdbDataModelSqlProvider = rdbDataModelSqlProvider;
+		this.bigDataTableSqlProvider = bigDataTableSqlProvider;
+		this.bigdataDataModelSqlProvider = bigdataDataModelSqlProvider;
+		this.dataModelDAO = dataModelDAO;
+		this.hBaseTableSVC = hBaseTableSVC;
+		this.objectMapper = objectMapper;
+		this.dataFederationService = dataFederationService;
+	}
+
+	public enum DbOperation {
     	ADD_COLUMN,
     	DROP_COLUMN,
     	ADD_NOT_NULL,
@@ -81,16 +90,6 @@ public class DataModelSVC {
     	ALTER_COLUMN_TYPE_AND_DROP_NOT_NULL;
     }
 
-
-    public List<DataModelBaseVO> getDataModelBaseVOList() {
-        return dataModelDAO.getDataModelBaseVOList();
-    }
-
-    public DataModelBaseVO getDataModelBaseVOById(String dataModelId) {
-        DataModelBaseVO dataModelBaseVO = new DataModelBaseVO();
-        dataModelBaseVO.setId(dataModelId);
-        return dataModelDAO.getDataModelBaseVOById(dataModelBaseVO);
-    }
 
     /**
      * 데이터 모델 생성 Provisioning 처리
@@ -169,7 +168,7 @@ public class DataModelSVC {
 		// 3. set attribute context uri
 		setAttributeContextUri(dataModelVO.getAttributes(), contextMap);
 
-		DataModelBaseVO retrieveDataModelBaseVO = getDataModelBaseVOById(dataModelVO.getId());
+		DataModelBaseVO retrieveDataModelBaseVO = dataModelRetrieveSVC.getDataModelBaseVOById(dataModelVO.getId());
 
         if (retrieveDataModelBaseVO != null) {
         	
@@ -359,7 +358,7 @@ public class DataModelSVC {
 		setAttributeContextUri(requestDataModelVO.getAttributes(), contextMap);
 
 		// 4. 기 존재하지 않을 경우 CREATE (UPSERT 처리)
-        DataModelBaseVO retrieveDataModelBaseVO = getDataModelBaseVOById(dataModelId);
+        DataModelBaseVO retrieveDataModelBaseVO = dataModelRetrieveSVC.getDataModelBaseVOById(dataModelId);
         if (retrieveDataModelBaseVO == null) {
         	log.info("Create(Upsert) DataModel. requestId={}, requestBody={}", requestId, requestBody);
         	createDataModel(requestBody, requestId, eventTime);
@@ -611,7 +610,7 @@ public class DataModelSVC {
 	private void deleteDataModel(String id) {
 		
 		// 1. 파라미터 파싱 및 유효성 검사
-		DataModelBaseVO retrieveDataModelBaseVO = getDataModelBaseVOById(id);
+		DataModelBaseVO retrieveDataModelBaseVO = dataModelRetrieveSVC.getDataModelBaseVOById(id);
 
 		if (retrieveDataModelBaseVO != null) {
 			

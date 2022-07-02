@@ -184,12 +184,4 @@ public class AclRuleSVC {
         return false;
     }
 
-    public List<AclRuleVO> getAclRuleVOList(AclRuleVO aclRuleVO) {
-        return aclRuleDAO.getAclRuleVOList(aclRuleVO);
-    }
-
-    public AclRuleVO getAclRuleVOById(String id) {
-        return aclRuleDAO.getAclRuleVOById(id);
-    }
-
 }
