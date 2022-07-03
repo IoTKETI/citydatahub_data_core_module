@@ -18,7 +18,7 @@ public class CsourceRegistScheduler {
 	}
 
 	@Scheduled(
-			fixedRateString = "${data-federation.csource.regist-interval-millis:60000}",
+			fixedRateString = "${data-federation.csource.regist-interval-millis:600000}",
 			initialDelay = 10000
 	)
 	public void synchronizeDataRegistryCsource() {

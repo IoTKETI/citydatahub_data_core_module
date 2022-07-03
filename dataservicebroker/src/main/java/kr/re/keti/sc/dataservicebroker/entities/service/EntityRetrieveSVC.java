@@ -7,6 +7,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import kr.re.keti.sc.dataservicebroker.common.code.Constants;
 import kr.re.keti.sc.dataservicebroker.datafederation.service.DataFederationProperty;
@@ -88,6 +91,8 @@ public class EntityRetrieveSVC {
 	}
 
 	public CommonEntityVO getEntityById(QueryVO queryVO, String queryString, String accept, String link) {
+
+		validateEntityId(queryVO);
 
 		// standalone 으로 동작
 		if (federationProperty.getStandalone()) {
@@ -308,8 +313,6 @@ public class EntityRetrieveSVC {
 	}
 
 	public CommonEntityVO queryEntityByIdStandalone(QueryVO queryVO, String accept) {
-
-		validateEntityId(queryVO);
 
 		// 1. 조회할 storageType 설정
 		BigDataStorageType dataStorageType = BigDataStorageType.parseType(queryVO.getDataStorageType());
@@ -619,12 +622,12 @@ public class EntityRetrieveSVC {
 		// 1. 전체 csourceRegistration 캐시 조회
 		List<CsourceRegistrationVO> targetCsourceRegistrationVO = csourceRegistrationManager.getCsourceRegistrationAllCache();
 
-		// 2. query에 csourceRegistrationIds 가 포함된 경우
+		// 2. query에 csourceRegistrationIds 가 포함된 경우 (해당 serviceBroker 로만 요청을 전달하기 위해 나머지 Csource 를 필터링 함)
 		if (!ValidateUtil.isEmptyData(queryVO.getCSourceRegistrationIds())) {
 			targetCsourceRegistrationVO = csourceRegistrationManager.getCsourceRegistrationCacheByIds(queryVO.getCSourceRegistrationIds());
 		}
 		
-		// 3. query에 alreadyTraversedCSourceIds가 포함된 경우
+		// 3. query에 alreadyTraversedCSourceIds가 포함된 경우 필터링 (serviceBroker 간 순환 호출을 방지하기 위한 파라미터)
 		if (!ValidateUtil.isEmptyData(queryVO.getAlreadyTraversedCSourceIds())) {
 			if(!ValidateUtil.isEmptyData(targetCsourceRegistrationVO)) {
 				List<CsourceRegistrationVO> filteredCsourceRegistrationVO = new ArrayList<>();
@@ -637,98 +640,159 @@ public class EntityRetrieveSVC {
 			}
 		}
 
-		// 3. context 정보 조회
-		String type = queryVO.getType();
-		Map<String, String> contextMap = dataModelManager.contextToFlatMap(queryVO.getLinks());
-		if(contextMap != null) {
-			if(type != null && !type.startsWith("http")) {
-				type = contextMap.get(type); // full uri 로 컨버팅
-				if(type == null) {
-					throw new NgsiLdBadRequestException(ErrorCode.NOT_EXIST_ENTITY, "Not Exist EntityTypes . Link=" + String.join(",", queryVO.getLinks()));
-				}
-			}
-		}
-
-		// 4. type 기반 조회
-		if (!ValidateUtil.isEmptyData(type)) {
-			List<CsourceRegistrationVO> csourceRegistrationVOs = getCsourceRegistrationCacheContainType(targetCsourceRegistrationVO, type);
+		// 4. EntityInfo (entityId, type, entityIdPattern) 기반 조회
+		if (includeCsourceEntityInfo(queryVO)) {
+			List<CsourceRegistrationVO> csourceRegistrationVOs = getCsourceRegistrationCacheContainType(targetCsourceRegistrationVO, queryVO);
 			log.info("QueryTargetCsourceRegistration return csourceRegistrationVOs={}", csourceRegistrationVOs);
 			return csourceRegistrationVOs;
 		}
 
-		// 5. propertyNames 기반 조회
+		// 5. q-query 기반 조회
 		List<String> qQueryPropertyNames = QueryUtil.extractQueryFieldNames(queryVO);
 		if(qQueryPropertyNames != null) {
-			List<String> qQueryPropertyFullUris = new ArrayList<>();
-			for(String qQueryPropertyName : qQueryPropertyNames) {
-				if(qQueryPropertyName.startsWith("http")) {
-					qQueryPropertyFullUris.add(qQueryPropertyName);
-				} else {
-					if(contextMap == null) {
-						throw new NgsiLdBadRequestException(ErrorCode.NOT_EXIST_ENTITY, "Not Exist q-query parameters in Context. Link=" + (queryVO.getLinks() == null ? "null" : String.join(",", queryVO.getLinks())));
-					}
-					String propertyFullUri = contextMap.get(qQueryPropertyName);
-					if(propertyFullUri == null) {
-						throw new NgsiLdBadRequestException(ErrorCode.NOT_EXIST_ENTITY, "Not Exist q-query parameters in Context. Link=" + (queryVO.getLinks() == null ? "null" : String.join(",", queryVO.getLinks())));
-					}
-					qQueryPropertyFullUris.add(propertyFullUri); // full uri 로 컨버팅
-				}
-			}
-			List<CsourceRegistrationVO> csourceRegistrationVOs =  getCsourceRegistrationCacheContainProperty(targetCsourceRegistrationVO, qQueryPropertyFullUris);
+			List<CsourceRegistrationVO> csourceRegistrationVOs =  getCsourceRegistrationCacheContainProperty(targetCsourceRegistrationVO, queryVO, qQueryPropertyNames);
 			log.info("QueryTargetCsourceRegistration return csourceRegistrationVOs={}", csourceRegistrationVOs);
 			return csourceRegistrationVOs;
 		}
 
 		// 6. 모든 Csource에 매칭되지 않는 경우 전체 Csource 를 반환하여 전체 ServiceBroker 를 조회하도록 함
-		// 향후 개선 필요
 		log.info("QueryTargetCsourceRegistration return csourceRegistrationVOs={}", targetCsourceRegistrationVO);
 		return targetCsourceRegistrationVO;
 	}
 
-	public List<CsourceRegistrationVO> getCsourceRegistrationCacheContainType(List<CsourceRegistrationVO> csourceRegistrationCache, String type) {
+	private boolean includeCsourceEntityInfo(QueryVO queryVO) {
+		if (!ValidateUtil.isEmptyData(queryVO.getType())
+			|| !ValidateUtil.isEmptyData(queryVO.getId())
+			|| !ValidateUtil.isEmptyData(queryVO.getIdPattern())) {
+			return true;
+		}
+		return false;
+	}
 
-		if (ValidateUtil.isEmptyData(type)) {
-			return null;
+	public List<CsourceRegistrationVO> getCsourceRegistrationCacheContainType(
+			List<CsourceRegistrationVO> csourceRegistrationCache,
+			QueryVO queryVO
+	) {
+
+		List<CsourceRegistrationVO> result = new ArrayList<>();
+
+		List<String> queryEntityIds = null;
+		List<String> queryEntityTypes = null;
+
+		if(!ValidateUtil.isEmptyData(queryVO.getId())) {
+			queryEntityIds = Arrays.asList(queryVO.getId().split(","));
 		}
 
-		List<CsourceRegistrationVO> result = null;
-		for (CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationCache) {
-			List<CsourceRegistrationVO.Information> informations = csourceRegistrationVO.getInformation();
-			if (informations != null) {
-				for (CsourceRegistrationVO.Information information : informations) {
-					List<CsourceRegistrationVO.EntityInfo> entities = information.getEntities();
-					if (entities != null) {
-						for (CsourceRegistrationVO.EntityInfo entityInfo : entities) {
-							if (type.equals(entityInfo.getType())) {
-								if (result == null) {
-									result = new ArrayList<>();
+		if(!ValidateUtil.isEmptyData(queryVO.getType())) {
+			queryEntityTypes = Arrays.asList(queryVO.getType().split(","));
+
+			// context 정보 조회
+			Map<String, String> contextMap = dataModelManager.contextToFlatMap(queryVO.getLinks());
+
+			if(!ValidateUtil.isEmptyData(queryEntityTypes) && contextMap != null) {
+				for(int i=0; i<queryEntityTypes.size(); i++) {
+					String type = queryEntityTypes.get(i);
+					// type이 uri 형태가 아닌 경우 uri 형태로 변환
+					if(!type.startsWith("http")) {
+						type = contextMap.get(type);
+						if(type == null) {
+							throw new NgsiLdBadRequestException(ErrorCode.NOT_EXIST_ENTITY, "Not Exist EntityTypes . Link=" + String.join(",", queryVO.getLinks()));
+						}
+						queryEntityTypes.set(i, type);
+					}
+				}
+			}
+		}
+
+		if(!ValidateUtil.isEmptyData(queryEntityIds) || !ValidateUtil.isEmptyData(queryEntityTypes)) {
+			for (CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationCache) {
+				List<CsourceRegistrationVO.Information> informations = csourceRegistrationVO.getInformation();
+				if (informations != null) {
+					for (CsourceRegistrationVO.Information information : informations) {
+						List<CsourceRegistrationVO.EntityInfo> entities = information.getEntities();
+						if (entities != null) {
+							for (CsourceRegistrationVO.EntityInfo entityInfo : entities) {
+
+								if(!ValidateUtil.isEmptyData(queryEntityTypes)
+										&& queryEntityTypes.contains(entityInfo.getType())) {
+									result.add(csourceRegistrationVO);
+									break;
 								}
-								result.add(csourceRegistrationVO);
+
+								if(!ValidateUtil.isEmptyData(queryEntityIds)) {
+									if(!ValidateUtil.isEmptyData(entityInfo.getIdPattern())) {
+										Pattern p = Pattern.compile(entityInfo.getIdPattern());
+										for(String entityId : queryEntityIds) {
+											Matcher m = p.matcher(entityId);
+											if(m.matches()) {
+												result.add(csourceRegistrationVO);
+												break;
+											}
+										}
+									} else {
+										if(queryEntityIds.contains(entityInfo.getId())) {
+											result.add(csourceRegistrationVO);
+											break;
+										}
+									}
+								}
 							}
 						}
 					}
 				}
 			}
 		}
-		return result;
+
+		return result.stream().distinct().collect(Collectors.toList());
 	}
 	
-	public List<CsourceRegistrationVO> getCsourceRegistrationCacheContainProperty(List<CsourceRegistrationVO> csourceRegistrationCache, List<String> propertyNames) {
+	public List<CsourceRegistrationVO> getCsourceRegistrationCacheContainProperty(
+			List<CsourceRegistrationVO> csourceRegistrationCache,
+			QueryVO queryVO,
+			List<String> qQueryPropertyNames
+	) {
 
-		if (ValidateUtil.isEmptyData(propertyNames)) {
+		if (ValidateUtil.isEmptyData(qQueryPropertyNames)) {
 			return null;
 		}
 
-		Map<CsourceRegistrationVO, CsourceRegistrationVO> csourceRegistrationVOMap = new HashMap<>();
+		// context 정보 조회
+		Map<String, String> contextMap = dataModelManager.contextToFlatMap(queryVO.getLinks());
+
+		List<String> qQueryPropertyFullUris = new ArrayList<>();
+		for(String qQueryPropertyName : qQueryPropertyNames) {
+			if(qQueryPropertyName.startsWith("http")) {
+				qQueryPropertyFullUris.add(qQueryPropertyName);
+
+			} else {
+				if(contextMap == null) {
+					throw new NgsiLdBadRequestException(ErrorCode.NOT_EXIST_ENTITY, "Not Exist q-query parameters in Context. Link=" + (queryVO.getLinks() == null ? "null" : String.join(",", queryVO.getLinks())));
+				}
+				String propertyFullUri = contextMap.get(qQueryPropertyName);
+				if(propertyFullUri == null) {
+					throw new NgsiLdBadRequestException(ErrorCode.NOT_EXIST_ENTITY, "Not Exist q-query parameters in Context. Link=" + (queryVO.getLinks() == null ? "null" : String.join(",", queryVO.getLinks())));
+				}
+				qQueryPropertyFullUris.add(propertyFullUri); // full uri 로 컨버팅
+			}
+		}
+
+		List<CsourceRegistrationVO> result = new ArrayList<>();
 		for (CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationCache) {
 			List<CsourceRegistrationVO.Information> informations = csourceRegistrationVO.getInformation();
 			if (informations != null) {
 				for (CsourceRegistrationVO.Information information : informations) {
-					List<String> properties = information.getPropertyNames();
-					if (!ValidateUtil.isEmptyData(properties)) {
-						for(String propertyName : propertyNames) {
-							if(properties.contains(propertyName)) {
-								csourceRegistrationVOMap.put(csourceRegistrationVO, csourceRegistrationVO);
+					List<String> propertiesAndRelationships = new ArrayList<>();
+					if (!ValidateUtil.isEmptyData(information.getPropertyNames())) {
+						propertiesAndRelationships.addAll(information.getPropertyNames());
+					}
+					if (!ValidateUtil.isEmptyData(information.getRelationshipNames())) {
+						propertiesAndRelationships.addAll(information.getRelationshipNames());
+					}
+
+					if (!ValidateUtil.isEmptyData(propertiesAndRelationships)) {
+						for(String propertyName : qQueryPropertyFullUris) {
+							if(propertiesAndRelationships.contains(propertyName)) {
+								result.add(csourceRegistrationVO);
 								break;
 							}
 						}
@@ -736,11 +800,7 @@ public class EntityRetrieveSVC {
 				}
 			}
 		}
-		
-		if(csourceRegistrationVOMap.size() > 0) {
-			return new ArrayList<>(csourceRegistrationVOMap.values());
-		}
-		return null;
+		return result.stream().distinct().collect(Collectors.toList());
 	}
 	
 	private List<CommonEntityVO> extractSubListWithPaging(List<CommonEntityVO> totalCommonEntityVOs, Integer limit, Integer offset) {
@@ -784,7 +844,12 @@ public class EntityRetrieveSVC {
         	headerMap.set(HttpHeaders.LINK, link);
         }
         
-        return requestExchange(requestUriBuilder.toString(), HttpMethod.GET, null, returnType, Arrays.asList(HttpStatus.OK, HttpStatus.NOT_FOUND), headerMap);
+        try {
+			return requestExchange(requestUriBuilder.toString(), HttpMethod.GET, null, returnType, Arrays.asList(HttpStatus.OK, HttpStatus.NOT_FOUND), headerMap);
+		} catch(Exception e) {
+			log.error("queryToOtherServiceBroker error. requstUri={}, queryString={}, accept={}, link={}", requestUri, queryString, accept, link, e);
+		}
+		return null;
     }
 	
 	
