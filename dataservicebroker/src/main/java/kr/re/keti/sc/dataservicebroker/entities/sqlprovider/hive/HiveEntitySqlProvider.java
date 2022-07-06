@@ -20,6 +20,9 @@ public interface HiveEntitySqlProvider {
     @UpdateProvider(method = "refreshTable")
     void refreshTable(CommonEntityDaoVO entityDaoVO);
 
+    @InsertProvider(method = "bulkCreate")
+    void bulkCreate(List<DynamicEntityDaoVO> entityDaoVOList);
+
     @InsertProvider(method = "create")
     void create(CommonEntityDaoVO entityDaoVO);
 

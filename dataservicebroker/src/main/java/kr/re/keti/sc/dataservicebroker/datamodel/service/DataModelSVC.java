@@ -65,7 +65,7 @@ public class DataModelSVC {
     @Autowired
     private DataFederationService dataFederationService;
     
-    @Value("${data-federation.standalon:true}")
+    @Value("${data-federation.standalone:true}")
 	private Boolean federationStandalone;
     
     public static final String URI_PATTERN_CREATE_DATA_MODEL = "/datamodels";
@@ -497,7 +497,9 @@ public class DataModelSVC {
 				String attributeDdl = null;
 				switch(updateDataModelProcessVO.getAttributeUpdateProcessType()) {
 					case NEW_ATTRIBUTE:  {
-						attributeDdl = bigDataTableSqlProvider.generateAddOrDropColumnDdl(id, afterAttribute, DbOperation.ADD_COLUMN);
+						// generateAddOrDropColumnDdl에 들어갈 storageMetadataVO를
+						// afterStorageMetadataVO로 수정
+						attributeDdl = bigDataTableSqlProvider.generateAddOrDropColumnDdl(id, afterAttribute,afterStorageMetadataVO, DbOperation.ADD_COLUMN);
 						break;
 					} case EXISTS_ATTRIBUTE: {
 						attributeDdl = bigDataTableSqlProvider.generateAlterTableColumnDdl(id, beforeAttribute, afterAttribute);
@@ -668,7 +670,6 @@ public class DataModelSVC {
         	dataFederationService.registerCsource();
         }
 	}
-
 
 	/**
      * Attribute name 검증

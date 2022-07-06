@@ -20,6 +20,7 @@ import kr.re.keti.sc.dataservicebroker.common.exception.BadRequestException;
 import kr.re.keti.sc.dataservicebroker.datamodel.DataModelManager;
 import kr.re.keti.sc.dataservicebroker.datamodel.service.DataModelSVC.DbOperation;
 import kr.re.keti.sc.dataservicebroker.datamodel.vo.Attribute;
+import kr.re.keti.sc.dataservicebroker.datamodel.vo.DataModelCacheVO;
 import kr.re.keti.sc.dataservicebroker.datamodel.vo.DataModelDbColumnVO;
 import kr.re.keti.sc.dataservicebroker.datamodel.vo.DataModelStorageMetadataVO;
 import kr.re.keti.sc.dataservicebroker.datamodel.vo.DataModelVO;
@@ -42,10 +43,12 @@ public class BigdataTableSqlProvider {
 
 	/** dataModel 기반 CREATE TABLE DDL 생성
 	 *  - 엔티티최종테이블, Partial이력테이블, Full이력테이블
-	 * @param dataModelVO dataModel 정보
+	 * @param dataModelCacheVO dataModelCache 정보
 	 * @return 생성된 DDL
 	 */
-	public String generateCreateTableDdl(DataModelVO dataModelVO) throws BadRequestException {
+	public String generateCreateTableDdl(DataModelCacheVO dataModelCacheVO) throws BadRequestException {
+		DataModelVO dataModelVO = dataModelCacheVO.getDataModelVO();
+		DataModelStorageMetadataVO storageMetadataVO = dataModelCacheVO.getDataModelStorageMetadataVO();
 
 		// index명 유효성 체크
 		// 1. Index Attribute 유효성 검사
@@ -68,7 +71,7 @@ public class BigdataTableSqlProvider {
 				.append("CREATED_AT TIMESTAMP").append(LINE_SEPARATOR).append(COMMA_WITH_SPACE)
 				.append("MODIFIED_AT TIMESTAMP").append(LINE_SEPARATOR);
 
-		generateDynamicColumnSql(columnsBuilder, null, rootAttributes, false, null);
+				generateDynamicColumnSql(columnsBuilder, null, rootAttributes, storageMetadataVO, false, null);
 
 		//columnsBuilder.append(", ").append("ID VARCHAR(256)");
 
@@ -93,7 +96,7 @@ public class BigdataTableSqlProvider {
 				.append("CREATED_AT TIMESTAMP").append(LINE_SEPARATOR).append(COMMA_WITH_SPACE)
 				.append("MODIFIED_AT TIMESTAMP").append(LINE_SEPARATOR);
 
-		generateDynamicColumnSql(histColumnsBuilder, null, rootAttributes, false, null);
+		generateDynamicColumnSql(histColumnsBuilder, null, rootAttributes, storageMetadataVO, false, null);
 
 		//histColumnsBuilder.append("ID VARCHAR(256)");
 
@@ -124,7 +127,7 @@ public class BigdataTableSqlProvider {
 				.append("CREATED_AT TIMESTAMP").append(LINE_SEPARATOR).append(COMMA_WITH_SPACE)
 				.append("MODIFIED_AT TIMESTAMP").append(LINE_SEPARATOR);
 
-		generateDynamicColumnSql(fullHistColumnsBuilder, null, rootAttributes, false, null);
+		generateDynamicColumnSql(fullHistColumnsBuilder, null, rootAttributes, storageMetadataVO, false, null);
 
 		//fullHistColumnsBuilder.append("ID VARCHAR(256)");
 
@@ -147,7 +150,7 @@ public class BigdataTableSqlProvider {
 
 	/** dataModel 기반 DROP TABLE DDL 생성
 	 *  - 엔티티최종테이블, Partial이력테이블, Full이력테이블
-	 * @param dataModelVO dataModel 정보
+	 * @param id 데이터모델 아이디
 	 * @return 생성된 DDL
 	 */
 	public String generateDropTableDdl(String id) {
@@ -175,8 +178,8 @@ public class BigdataTableSqlProvider {
 	/**
 	 * Attribute에 해당하는 컬럼 Add DDL 또는 Drop DDL 생성
 	 * @param id 데이터모델 아이디
-	 * @param attribute 대상 Attribute
-	 * @param dbOperation 동작유형 (CREATE or DELETE)
+	 * @param beforeAttribute 이전 Attribute
+	 * @param afterAttribute 이후 Attribute
 	 * @return 생성된 DDL
 	 */
 	public String generateAlterTableColumnDdl(String id, Attribute beforeAttribute, Attribute afterAttribute) {
@@ -210,11 +213,9 @@ public class BigdataTableSqlProvider {
 
 	/**
 	 * Attribute에 해당하는 컬럼 Add DDL 또는 Drop DDL 생성
-	 * @param namespace 데이터모델 네임스페이스
-	 * @param type 데이터모델 유형
-	 * @param version 데이터모델 버전
-	 * @param attribute 대상 Attribute
-	 * @param dbOperation 동작유형 (CREATE or DELETE)
+	 * @param tableName 테이블명
+	 * @param beforeAttribute 이전 Attribute
+	 * @param afterAttribute 이후 Attribute
 	 * @return 생성된 DDL
 	 */
 	private String generateAlterTableColumnTableDdl(String tableName, Attribute beforeAttribute, Attribute afterAttribute) {
@@ -283,7 +284,8 @@ public class BigdataTableSqlProvider {
 
 		// 4. 생성된 dbOperationMap 기반 ddl 생성
 		StringBuilder sql = new StringBuilder();
-		sql.append("ALTER TABLE ").append(tableName).append(LINE_SEPARATOR);
+//		sql.append("ALTER TABLE ").append(tableName).append(LINE_SEPARATOR);
+		sql.append("ALTER TABLE ").append(tableName);
 		for(Map.Entry<DataModelDbColumnVO, DbOperation> entry : dbOperationMap.entrySet()) {
 
 			DataModelDbColumnVO dataModelDbColumnVO = entry.getKey();
@@ -327,10 +329,11 @@ public class BigdataTableSqlProvider {
 				
 				sql.append(" ALTER COLUMN ").append(dataModelDbColumnVO.getColumnName()).append(" DROP NOT NULL,");
 			}
-			sql.append(LINE_SEPARATOR);
+//			sql.append(LINE_SEPARATOR);
 		}
 		sql.deleteCharAt(sql.length()-2); // 가장 뒤 콤마 제거
-		sql.append(");").append(LINE_SEPARATOR).append(LINE_SEPARATOR);
+//		sql.append(");").append(LINE_SEPARATOR).append(LINE_SEPARATOR);
+		sql.append(");");
 		return sql.toString();
 	}
 
@@ -361,25 +364,26 @@ public class BigdataTableSqlProvider {
 	 * @param dbOperation 동작유형 (CREATE or DELETE)
 	 * @return 생성된 DDL
 	 */
-	public String generateAddOrDropColumnDdl(String id, Attribute attribute, DbOperation dbOperation) {
+	public String generateAddOrDropColumnDdl(String id, Attribute attribute,
+			DataModelStorageMetadataVO storageMetadataVO, DbOperation dbOperation) {
 
 		StringBuilder sql = new StringBuilder();
 
 		// 1. 최종값 테이블 컬럼 추가 DDL 생성
 		String entityTableName = dataModelManager.generateHiveTableName(id);
-		sql.append(generateAddOrDropColumnTableDdl(entityTableName, attribute, dbOperation));
+		sql.append(generateAddOrDropColumnTableDdl(entityTableName, attribute, storageMetadataVO, dbOperation));
 
 		sql.append("---EOS---");
 
 		// 2. partial 이력 테이블 컬럼 추가 DDL 생성
 		String partialHistTableName = dataModelManager.generateHiveTableName(id, Constants.PARTIAL_HIST_TABLE_PREFIX);
-		sql.append(generateAddOrDropColumnTableDdl(partialHistTableName, attribute, dbOperation));
+		sql.append(generateAddOrDropColumnTableDdl(partialHistTableName, attribute, storageMetadataVO, dbOperation));
 
 		sql.append("---EOS---");
 
 		// 3. full 이력 테이블 컬럼 추가 DDL 생성
 		String fullHistTableName = dataModelManager.generateHiveTableName(id, Constants.FULL_HIST_TABLE_PREFIX);
-		sql.append(generateAddOrDropColumnTableDdl(fullHistTableName, attribute, dbOperation));
+		sql.append(generateAddOrDropColumnTableDdl(fullHistTableName, attribute, storageMetadataVO, dbOperation));
 
 		sql.append("---EOS---");
 		
@@ -387,27 +391,28 @@ public class BigdataTableSqlProvider {
 	}
 
 	//@todo: Current Drop Column is not working. The method would be implemented later if necessary
-	public String generateDropColumnDdl(String id, List<Attribute> attributes, DbOperation dbOperation) {
+	public String generateDropColumnDdl(String id, List<Attribute> attributes,
+			DataModelStorageMetadataVO storageMetadataVO, DbOperation dbOperation) {
 		StringBuilder sql = new StringBuilder();
 		StringBuilder tempSql = new StringBuilder();
 
 		// 1. 최종값 테이블 컬럼 추가 DDL 생성
 		String entityTableName = dataModelManager.generateHiveTableName(id);
-		tempSql.append(generateDropColumnTableDdl(entityTableName, attributes, dbOperation));
+		tempSql.append(generateDropColumnTableDdl(entityTableName, attributes, storageMetadataVO, dbOperation));
 		tempSql.append(" HIVEDROPCOLUMN ");
 		sql.append(tempSql.toString().replaceAll(LINE_SEPARATOR, ""));
 		tempSql = new StringBuilder();
 
 		// 2. partial 이력 테이블 컬럼 추가 DDL 생성
 		String partialHistTableName = dataModelManager.generateHiveTableName(id, Constants.PARTIAL_HIST_TABLE_PREFIX);
-		tempSql.append(generateDropColumnTableDdl(partialHistTableName, attributes, dbOperation));
+		tempSql.append(generateDropColumnTableDdl(partialHistTableName, attributes, storageMetadataVO, dbOperation));
 		tempSql.append(" HIVEDROPCOLUMN ");
 		sql.append(tempSql.toString().replaceAll(LINE_SEPARATOR, ""));
 		tempSql = new StringBuilder();
 
 		// 3. full 이력 테이블 컬럼 추가 DDL 생성
 		String fullHistTableName = dataModelManager.generateHiveTableName(id, Constants.FULL_HIST_TABLE_PREFIX);
-		tempSql.append(generateDropColumnTableDdl(fullHistTableName, attributes, dbOperation));
+		tempSql.append(generateDropColumnTableDdl(fullHistTableName, attributes, storageMetadataVO, dbOperation));
 		tempSql.append(" HIVEDROPCOLUMN ");
 		sql.append(tempSql.toString().replaceAll(LINE_SEPARATOR, ""));
 
@@ -422,22 +427,26 @@ public class BigdataTableSqlProvider {
 	 * @return 생성된 DDL
 	 */
 	//@todo: Current Drop Column is not working. The method would be implemented later if necessary
-	private String generateAddOrDropColumnTableDdl(String tableName, Attribute attribute, DbOperation dbOperation) {
+	private String generateAddOrDropColumnTableDdl(String tableName, Attribute attribute,
+			DataModelStorageMetadataVO storageMetadataVO, DbOperation dbOperation) {
 		StringBuilder sql = new StringBuilder();
-		sql.append("ALTER TABLE ").append(tableName).append(LINE_SEPARATOR);
+//		sql.append("ALTER TABLE ").append(tableName).append(LINE_SEPARATOR);
+		sql.append("ALTER TABLE ").append(tableName);
 		
 		StringBuilder addColumnSql = new StringBuilder();
-		generateDynamicColumnSql(addColumnSql, null, attribute, false, dbOperation);
+		generateDynamicColumnSql(addColumnSql, null, attribute, storageMetadataVO, false, dbOperation);
 		addColumnSql.deleteCharAt(0); // sql 가장 앞 콤마 제거 
 		sql.append(addColumnSql);
 		sql.append(")");
-		sql.append(";").append(LINE_SEPARATOR).append(LINE_SEPARATOR);
+//		sql.append(";").append(LINE_SEPARATOR).append(LINE_SEPARATOR);
+		sql.append(";");
 		
 		return sql.toString();
 	}
 
 	//@todo: Current Drop Column is not working. The method would be implemented later if necessary
-	private String generateDropColumnTableDdl(String tableName, List<Attribute> attributes, DbOperation dbOperation) {
+	private String generateDropColumnTableDdl(String tableName, List<Attribute> attributes,
+			DataModelStorageMetadataVO storageMetadataVO, DbOperation dbOperation) {
 		StringBuilder sql = new StringBuilder();
 		sql.append("ALTER TABLE ").append(tableName);
 		sql.append(" -replace- columns (");
@@ -446,7 +455,7 @@ public class BigdataTableSqlProvider {
 			attribute.setIsRequired(false);
 			StringBuilder addColumnSql = new StringBuilder();
 
-			generateDynamicColumnSql(addColumnSql, null, attribute, false, dbOperation);
+			generateDynamicColumnSql(addColumnSql, null, attribute, storageMetadataVO, false, dbOperation);
 
 			addColumnSql.deleteCharAt(addColumnSql.indexOf(COMMA_WITH_SPACE));
 			sql.append(addColumnSql.toString().replaceAll(LINE_SEPARATOR, "")).append(COMMA_WITH_SPACE);
@@ -460,19 +469,23 @@ public class BigdataTableSqlProvider {
 
 	/**
 	 * 데이터모델 정보 기반 동적 컬럼 생성
-	 * @param sql SQL 문자열
+	 *
+	 * @param sql               SQL 문자열
 	 * @param parentHierarchyId 상위 계층구조 Attribute id
-	 * @param rootAttributes dataModel RootAttribute리스트
-	 * @param ignoreRequired 필수값 무시 여부 (true인 경우 not null 제약조건을 걸지 않음)
-	 * @param dbOperation 해당 값에 따라 DDL 생성 시 특정 구문을 추가
-	 *  - 'ADD'인 경우 'ADD COLUMN' 구문 추가
-	 *  - 'DROP' 경우 'DROP COLUMN' 구문 추가
+	 * @param rootAttributes    dataModel RootAttribute리스트
+	 * @param ignoreRequired    필수값 무시 여부 (true인 경우 not null 제약조건을 걸지 않음)
+	 * @param dbOperation       해당 값에 따라 DDL 생성 시 특정 구문을 추가
+	 *                          - 'ADD'인 경우 'ADD COLUMN' 구문 추가
+	 *                          - 'DROP' 경우 'DROP COLUMN' 구문 추가
 	 */
-	private void generateDynamicColumnSql(StringBuilder sql, String parentHierarchyId, List<Attribute> rootAttributes, Boolean ignoreRequired, DbOperation dbOperation) {
+	private void generateDynamicColumnSql(StringBuilder sql, String parentHierarchyId, List<Attribute> rootAttributes,
+			DataModelStorageMetadataVO storageMetadataVO,
+			Boolean ignoreRequired, DbOperation dbOperation) {
 
 		for(Attribute rootAttribute : rootAttributes) {
 
-			generateDynamicColumnSql(sql, parentHierarchyId, rootAttribute, ignoreRequired, dbOperation);
+			generateDynamicColumnSql(sql, parentHierarchyId, rootAttribute, storageMetadataVO, ignoreRequired,
+					dbOperation);
 		}
 	}
 
@@ -488,7 +501,8 @@ public class BigdataTableSqlProvider {
 	 *  - 'ADD'인 경우 'ADD COLUMN' 구문 추가
 	 *  - 'DROP' 경우 'DROP COLUMN' 구문 추가
 	 */
-	private void generateDynamicColumnSql(StringBuilder sql, String parentHierarchyId, Attribute rootAttribute, Boolean ignoreRequired, DbOperation dbOperation)  {
+	private void generateDynamicColumnSql(StringBuilder sql, String parentHierarchyId, Attribute rootAttribute,
+			DataModelStorageMetadataVO storageMetadataVO, Boolean ignoreRequired, DbOperation dbOperation) {
 		String currentHierarchyName = null;
 		if(parentHierarchyId != null) {
 			currentHierarchyName = parentHierarchyId + Constants.COLUMN_DELIMITER + rootAttribute.getName();
@@ -547,10 +561,38 @@ public class BigdataTableSqlProvider {
 		// 5. has Property 혹은 has Relationship 이 존재하는 경우
 		List<Attribute> hasAttributes = rootAttribute.getChildAttributes();
 		if(hasAttributes != null && hasAttributes.size() > 0) {
-			generateDynamicColumnSql(sql, currentHierarchyName, hasAttributes, ignoreRequired, dbOperation);
+			generateDynamicColumnSql(sql, currentHierarchyName, hasAttributes, storageMetadataVO, ignoreRequired,
+					dbOperation);
 		}
 
+		//RdbTableSqlProvider에만 있던 내용 복사. hierarchyAttrNames는 일단 여기에 작성
+		List<String> hierarchyAttrNames = new ArrayList<>();
+		hierarchyAttrNames.add(rootAttribute.getName());
+
+		// 6. property의 createdAt 컬럼 sql 생성
+		String createdAtColumnName = getColumnNameByStorageMetadata(hierarchyAttrNames,
+				PropertyKey.CREATED_AT.getCode(), storageMetadataVO);
+		addColumnDdl(sql, createdAtColumnName, AttributeValueType.DATE, null, null, false, dbOperation);
+
+		// 7. property의 modifiedAt 컬럼 sql 생성
+		String modifiedAtColumnName = getColumnNameByStorageMetadata(hierarchyAttrNames,
+				PropertyKey.MODIFIED_AT.getCode(), storageMetadataVO);
+		addColumnDdl(sql, modifiedAtColumnName, AttributeValueType.DATE, null, null, false, dbOperation);
+
 		needAddColumn = true;
+	}
+
+	//rdbTableSqlProvider에서 가져옴
+	private String getColumnNameByStorageMetadata(List<String> hierarchyAttrNames, String attrName,
+			DataModelStorageMetadataVO storageMetadataVO) {
+
+		if (attrName == null) {
+			return dataModelManager.getColumnNameByStorageMetadata(storageMetadataVO, hierarchyAttrNames);
+		} else {
+			List<String> attrNames = new ArrayList<>(hierarchyAttrNames);
+			attrNames.add(attrName);
+			return dataModelManager.getColumnNameByStorageMetadata(storageMetadataVO, attrNames);
+		}
 	}
 
 	/**
@@ -588,9 +630,10 @@ public class BigdataTableSqlProvider {
 
 	/**
 	 * 동적 Index 생성 sql을 만들어 반환
-	 * @param dbTableName 테이블명
+	 *
+	 * @param dbTableName          테이블명
 	 * @param indexAttributeIdList 인덱스 대상 attibuteId 리스트
-	 * @param rootAttributes dataModel의 RootAttrubute
+	 * @param rootAttributes       dataModel의 RootAttrubute
 	 * @return 생성된 sql문
 	 */
 	private String generateDynamicIndexSql(String dbTableName, List<String> indexAttributeIdList, List<Attribute> rootAttributes) {
@@ -623,8 +666,9 @@ public class BigdataTableSqlProvider {
 	}
 
 	/**
-	 * geo가 아닌 일반 타입의 컬럼에 대한 동적 인덱스 sql문 생성하여 반환 
-	 * @param dbTableName 테이블명
+	 * geo가 아닌 일반 타입의 컬럼에 대한 동적 인덱스 sql문 생성하여 반환
+	 *
+	 * @param dbTableName      테이블명
 	 * @param indexAttributeId 인덱스 대상 attributeId
 	 * @return 생성된 sql문
 	 */
@@ -763,7 +807,7 @@ public class BigdataTableSqlProvider {
 	 * @param maxLength 최대길이 (최대길이가 없는 경우 sql에서 길이를 지정하지 않음)
 	 * @param required 필수여부 (not null 여부)
 	 * @param isArrayObject array형태의 object 여부
-	 * @param isAddColumn Alter table add column 여부
+	 * @param dbOperation 동작유형 (add or drop)
 	 * @return 컬럼추가 sql문이 추가된 StringBuilder
 	 */
 	private StringBuilder addColumnDdl(StringBuilder sql, String attributeId, AttributeValueType valueType, 
