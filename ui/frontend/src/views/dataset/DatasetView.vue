@@ -1,12 +1,12 @@
 <template>
   <div>
-    <h3 class="content__title">데이터 셋 정보</h3>
+    <h3 class="content__title">{{ $t('dataset.datasetInfo') }}</h3>
     <SmartSearch
         :is-text="true"
-        button-name="상세검색"
+        :button-name="$t('comm.detailSearch')"
         @smart-search="showSmartSearch"
     />
-    <p class="text__total">총 {{ totalCount }}건</p>
+    <p class="text__total">{{ $t('comm.total') }} {{ totalCount }}</p>
     <AppTable
         :meta-data="tableFields"
         :table-items="datasetList"
@@ -23,7 +23,7 @@
       <template v-slot:buttons>
         <div class="button__group">
           <AppButtons
-              button-name="등록"
+              :button-name="$t('comm.create')"
               @on-button-event="onCreate"
           />
         </div>
@@ -33,14 +33,13 @@
         :is-show="isShow"
         @close-modal="onClose"
         @on-event-modal="onSearch"
-        title="상세 조건 검색"
-        button-name="검색"
+        :title="$t('dataset.datasetSearch')"
+        :button-name="$t('comm.search')"
         :is-success-btn="true"
         :is-cancel-btn="true"
     >
       <template v-slot:elements>
         <AppForm
-            title="기본 정보"
             :meta-data="formFields"
             :form-data="formData"
             @add-event="onDataTableAdd"
@@ -53,7 +52,7 @@
         @close-modal="onClose"
         modalSize="w-360"
         :content="modalText"
-        close-name="확인"
+        :close-name="$t('comm.ok')"
         :isCancelBtn="true"
     />
   </div>
@@ -89,8 +88,58 @@ export default {
       isShow: false,
       isAlertShow: false,
       modalText: null,
-      formFields: Fields.DATASET_SEARCH_FIELDS,
-      tableFields: Fields.DATASET_TABLE_FIELDS,
+      formFields: [
+        [{ name: 'name', displayName: this.$i18n.t('dataset.name'), type: 'text', require: false },
+          { name: 'updateInterval', displayName: this.$i18n.t('dataset.updateInterval'), type: 'text', require: false }],
+        [{ name: 'category', displayName: this.$i18n.t('dataset.name'), type: 'text', require: false },
+          { name: 'providerOrganization', displayName: this.$i18n.t('dataset.provider'), type: 'text', require: false }],
+        [{ name: 'providerSystem', displayName: this.$i18n.t('dataset.providerSystem'), type: 'text', require: false },
+          { name: 'isProcessed', displayName: this.$i18n.t('dataset.dataType'), type: 'text', require: false }],
+        [{ name: 'ownership', displayName: this.$i18n.t('dataset.ownership'), type: 'text', require: false },
+          { name: 'license', displayName: this.$i18n.t('dataset.license'), type: 'text', require: false }],
+        [{ name: 'datasetExtension', displayName: this.$i18n.t('dataset.dataElements'), type: 'text', require: false },
+          { name: 'targetRegions', displayName: this.$i18n.t('dataset.geographicScope'), type: 'text', require: false }],
+        [{ name: 'qualityCheckEnabled', displayName: this.$i18n.t('dataset.qualityCheckEnabled'), type: 'choice',
+          require: false,
+          choices: [
+            { value: true, displayName: this.$i18n.t('comm.yes') },
+            { value: false, displayName: this.$i18n.t('comm.no') }
+          ],
+          selectedValue: null },
+          { name: 'dataModelId', displayName: this.$i18n.t('dataModel.dataModelId'), type: 'text', require: false }],
+        [
+          {
+            name: 'dataStoreUri', displayName: this.$i18n.t('dataset.dataStorage'), type: 'userOption',
+            require: false, readOnly: false, colspan: 3,
+            isAddButton: true,
+            isDelButton: true,
+            isInput: false,
+            isChoice: true,
+            choices: [
+              { value: 'Kafka Topic', displayName: 'Kafka Topic' },
+              { value: 'Hive URL', displayName: 'Hive URL' },
+              { value: 'Postgres URL', displayName: 'Postgres URL' },
+              { value: 'Hbase URL', displayName: 'Hbase URL' },
+            ],
+            selectedValue: null,
+            isTable: true,
+            tableFields: [
+              { displayName: this.$i18n.t('dataset.storageLocation'), require: false }
+            ],
+            tableHeight: '120px',
+            overflowY: 'auto'
+          }
+        ],
+      ],
+      tableFields: [
+        { name: 'id', displayName: this.$i18n.t('dataset.datasetId'), require: false, col: 15 },
+        { name: 'name', displayName: this.$i18n.t('dataset.datasetName'), require: false, col: 15 },
+        { name: 'updateInterval', displayName: this.$i18n.t('dataset.updateInterval'), require: false, col: 10 },
+        { name: 'category', displayName: this.$i18n.t('dataset.category'), require: false, col: 10 },
+        { name: 'providerSystem', displayName: this.$i18n.t('dataset.provider'), require: false, col: 15 },
+        { name: 'qualityCheckEnabled', displayName: this.$i18n.t('dataset.qualityCheckEnabled'), require: false, col: 10 },
+        { name: 'createdAt', displayName: this.$i18n.t('comm.createTime'), require: false, col: 15 }
+      ],
       datasetList: [],
       formData: { dataStoreUri: [] },
       totalCount: 0,
@@ -195,6 +244,8 @@ export default {
     }
   },
   mounted() {
+    document.querySelectorAll('.breadcrumb__list')[0].innerText = this.$i18n.t('dataset.datasetManage');
+
     this.formData = this.dataSetInfoSearchData;
     this.setDataModelSearchData({});
     this.setDataSetFlowSearchData({});

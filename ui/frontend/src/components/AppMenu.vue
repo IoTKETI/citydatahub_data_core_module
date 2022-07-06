@@ -13,7 +13,7 @@
       <h2 class="hidden">주메뉴</h2>
       <div class="aside__user">
         <p class="aside__user-message">
-          <strong class="aside__user-message--strong">{{ userInfo.name }} 님</strong> 진심으로 환영합니다.
+          <strong class="aside__user-message--strong">{{ userInfo.name }}</strong> {{ $t('comm.welcome') }}
         </p>
       </div>
        <!-- nav -->
@@ -83,12 +83,22 @@ export default {
             this.userInfo = response.data;
           });
     },
+    defaultLocale() {
+      let locale = localStorage.getItem('langCd');
+      if (!locale) {
+        locale = 'en';
+      }
+      return locale;
+    },
     getMenuList() {
-      this.$http.get(APIHandler.buildUrl(['accessmenu']))
+      const locale = this.defaultLocale();
+      this.$http.get(APIHandler.buildUrl([`accessmenu`]))
           .then(response => {
             const items = response.data;
             let rootNodes = [];
             items.map((item, index) => {
+              const key = `leftMenu.${item.id}`;
+              item.name = this.$i18n.t(key);
               if (item.level === 1) {
                 return rootNodes.push(item);
               }
@@ -98,7 +108,7 @@ export default {
           });
     },
     goMenu() {
-      this.$router.go(this.$router.currentRoute);
+      // this.$router.go(this.$router.currentRoute);
     }
   },
   mounted() {

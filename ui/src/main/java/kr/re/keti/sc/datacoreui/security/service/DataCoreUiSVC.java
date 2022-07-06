@@ -304,10 +304,11 @@ public class DataCoreUiSVC {
 	 * Respond to the list of accessible menus.
 	 * @return	List of accessible menus
 	 */
-	public ResponseEntity<List<MenuBaseVO>> getAccessMenu(HttpServletRequest request) {
+	public ResponseEntity<List<MenuBaseVO>> getAccessMenu(HttpServletRequest request, String langCd) {
 		if (!properties.getSpringSecurityEnabled()) {
 			MenuRetrieveVO menuRetrieveVO = new MenuRetrieveVO();
 			menuRetrieveVO.setEnabled(true);
+			menuRetrieveVO.setLangCd(langCd);
 			return menuSVC.getMenus(menuRetrieveVO);
 		}
 		
@@ -319,7 +320,7 @@ public class DataCoreUiSVC {
 			
 			if(authentication !=null && authentication.getPrincipal() !=null) {
 				for(GrantedAuthority authority : authentication.getAuthorities()) {
-					ResponseEntity<List<MenuBaseVO>> reslt = menuSVC.getAccessMenus(authority.getAuthority());
+					ResponseEntity<List<MenuBaseVO>> reslt = menuSVC.getAccessMenus(authority.getAuthority(), langCd);
 					if(reslt != null 
 							&& reslt.getBody() != null
 							&& reslt.getBody().size() > 0) {

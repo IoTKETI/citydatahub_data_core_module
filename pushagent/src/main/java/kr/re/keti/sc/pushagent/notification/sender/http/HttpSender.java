@@ -57,7 +57,7 @@ public class HttpSender implements NotificationSender {
 						requestId, notificationVO.getSubscriptionId(), notificationVO.getId(), endpointUri, elapsedTime);
 			} else {
 				log.info("HTTP Notification Response code={}, requestId={}, subsciprionId={}, entityId={}, endpointUri={}, elapsedTime={}ms",
-						requestId, notificationVO.getSubscriptionId(), notificationVO.getId(), endpointUri, elapsedTime);
+						responseEntity.getStatusCodeValue(), requestId, notificationVO.getSubscriptionId(), notificationVO.getId(), endpointUri, elapsedTime);
 			}
 			
 			if(responseEntity.getStatusCodeValue() == HttpStatus.OK.value()) {

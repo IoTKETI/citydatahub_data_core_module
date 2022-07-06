@@ -24,6 +24,9 @@ server:
 ## Logging 설정
 logging.config: classpath:logback-spring.xml
 logging.base.dir: logs
+
+# Language (en: English, ko: Korean)
+language.code: en
   
 # DB연결 정보
 datasource:
@@ -43,19 +46,19 @@ datacoreusertool:
   widget.url: http://119.192.118.100:8084/widgetnotification
   
 dataservicebroker:
-# local
+  # local
   url: http://localhost:8082
 # v1.0 dev
 #  url: http://203.253.128.181:14408
 # v2.0 dev
 #  url: http://182.162.141.108:49082
 datamanager:
-# local
+  # local
   url: http://localhost:8080
-# v1.0 dev
-#  url: http://203.253.128.181:16908
-# v2.0 dev
-#  url: http://182.162.141.108:49080
+  # v1.0 dev
+  #  url: http://203.253.128.181:16908
+  # v2.0 dev
+  #  url: http://182.162.141.108:49080
   
 cityhub:
   client:
@@ -79,5 +82,7 @@ http.pool:
 entity.history:
   limit: 1000
   days: 3
+  
+chart.time.format: yyyy-MM-dd HH:mm:ss
   
 google.api.key: 

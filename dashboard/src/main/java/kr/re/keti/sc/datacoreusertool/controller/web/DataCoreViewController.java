@@ -2,6 +2,7 @@ package kr.re.keti.sc.datacoreusertool.controller.web;
 
 import java.io.IOException;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -34,6 +35,8 @@ public class DataCoreViewController implements ErrorController {
 	@Autowired
 	private Properties properties;
 	
+	final static String LANG_CD = "langCd";
+	
 	/**
      * When the page is refreshed In spa development, 
      * refreshing the screen means server-side rendering, 
@@ -43,6 +46,10 @@ public class DataCoreViewController implements ErrorController {
      */
 	@GetMapping({ "/", "/error" })
     public String redirectRoot(HttpSession session, HttpServletRequest request, HttpServletResponse response) throws IOException {
+		Cookie setCookie = new Cookie(LANG_CD, properties.getLanguageCode());
+		setCookie.setPath("/");
+		response.addCookie(setCookie);
+		
         return "index.html";
     }
 	

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import kr.re.keti.sc.datacoreui.api.menu.service.MenuSVC;
@@ -108,11 +109,11 @@ public class MenuController {
 	 */
 	@DeleteMapping(value="/menu/{id}")
 	public <T> ResponseEntity<T> deleteMenu(HttpServletRequest request, HttpServletResponse response,
-			@PathVariable String id) throws Exception {
-		log.info("[UI API] deleteMenu - id: {}", id);
+			@PathVariable String id, @RequestParam(value="langCd", required=true) String langCd) throws Exception {
+		log.info("[UI API] deleteMenu - id: {}, langCd: {}", id, langCd);
 		
 		// 1. Delete menu
-		ResponseEntity<T> reslt = menuSVC.deleteMenu(id);
+		ResponseEntity<T> reslt = menuSVC.deleteMenu(id, langCd);
 		
 		return reslt;
 	}
@@ -125,11 +126,11 @@ public class MenuController {
 	 */
 	@GetMapping(value="/menu/{id}")
 	public ResponseEntity<MenuBaseVO> getMenu(HttpServletRequest request, HttpServletResponse response,
-			@PathVariable String id) throws Exception {
-		log.info("[UI API] getMenu - id: {}", id);
+			@PathVariable String id, @RequestParam(value="langCd", defaultValue="en") String langCd) throws Exception {
+		log.info("[UI API] getMenu - id: {}, langCd: {}", id, langCd);
 		
 		// 1. Retrieve menu
-		ResponseEntity<MenuBaseVO> reslt = menuSVC.getMenu(id);
+		ResponseEntity<MenuBaseVO> reslt = menuSVC.getMenu(id, langCd);
 		
 		return reslt;
 	}

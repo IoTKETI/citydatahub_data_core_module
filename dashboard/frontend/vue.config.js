@@ -10,6 +10,7 @@ module.exports = {
     proxy: {
       '/': {
         target: 'http://localhost:8084' // api server
+        // target: 'http://3.39.99.82:49084' // api server
       }
     }
   },

@@ -1,13 +1,13 @@
 <template>
   <div>
-    <h3 class="content__title">품질 검증 이력</h3>
+    <h3 class="content__title">{{ $t('validation.title2') }}</h3>
     <SmartSearch
         :is-text="true"
-        button-name="상세검색"
+        :button-name="$t('comm.detailSearch')"
         @smart-search="showSmartSearch"
     />
     <p class="text__total text__red">
-      전체 {{ successCount + failureCount }}건, 정상 {{ successCount }}건, 비정상 {{ failureCount }}건
+      {{ $t('comm.total') }} {{ successCount + failureCount }}, {{ $t('comm.valid') }} {{ successCount }}, {{ $t('comm.invalid') }} {{ failureCount }}
     </p>
     <AppTable
         :meta-data="tableFields"
@@ -27,14 +27,13 @@
         :is-show="isShow"
         @close-modal="onClose"
         @on-event-modal="onSearch"
-        title="상세 조건 검색"
-        button-name="검색"
+        :title="$t('validation.popupTitle')"
+        :button-name="$t('comm.search')"
         :is-success-btn="true"
         :is-cancel-btn="true"
     >
       <template v-slot:elements>
         <AppForm
-            title="기본 정보"
             :meta-data="formFields"
             :form-data="formData"
         />
@@ -82,8 +81,31 @@ export default {
       isShow: false,
       isAlertShow: false,
       modalText: null,
-      formFields: Fields.VERIFICATION_HISTORY_SEARCH_FIELDS,
-      tableFields: Fields.VERIFICATION_HISTORY_TABLE_FIELDS,
+      formFields: [
+        [{ name: 'datasetId', displayName: this.$i18n.t('validation.datasetId'), type: 'text', require: false, isTable: false },
+          { name: 'dataModelType', displayName: this.$i18n.t('validation.dataModelId'), type: 'text', require: false, isTable: false }],
+        [{ name: 'dataModelType', displayName: this.$i18n.t('validation.dataModelType'), type: 'text', require: false, isTable: false },
+          { name: 'entityId', displayName: this.$i18n.t('validation.entityId'), type: 'text', require: false, isTable: false }],
+        [
+          { name: 'verified', displayName: this.$i18n.t('validation.Validity'), type: 'choice',
+            choices: [
+              { value: true, displayName: this.$i18n.t('comm.valid') },
+              { value: false, displayName: this.$i18n.t('comm.invalid') }
+            ],
+            require: false, isTable: false }
+        ],
+
+        [{ name: 'datetime', displayName: this.$i18n.t('validation.validationTime'), type: 'datetime', require: false, isTable: false, colspan: 3 }]
+      ],
+      tableFields: [
+        { name: 'seq', displayName: this.$i18n.t('validation.validationId'), require: false, col: 10 },
+        { name: 'datasetId', displayName: this.$i18n.t('validation.datasetId'), require: false, col: 10 },
+        { name: 'dataModelVersion', displayName: this.$i18n.t('validation.dataModelId'), require: false, col: 10 },
+        { name: 'dataModelType', displayName: this.$i18n.t('validation.dataModelType'), require: false, col: 10 },
+        { name: 'entityId', displayName: this.$i18n.t('validation.entityId'), require: false, col: 10 },
+        { name: 'verified', displayName: this.$i18n.t('validation.verified'), require: false, col: 10 },
+        { name: 'testTime', displayName: this.$i18n.t('validation.validationTime'), require: false, col: 15 }
+      ],
       historyList: [],
       backupData: {},
       successCount: 0,
@@ -180,7 +202,7 @@ export default {
                 dataModelType: item.dataModelType,
                 dataModelVersion: item.dataModelVersion,
                 entityId: item.entityId,
-                isVerified: item.verified ? '정상' : '비정상',
+                isVerified: item.verified ? this.$i18n.t('comm.valid') : this.$i18n.t('comm.invalid'),
                 testTime: item.testTime
               }
             });
@@ -197,6 +219,8 @@ export default {
     }
   },
   mounted() {
+    document.querySelectorAll('.breadcrumb__list')[0].innerText = this.$i18n.t('validation.title');
+
     this.formData = this.verificationHistorySearchData;
     this.setDataModelSearchData({});
     this.setDataSetInfoSearchData({});

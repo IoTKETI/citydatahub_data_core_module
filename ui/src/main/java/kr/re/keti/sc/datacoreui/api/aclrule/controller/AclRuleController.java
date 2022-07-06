@@ -144,9 +144,11 @@ public class AclRuleController {
 			return false;
 		}
 		
-		if(ValidateUtil.isEmptyData(aclRuleVO.getCondition())) {
-					return false;
-				}
+		if(aclRuleVO.getUserId() != null && aclRuleVO.getClientId() != null) {
+			if(ValidateUtil.isEmptyData(aclRuleVO.getCondition())) {
+				return false;
+			}
+		}
 		
 		return true;
 	}

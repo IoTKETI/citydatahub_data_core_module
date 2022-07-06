@@ -1,13 +1,11 @@
 <template>
   <div>
-    <h3 class="content__title">{{ $route.meta.breadcrumb[1] }}</h3>
+    <h3 class="content__title">{{ $t('validation.detailTitle') }}</h3>
     <AppForm
-        title="기본정보"
         :meta-data="formFields"
         :form-data="formData"
     />
     <AppForm
-        title="부가정보"
         :meta-data="formAdditionFields"
         :form-data="formData"
         :form-buttons="formButtons"
@@ -17,7 +15,7 @@
         @close-modal="onClose"
         modalSize="w-360"
         :content="modalText"
-        close-name="확인"
+        :close-name="$t('comm.ok')"
         :isCancelBtn="true"
     />
   </div>
@@ -53,11 +51,32 @@
   },
   data() {
     return {
-      formFields: Fields.VERIFICATION_HISTORY_FORM_FIELDS,
+      formFields: [
+        [
+          { name: 'seq', displayName: this.$i18n.t('validation.validationId'), type: 'text', require: false, isTable: false },
+          { name: 'testTime', displayName: this.$i18n.t('validation.validationTime'), type: 'text', require: false, isTable: false },
+          { name: 'datasetId', displayName: this.$i18n.t('validation.datasetId'), type: 'text', require: false, isTable: false }
+        ],
+        [{ name: 'dataModelVersion', displayName: this.$i18n.t('validation.dataModelId'), type: 'text', require: false, isTable: false },
+          { name: 'dataModelType', displayName: this.$i18n.t('validation.dataModelType'), type: 'text', require: false, isTable: false },
+          { name: 'entityId', displayName: this.$i18n.t('validation.entityId'), require: false, type: 'text', isTable: false }
+        ],
+        [
+          {
+            name: 'verified', displayName: this.$i18n.t('validation.verified'), require: false, type: 'choice', isTable: false,
+            choices: [
+              { value: true, displayName: this.$i18n.t('comm.valid') },
+              { value: false, displayName: this.$i18n.t('comm.invalid') },
+            ]
+          },
+          { type: null },
+          { type: null }
+        ]
+      ],
       formAdditionFields: [],
       formData: { sourceDatasetIds:[], keywords: [] },
       formButtons: [
-        { id: 'goBack', name: '목록', className: 'button__primary', onButtonEvent: this.onGoBack, isHide: false }
+        { id: 'goBack', name: this.$i18n.t('comm.backToList'), className: 'button__primary', onButtonEvent: this.onGoBack, isHide: false }
       ],
       isAlertShow: false,
       modalText: null,
@@ -97,16 +116,18 @@
               });
             });
             this.formAdditionFields = [
-              [{ name: 'errorCode', displayName: '품질검사오류코드', type: 'choice',
+              [{ name: 'errorCode', displayName: this.$i18n.t('validation.errorCode'), type: 'choice',
                 choices: result, selectedValue: this.selectedValue,
                 require: false, isTable: false, col: 170 }],
-              [{ name: 'errorCause', displayName: '상세오류메시지', require: false, type: 'text', isTable: false, col: 170 }],
-              [{ name: 'data', displayName: '실패원본데이터', require: false, type: 'text', isTable: false, col: 170 }]
+              [{ name: 'errorCause', displayName: this.$i18n.t('validation.errorMessage'), require: false, type: 'text', isTable: false, col: 170 }],
+              [{ name: 'data', displayName: this.$i18n.t('validation.originalData'), require: false, type: 'text', isTable: false, col: 170 }]
             ];
           });
     }
   },
   mounted() {
+    document.querySelectorAll('.breadcrumb__list')[0].innerText = this.$i18n.t('validation.title');
+
     const { mode, seq } = this.$route.query;
     if (mode === 'mod') {
       this.getVerification(seq);

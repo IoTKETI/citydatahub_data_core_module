@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import kr.re.keti.sc.datacoreui.api.menu.dao.MenuDAO;
+import kr.re.keti.sc.datacoreui.api.menu.vo.AccessableMenuRetrieveVO;
 import kr.re.keti.sc.datacoreui.api.menu.vo.MenuBaseVO;
 import kr.re.keti.sc.datacoreui.api.menu.vo.MenuIdVO;
 import kr.re.keti.sc.datacoreui.api.menu.vo.MenuRetrieveVO;
@@ -43,6 +44,10 @@ public class MenuSVC {
 	public <T> ResponseEntity<T> createMenu(MenuBaseVO menuBaseVO) {
 		if(menuBaseVO.getEnabled() == null) {
 			menuBaseVO.setEnabled(true);
+		}
+		// Set the default language code to en(English)
+		if(menuBaseVO.getLangCd() == null) {
+			menuBaseVO.setLangCd("en");
 		}
 		
 		try {
@@ -82,9 +87,13 @@ public class MenuSVC {
 	 * @param id	Menu ID
 	 * @return		Result of delete UI menu.
 	 */
-	public <T> ResponseEntity<T> deleteMenu(String id) {
+	public <T> ResponseEntity<T> deleteMenu(String id, String langCd) {
+		MenuRetrieveVO menuRetrieveVO = new MenuRetrieveVO();
+		menuRetrieveVO.setId(id);
+		menuRetrieveVO.setLangCd(langCd);
+		
 		try {
-			menuDAO.deleteMenu(id);
+			menuDAO.deleteMenu(menuRetrieveVO);
 		} catch(Exception e) {
 			log.error("Fail to deleteMenu.", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -98,11 +107,14 @@ public class MenuSVC {
 	 * @param id	Menu ID
 	 * @return		Menu information retrieved by menu ID.
 	 */
-	public ResponseEntity<MenuBaseVO> getMenu(String id) {
+	public ResponseEntity<MenuBaseVO> getMenu(String id, String langCd) {
 		MenuBaseVO result = null;
+		MenuRetrieveVO menuRetrieveVO = new MenuRetrieveVO();
+		menuRetrieveVO.setId(id);
+		menuRetrieveVO.setLangCd(langCd);
 		
 		try {
-			result = menuDAO.getMenu(id);
+			result = menuDAO.getMenu(menuRetrieveVO);
 		} catch(Exception e) {
 			log.error("Fail to getMenu.", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -142,11 +154,15 @@ public class MenuSVC {
 	 * @param menuRoleId	Menu role ID
 	 * @return				List of menu information retrieved by menu role ID.
 	 */
-	public ResponseEntity<List<MenuBaseVO>> getAccessMenus(String menuRoleId) {
+	public ResponseEntity<List<MenuBaseVO>> getAccessMenus(String menuRoleId, String langCd) {
 		List<MenuBaseVO> result = null;
+		AccessableMenuRetrieveVO accessableMenuRetrieveVO = new AccessableMenuRetrieveVO();
+		
+		accessableMenuRetrieveVO.setMenuRoleId(menuRoleId);
+		accessableMenuRetrieveVO.setLangCd(langCd);
 		
 		try {
-			result = menuDAO.getAccessMenus(menuRoleId);
+			result = menuDAO.getAccessMenus(accessableMenuRetrieveVO);
 		} catch(Exception e) {
 			log.error("Fail to getMenus.", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

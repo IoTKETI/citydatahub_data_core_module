@@ -51,6 +51,12 @@ public class Properties {
 	@Value("${entity.history.days}")
 	private Integer entityHistoryDays;
 	
+	@Value("${chart.time.format}")
+	private String chartTimeFormat;
+	
 	@Value("${google.api.key}")
 	private String googleApiKey;
+	
+	@Value("${language.code}")
+	private String languageCode;
 }

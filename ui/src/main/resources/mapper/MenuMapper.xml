@@ -12,6 +12,7 @@
         <result property="sortOrder" column="SORT_ORDER"/>
         <result property="enabled" column="ENABLED"/>
         <result property="level" column="LEVEL"/>
+        <result property="langCd" column="LANG_CD"/>
         <result property="createDatetime" column="CREATE_DATETIME"/>
         <result property="creatorId" column="CREATOR_ID"/>
         <result property="modifyDatetime" column="MODIFY_DATETIME"/>
@@ -53,6 +54,7 @@
 			</if>
 			,ENABLED
 			,LEVEL
+			,LANG_CD
 			,CREATE_DATETIME
 			<if test="creatorId != null">
 				,CREATOR_ID
@@ -71,6 +73,7 @@
 			</if>
 			,#{enabled}
 			,#{level}
+			,#{langCd}
 			,now()
 			<if test="creatorId != null">
 				,#{creatorId}
@@ -103,17 +106,20 @@
 			MODIFIER_ID = #{modifierId}
 		</if>
 		WHERE ID = #{id}
+			AND LANG_CD = #{langCd}
 	</update>
     
-    <delete id="deleteMenu" parameterType="String">
+    <delete id="deleteMenu" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.MenuRetrieveVO">
     	DELETE FROM datacore_ui.MENU_BASE
     	WHERE ID = #{id}
+    		AND LANG_CD = #{langCd}
     </delete>
     
-    <select id="selectMenu" parameterType="String" resultMap="menu">
+    <select id="selectMenu" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.MenuRetrieveVO" resultMap="menu">
     	SELECT *
     	FROM datacore_ui.MENU_BASE
     	WHERE ID = #{id}
+    		AND LANG_CD = #{langCd}
     </select>
     
     <select id="selectMenus" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.MenuRetrieveVO" resultMap="menu">
@@ -138,16 +144,20 @@
     	<if test="level != null">
     		AND LEVEL = #{level}
     	</if>
+    	<if test="langCd != null">
+			AND LANG_CD = #{langCd}
+		</if>
     	</where>
     	ORDER BY ID ASC
     </select>
     
-    <select id="selectAccessMenus" parameterType="String" resultMap="menu">
+    <select id="selectAccessMenus" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.AccessableMenuRetrieveVO" resultMap="menu">
     	SELECT mb.*
     	FROM (
     		SELECT *
     		FROM datacore_ui.MENU_BASE
-    		WHERE ENABLED = true 
+    		WHERE ENABLED = true
+    			AND LANG_CD = #{langCd}
     	)mb,
     	(
     		SELECT MENU_ID

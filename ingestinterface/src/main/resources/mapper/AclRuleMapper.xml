@@ -37,7 +37,9 @@
         </if>
         ,RESOURCE_ID
         ,RESOURCE_TYPE
-        ,CONDITION
+        <if test="condition != null">
+            ,CONDITION
+        </if>
         ,OPERATION
         ,CREATE_DATETIME
         <if test="creatorId != null">
@@ -64,7 +66,9 @@
         </if>
         ,#{resourceId}
         ,#{resourceType, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.AclRuleResourceTypeHandler}::VARCHAR
-        ,#{condition, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.AclRuleConditionTypeHandler}::VARCHAR
+        <if test="condition != null">
+            ,#{condition, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.AclRuleConditionTypeHandler}::VARCHAR
+        </if>
         ,#{operation, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.AclRuleOperationTypeHandler}::VARCHAR[]
         ,now()
         <if test="creatorId != null">

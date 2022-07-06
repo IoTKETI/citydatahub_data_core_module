@@ -26,6 +26,9 @@ server:
 logging.config: classpath:logback-spring.xml
 logging.base.dir: logs
 
+# Language (en: English, kr: Korean)
+language.code: en
+
 # DB Connection
 datasource:
   driverClassName: org.postgresql.Driver

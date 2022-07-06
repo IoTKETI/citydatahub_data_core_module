@@ -79,8 +79,9 @@ export const dataModelApi = {
   fetch() {
     return request('get', '/datamodelIds');
   },
-  attributes(id) {
-    return request('get', `/datamodels/attrstree?id=${id}`);
+  attributes({dataModelId, typeUri}) {
+    const query = dataModelId ? `id=${dataModelId}` : `typeUri=${typeUri}`;
+    return request('get', `/datamodels/attrstree?${query}`);
   }
 };
 

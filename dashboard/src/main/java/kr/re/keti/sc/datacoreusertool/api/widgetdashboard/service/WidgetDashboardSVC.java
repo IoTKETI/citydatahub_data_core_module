@@ -1,7 +1,10 @@
 package kr.re.keti.sc.datacoreusertool.api.widgetdashboard.service;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +51,7 @@ import kr.re.keti.sc.datacoreusertool.api.widgetdashboard.vo.WidgetSessionVO;
 import kr.re.keti.sc.datacoreusertool.common.code.Constants;
 import kr.re.keti.sc.datacoreusertool.common.code.WidgetDashboardCode;
 import kr.re.keti.sc.datacoreusertool.common.code.WidgetDashboardCode.ChartType;
+import kr.re.keti.sc.datacoreusertool.common.component.Properties;
 import kr.re.keti.sc.datacoreusertool.common.vo.ClientExceptionPayloadVO;
 import kr.re.keti.sc.datacoreusertool.notification.vo.NotificationVO;
 import kr.re.keti.sc.datacoreusertool.notification.vo.WidgetWebSocketRegistVO;
@@ -89,6 +93,9 @@ public class WidgetDashboardSVC {
 	
 	@Autowired
 	private MapSVC mapSVC;
+	
+	@Autowired
+	private Properties properties;
 	
 	final static String LEGEND = "legend";
 
@@ -179,7 +186,7 @@ public class WidgetDashboardSVC {
 			WidgetDashboardVO widgetDashboardVO = makeWidgetDashboardVO(userId, widgetDashboardUIVO);
 			
 			try {
-				widgetDashboardDAO.updateWidget(widgetDashboardVO);
+				widgetDashboardDAO.updateWidgetLayout(widgetDashboardVO);
 			} catch(Exception e) {
 				log.error("Fail to updateWidget.", e);
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -924,7 +931,7 @@ public class WidgetDashboardSVC {
 			EntityRetrieveVO legendRetrieveVO = createLegendRetrieveVO(entityRetrieveVO, widgetSessionVO.getLegend());
 					
 			ResponseEntity<CommonEntityListResponseVO> legendResult = 
-					dataServiceBrokerSVC.getEntities(false, legendRetrieveVO, null, originalAttributeId);
+					dataServiceBrokerSVC.getEntities(false, legendRetrieveVO, null, widgetSessionVO.getUserId());
 			legends = legendResult.getBody();
 		}
 		
@@ -964,7 +971,8 @@ public class WidgetDashboardSVC {
 	private EntityRetrieveVO createLegendRetrieveVO(EntityRetrieveVO entityRetrieveVO, String legend) {
 		EntityRetrieveVO legendRetrieveVO = new EntityRetrieveVO();
 		List<String> attrs = new ArrayList<String>();
-		attrs.add(legend);
+		String[] attrList = splitAttributeId(legend);
+		attrs.add(attrList[0]);
 		
 		legendRetrieveVO.setAttrs(attrs);
 		legendRetrieveVO.setDataModelId(entityRetrieveVO.getDataModelId());
@@ -1540,9 +1548,7 @@ public class WidgetDashboardSVC {
 	    			i++;
 	    		}
 	    		
-	    		if(tempCommonEntity.get("observedAt") != null) {
-	    			commonEntityVO.put("observedAt", tempCommonEntity.get("observedAt"));
-	    		}
+	    		convertTimeformat(tempCommonEntity, commonEntityVO);
 	    		
 	    		if(i < attrIds.length && entity != null) {
 	    			tempCommonEntity.putAll((Map<? extends String, ? extends Object>) entity);
@@ -1558,9 +1564,7 @@ public class WidgetDashboardSVC {
 					entity = tempCommonEntity.get("value");
 				}
 				
-				if(tempCommonEntity.get("observedAt") != null) {
-	    			commonEntityVO.put("observedAt", tempCommonEntity.get("observedAt"));
-	    		}
+				convertTimeformat(tempCommonEntity, commonEntityVO);
 			}
 			
 			if(entity != null) {
@@ -1579,9 +1583,7 @@ public class WidgetDashboardSVC {
 		    			i++;
 		    		}
 		    		
-		    		if(tempCommonEntity.get("observedAt") != null) {
-		    			commonEntityVO.put("observedAt", tempCommonEntity.get("observedAt"));
-		    		}
+		    		convertTimeformat(tempCommonEntity, commonEntityVO);
 		    		
 		    		if(i < attrIds2.length && entity != null) {
 		    			tempCommonEntity.putAll((Map<? extends String, ? extends Object>) entity);
@@ -1597,9 +1599,7 @@ public class WidgetDashboardSVC {
 						entity = tempCommonEntity.get("value");
 					}
 					
-					if(tempCommonEntity.get("observedAt") != null) {
-		    			commonEntityVO.put("observedAt", tempCommonEntity.get("observedAt"));
-		    		}
+					convertTimeformat(tempCommonEntity, commonEntityVO);
 				}
 				
 				if(entity != null) {
@@ -1719,10 +1719,11 @@ public class WidgetDashboardSVC {
 		// If the x-axis values ​​are numeric, repositions the values ​​in units of the x-axis.
 		if(isNumberXAxisValue) {
 			double factor = 0.0;
+			double lowestValue = 0;
+			
 			if(xAxisUnit > 0) { 
 				factor = minValue/xAxisUnit;
 			}
-			double lowestValue = 0;
 			
 			if(factor < 0) {
 				lowestValue = xAxisUnit * Integer.valueOf(String.format("%.0f", factor));
@@ -1732,6 +1733,7 @@ public class WidgetDashboardSVC {
 			}
 			
 			int greatestValue = ((int)(maxValue / xAxisUnit) + 1) * xAxisUnit;
+			
 			if(lowestValue > 0) {
 				lowestValue = 0;
 			}
@@ -1746,13 +1748,14 @@ public class WidgetDashboardSVC {
 				}
 				
 				String strKey = String.valueOf(key);
+				double xValue;
+				
 				if(Double.valueOf(strKey) >= 0) {
-					double xValue = (((int)(Integer.valueOf(strKey) / xAxisUnit) + 1) * xAxisUnit) - (xAxisUnit / 2.0);
-					resultMap.replace(xValue, resultMap.get(xValue) + 1);
+					xValue = (((int)(Double.valueOf(strKey) / xAxisUnit) + 1) * xAxisUnit) - (xAxisUnit / 2.0);
 				} else {
-					double xValue = ((int)(Integer.valueOf(strKey) / xAxisUnit) * xAxisUnit) - (xAxisUnit / 2.0);
-					resultMap.replace(xValue, resultMap.get(xValue) + 1);
+					xValue = ((int)(Double.valueOf(strKey) / xAxisUnit) * xAxisUnit) - (xAxisUnit / 2.0);
 				}
+				resultMap.replace(xValue, resultMap.get(xValue) + 1);
 			}
 			chartValueMap = resultMap;
 		}
@@ -1769,6 +1772,11 @@ public class WidgetDashboardSVC {
 		return result;
 	}
 	
+	/**
+	 * make scatter data
+	 * @param commonEntities	Retrieved entity result data
+	 * @return					Scatter chart data
+	 */
 	private List<CommonEntityVO> convertScatterData(List<CommonEntityVO> commonEntities) {
 		List<CommonEntityVO> result = new ArrayList<CommonEntityVO>();
 		
@@ -1789,5 +1797,21 @@ public class WidgetDashboardSVC {
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * Convert time format
+	 * @param tempCommonEntity		Retrieved entity result temporary data
+	 * @param commonEntityVO		Retrieved entity result data
+	 */
+	private void convertTimeformat(CommonEntityVO tempCommonEntity, CommonEntityVO commonEntityVO) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.CONTENT_DATE_FORMAT);
+		SimpleDateFormat dateFormat = new SimpleDateFormat(properties.getChartTimeFormat());
+		
+		if(tempCommonEntity.get("observedAt") != null) {
+			LocalDateTime date = LocalDateTime.parse((String) tempCommonEntity.get("observedAt"), formatter);
+			long milliSeconds = Timestamp.valueOf(date).getTime();
+			commonEntityVO.put("observedAt", dateFormat.format(milliSeconds));
+		}
 	}
 }

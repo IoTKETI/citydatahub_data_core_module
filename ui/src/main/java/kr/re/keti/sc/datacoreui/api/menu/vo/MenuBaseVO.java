@@ -37,6 +37,8 @@ public class MenuBaseVO {
 	private Boolean enabled;
 	/** Menu level */
 	private Integer level;
+	/** Language code */
+	private String langCd;
 	/** Creation date */
 	@JsonProperty("createdAt")
 	@JsonFormat(pattern = Constants.CONTENT_DATE_FORMAT, timezone = Constants.CONTENT_DATE_TIMEZONE)

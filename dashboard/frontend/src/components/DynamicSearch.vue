@@ -28,10 +28,10 @@
       width="200"
       v-model="visible"
     >
-      <p style="font-size: 12px;">삭제 하시겠습니까?</p>
+      <p style="font-size: 12px;">{{ $t('message.deleteCheck') }}</p>
       <div style="text-align: right; margin: 0">
-        <el-button size="mini" type="" @click="visible = false">취소</el-button>
-        <el-button type="danger" size="mini" @click="remove(formData)">삭제</el-button>
+        <el-button size="mini" type="" @click="visible = false">{{ $t('comm.cancel') }}</el-button>
+        <el-button type="danger" size="mini" @click="remove(formData)">{{ $t('comm.delete') }}</el-button>
       </div>
       <i slot="reference" class="el-icon-error col-md-1" style="margin-top: 6px; cursor: pointer; font-size: 16px; padding-left: 2px;"></i>
     </el-popover>

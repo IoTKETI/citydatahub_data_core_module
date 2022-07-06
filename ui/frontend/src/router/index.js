@@ -26,6 +26,8 @@ import CodeManageView from '@/views/system/CodeManageView';
 
 Vue.use(Router);
 
+console.log(this);
+
 export default new Router({
   mode: 'history', // vue router default hash mode ( so... change history mode )
   routes: [

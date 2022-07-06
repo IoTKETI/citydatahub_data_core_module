@@ -1,12 +1,13 @@
 <template>
   <div>
+    <h3 class="content__title">{{ $t('provision.provisionServerInfo') }}</h3>
     <form>
       <fieldset>
         <legend>필드셋 제목</legend>
         <!-- section-write -->
         <section class="section">
           <div class="section__header">
-            <h4 class="section__title">기본 정보</h4>
+            <h4 class="section__title">{{ $t('provision.provisionServerDetail') }}</h4>
           </div>
           <div class="section__content">
             <table class="table--row">
@@ -21,7 +22,7 @@
               </colgroup>
               <tbody>
                 <tr>
-                  <th class="icon__require">서버 아이디</th>
+                  <th class="icon__require">{{ $t('provision.serverId') }}</th>
                   <td>
                     <label>
                       <input
@@ -35,10 +36,10 @@
                     </label>
                     <br>
                     <span v-show="error['id']" class="error__color">
-                      필수 값 입니다.
+                      {{ $t('comm.required') }}
                     </span>
                   </td>
-                  <th class="icon__require">서버유형</th>
+                  <th class="icon__require">{{ $t('provision.serverType') }}</th>
                   <td>
                     <label>
                       <select
@@ -64,10 +65,10 @@
                     </label>
                     <br>
                     <span v-show="error['type']" class="error__color">
-                      필수 값 입니다.
+                      {{ $t('comm.required') }}
                     </span>
                   </td>
-                  <th class="icon__require">Provision URI</th>
+                  <th class="icon__require">{{ $t('provision.uri') }}</th>
                   <td>
                     <label>
                       <input
@@ -80,12 +81,12 @@
                     </label>
                     <br>
                     <span v-show="error['provisionUri']" class="error__color">
-                      필수 값 입니다.
+                      {{ $t('comm.required') }}
                     </span>
                   </td>
                 </tr>
                 <tr>
-                  <th class="icon__require">프로토콜 유형</th>
+                  <th class="icon__require">{{ $t('provision.protocol') }}</th>
                   <td>
                     <label>
                       <select
@@ -111,10 +112,10 @@
                     </label>
                     <br>
                     <span v-show="error['provisionProtocol']" class="error__color">
-                      필수 값 입니다.
+                      {{ $t('comm.required') }}
                     </span>
                   </td>
-                  <th class="icon__require">사용여부</th>
+                  <th class="icon__require">{{ $t('provision.isActive') }}</th>
                   <td>
                     <label>
                       <select
@@ -140,10 +141,10 @@
                     </label>
                     <br>
                     <span v-show="error['enabled']" class="error__color">
-                      필수 값 입니다.
+                      {{ $t('comm.required') }}
                     </span>
                   </td>
-                  <th>생성자</th>
+                  <th>{{ $t('comm.creator') }}</th>
                   <td>
                     <label>
                       <input
@@ -157,19 +158,19 @@
                   </td>
                 </tr>
                 <tr>
-                  <th>생성시간</th>
+                  <th>{{ $t('comm.creationTime') }}</th>
                   <td>
                     <label>
                       <input class="input__text" type="text" name="createdAt" v-model="formData['createdAt']" disabled />
                     </label>
                   </td>
-                  <th>수정자</th>
+                  <th>{{ $t('comm.modifier') }}</th>
                   <td>
                     <label>
                       <input class="input__text" type="text" name="modifierId" v-model="formData['modifierId']" disabled />
                     </label>
                   </td>
-                  <th>수정시간</th>
+                  <th>{{ $t('comm.modifierTime') }}</th>
                   <td>
                     <label>
                       <input
@@ -182,35 +183,19 @@
                     </label>
                   </td>
                 </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-        <section class="section">
-          <div class="section__header">
-            <h4 class="section__title">부가 정보</h4>
-          </div>
-          <div class="section__content">
-            <table class="table--row">
-              <caption>테이블 제목</caption>
-              <colgroup>
-                <col style="width:120px">
-                <col style="width:auto">
-              </colgroup>
-              <tbody>
-              <tr>
-                <th>설명</th>
-                <td>
-                  <label>
-                    <input
-                        class="input__text"
-                        type="text"
-                        v-model="formData['description']"
-                        name="description"
-                    />
-                  </label>
-                </td>
-              </tr>
+                <tr>
+                  <th>{{ $t('provision.description') }}</th>
+                  <td>
+                    <label>
+                      <input
+                          class="input__text"
+                          type="text"
+                          v-model="formData['description']"
+                          name="description"
+                      />
+                    </label>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -222,7 +207,7 @@
               type="button"
               @click="onSave"
           >
-            저장
+            {{ $t('comm.save') }}
           </button>
           <button
               v-if="isMode === 'mod'"
@@ -230,14 +215,14 @@
               type="button"
               @click="onDelete"
           >
-            삭제
+            {{ $t('comm.delete') }}
           </button>
           <button
               class="button__primary"
               type="button"
               @click="onGoBack"
           >
-            목록
+            {{ $t('comm.backToList') }}
           </button>
         </div>
       </fieldset>
@@ -248,7 +233,7 @@
         @on-event-modal="onConfirmSave"
         modalSize="w-360"
         :content="modalText"
-        button-name="확인"
+        :button-name="$t('comm.ok')"
         :is-success-btn="true"
         :isCancelBtn="true"
     />
@@ -258,7 +243,7 @@
         @on-event-modal="onConfirmDel"
         modalSize="w-360"
         :content="modalText"
-        button-name="확인"
+        :button-name="$t('comm.ok')"
         :is-success-btn="true"
         :isCancelBtn="true"
     />
@@ -267,7 +252,7 @@
         @close-modal="onClose"
         modalSize="w-360"
         :content="modalText"
-        close-name="확인"
+        :button-name="$t('comm.ok')"
         :isCancelBtn="true"
     />
   </div>
@@ -332,11 +317,11 @@ export default {
         return null;
       }
       this.isSaveShow = true;
-      this.modalText = '저장하시겠습니까?';
+      this.modalText = this.$i18n.t('comm.saveCheck');
     },
     onDelete() {
       this.isDelShow = true;
-      this.modalText = '삭제하시겠습니까?';
+      this.modalText = this.$i18n.t('comm.deleteCheck');
     },
     onGoBack() {
       this.$router.push({

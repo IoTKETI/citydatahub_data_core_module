@@ -86,8 +86,6 @@
                       <el-date-picker
                           v-model="formData[result.name]"
                           type="datetimerange"
-                          start-placeholder="시작시간"
-                          end-placeholder="종료시간"
                           :default-time="['00:00:00']"
                           size="mini"
                       >
@@ -133,7 +131,7 @@
                             name="addButton"
                             @click="(event) => onDelivery(event, result)"
                         >
-                          추가
+                          {{ $t('comm.add') }}
                         </button>
                         <button
                             v-if="result.isDelButton"
@@ -142,7 +140,7 @@
                             name="deleteButton"
                             @click="(event) => onDelivery(event, result)"
                         >
-                          삭제
+                          {{ $t('comm.delete') }}
                         </button>
                       </div>
                       <input

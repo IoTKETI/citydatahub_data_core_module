@@ -42,7 +42,7 @@
             </tr>
             <tr v-if="!tableItems || tableItems.length === 0">
               <td :colspan="metaData.length">
-                데이터가 없습니다.
+                {{ $t('comm.noData') }}
               </td>
             </tr>
           </tbody>

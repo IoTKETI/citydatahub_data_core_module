@@ -6,7 +6,7 @@
         <!-- section-write -->
         <section class="section">
           <div class="section__header">
-            <h4 class="section__title">데이터 모델 속성 상세</h4>
+            <h4 class="section__title">{{ $t('dataModel.attributeDetails') }}</h4>
             <div class="button__group" style="margin: 0; padding-top: 5px;">
               <button
                   :class="`button__primary ${ isDisabled ? 'btn-disabled' : null }`"
@@ -14,7 +14,7 @@
                   @click="onEntityEvent"
                   :disabled="isDisabled"
               >
-                저장
+                {{ $t('comm.save') }}
               </button>
             </div>
           </div>
@@ -22,18 +22,18 @@
             <table class="table--row">
               <caption>테이블 제목</caption>
               <colgroup>
-                <col style="width:90px">
+                <col style="width:130px">
                 <col style="width:auto">
-                <col style="width:90px">
+                <col style="width:100px">
                 <col style="width:auto">
-                <col style="width:90px">
+                <col style="width:100px">
                 <col style="width:auto">
-                <col style="width:110px">
+                <col style="width:120px">
                 <col style="width:auto">
               </colgroup>
               <tbody>
               <tr>
-                <th class="icon__require">속성 아이디</th>
+                <th class="icon__require">{{ $t('dataModel.attribute') }}</th>
                 <td>
                   <label>
                     <el-select
@@ -59,10 +59,10 @@
                   </label>
                   <br>
                   <span v-show="error['name']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
-                <th>접근 형태</th>
+                <th>{{ $t('dataModel.accessMode') }}</th>
                 <td>
                   <label>
                     <select
@@ -87,7 +87,7 @@
                   </label>
 <!--                  <input class="input__text" type="text" name="accessMode" v-model="formData['accessMode']" :disabled="isDisabled" />-->
                 </td>
-                <th>속성 설명</th>
+                <th>{{ $t('dataModel.description') }}</th>
                 <td>
                   <label>
                     <input class="input__text" type="text" name="description" v-model="formData['description']" :disabled="isDisabled" />
@@ -96,14 +96,14 @@
                 <th rowspan="7">
                   <el-tooltip placement="left">
                     <div slot="content">
-                      * 속성 값 : Object, ArrayObject 일 경우, 필수입력 입니다.
+                      {{ $t('comm.required2') }}
                     </div>
                     <span style="background: #ffffff;border: 1px solid #2b2b2b;border-radius: 3px;padding-left: 5px;padding-right: 2px;cursor: help;">
                       ?
                     </span>
                   </el-tooltip>
-                  &nbsp;
-                  Object 멤버
+                  &nbsp
+                  {{ $t('dataModel.objectDetails') }}
                 </th>
                 <td colspan="2" rowspan="7">
                   <div class="button__group">
@@ -114,16 +114,7 @@
                         @click="onObjectMemberEvent"
                         :disabled="isDisabled"
                     >
-                      추가
-                    </button>
-                    <button
-                        class="button__util button__util--search material-icons"
-                        type="button"
-                        name="modify"
-                        @click="onObjectMemberEvent"
-                        :disabled="isDisabled"
-                    >
-                      조회
+                      {{ $t('comm.add') }}
                     </button>
                     <button
                         class="button__util button__util--remove material-icons"
@@ -132,7 +123,16 @@
                         @click="onObjectMemberEvent"
                         :disabled="isDisabled"
                     >
-                      삭제
+                      {{ $t('comm.delete') }}
+                    </button>
+                    <button
+                        class="button__util button__util--search material-icons"
+                        type="button"
+                        name="modify"
+                        @click="onObjectMemberEvent"
+                        :disabled="isDisabled"
+                    >
+                      {{ $t('comm.getInfo') }}
                     </button>
                   </div>
                   <ElementTree
@@ -144,7 +144,7 @@
                 </td>
               </tr>
               <tr>
-                <th class="icon__require">속성 Uri</th>
+                <th class="icon__require">{{ $t('dataModel.attributeUri') }}</th>
                 <td>
                   <label>
                     <el-select
@@ -170,16 +170,16 @@
                   </label>
                   <br>
                   <span v-show="error['attributeUri']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
-                <th>속성최대길이</th>
+                <th>{{ $t('dataModel.maxLength') }}</th>
                 <td>
                   <label>
                     <input class="input__text" type="text" name="maxLength" v-model="formData['maxLength']" :disabled="isDisabled" />
                   </label>
                 </td>
-                <th rowspan="6">속성허용 값</th>
+                <th rowspan="6">{{ $t('dataModel.enumerations') }}</th>
                 <td rowspan="6">
                   <div class="button__group" style="margin: 0 0 5px;">
                     <button
@@ -188,7 +188,7 @@
                         :disabled="isDisabled"
                         @click="onValueEnumAdd"
                     >
-                      추가
+                      {{ $t('comm.add') }}
                     </button>
                     <button
                         class="button__util button__util--remove material-icons"
@@ -196,7 +196,7 @@
                         :disabled="isDisabled"
                         @click="onValueEnumDel"
                     >
-                      삭제
+                      {{ $t('comm.delete') }}
                     </button>
                   </div>
                   <label>
@@ -212,7 +212,7 @@
                 </td>
               </tr>
               <tr>
-                <th class="icon__require">속성 유형</th>
+                <th class="icon__require">{{ $t('dataModel.attributeType') }}</th>
                 <td>
                   <label>
                     <select
@@ -240,10 +240,10 @@
                   </label>
                   <br>
                   <span v-show="error['attributeType']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
-                <th>속성최소길이</th>
+                <th>{{ $t('dataModel.minLength') }}</th>
                 <td>
                   <label>
                     <input class="input__text" type="text" name="minLength" v-model="formData['minLength']" :disabled="isDisabled" />
@@ -251,7 +251,7 @@
                 </td>
               </tr>
               <tr>
-                <th class="icon__require">속성 값</th>
+                <th class="icon__require">{{ $t('dataModel.dataType') }}</th>
                 <td>
                   <label>
                     <select
@@ -275,7 +275,7 @@
                   </label>
                   <br>
                   <span v-show="error['valueType']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
                 <th rowspan="2">> OR >=</th>
@@ -291,9 +291,9 @@
               </tr>
               <tr>
                 <th>
-                  observedAt
-                  <br>
-                  포함여부
+                  <label :title="$t('dataModel.observedAtIn')">
+                    {{ $t('dataModel.observedAtIn') }}
+                  </label>
                 </th>
                 <td>
                   <label>
@@ -315,7 +315,11 @@
 
               </tr>
               <tr>
-                <th>unitCode<br>포함여부</th>
+                <th>
+                  <label :title="$t('dataModel.unitCodeIn')">
+                    {{ $t('dataModel.unitCodeIn') }}
+                  </label>
+                </th>
                 <td>
                   <label>
                     <select
@@ -345,7 +349,7 @@
                 </td>
               </tr>
               <tr>
-                <th>필수 여부</th>
+                <th>{{ $t('dataModel.mandatory') }}</th>
                 <td>
                   <label>
                     <select
@@ -363,7 +367,6 @@
                     </select>
                   </label>
                 </td>
-
               </tr>
               </tbody>
             </table>
@@ -375,8 +378,8 @@
         :is-show="isShow"
         @close-modal="onClose"
         @on-event-modal="onPopupSave"
-        title="Object 멤버 상세"
-        button-name="저장"
+        :title="$t('dataModel.objectMemTitle')"
+        :button-name="$t('comm.save')"
         :is-success-btn="true"
         :isCancelBtn="true"
     >
@@ -391,7 +394,7 @@
               </colgroup>
               <tbody>
                 <tr>
-                  <th class="icon__require">Object 멤버명</th>
+                  <th class="icon__require">{{ $t('dataModel.objectMemName') }}</th>
                   <td>
                     <label>
                       <input
@@ -405,10 +408,12 @@
                     </label>
                     <br>
                     <span v-show="popupErrors['name']" class="error__color">
-                      필수 값 입니다.
+                      {{ $t('comm.required') }}
                     </span>
                   </td>
-                  <th>필수 여부</th>
+                  <th>
+                    {{ $t('comm.mandatory') }}
+                  </th>
                   <td>
                     <label>
                       <select
@@ -416,20 +421,20 @@
                           v-model="popupFormData['isRequired']"
                           name="isRequired"
                       >
-                        <option value="true">YES</option>
-                        <option value="false">NO</option>
+                        <option value="true">{{ $t('comm.yes') }}</option>
+                        <option value="false">{{ $t('comm.no') }}</option>
                       </select>
                     </label>
                   </td>
                 </tr>
                 <tr>
-                  <th>값 최대길이</th>
+                  <th>{{ $t('comm.maxLength') }}</th>
                   <td>
                     <label>
                       <input class="input__text" type="text" name="maxLength" v-model="popupFormData['maxLength']" :disabled="isDisabled" />
                     </label>
                   </td>
-                  <th>값 최소길이</th>
+                  <th>{{ $t('comm.minLength') }}</th>
                   <td>
                     <label>
                       <input class="input__text" type="text" name="minLength" v-model="popupFormData['minLength']" :disabled="isDisabled" />
@@ -459,7 +464,7 @@
                   </td>
                 </tr>
                 <tr>
-                  <th class="icon__require">값 유형</th>
+                  <th class="icon__require">{{ $t('dataModel.objectDataType') }}</th>
                   <td colspan="3">
                     <label>
                       <select
@@ -483,12 +488,12 @@
                     </label>
                     <br>
                     <span v-show="popupErrors['valueType']" class="error__color">
-                      필수 값 입니다.
+                      {{ $t('comm.required') }}
                     </span>
                   </td>
                 </tr>
                 <tr>
-                  <th>ChildAttributes 설명</th>
+                  <th>{{ $t('dataModel.description') }}</th>
                   <td colspan="3">
                     <label>
                       <input class="input__text" type="text" v-model="popupFormData['description']" :disabled="isDisabled" />
@@ -496,7 +501,7 @@
                   </td>
                 </tr>
                 <tr>
-                  <th rowspan="4">허용값 Enum</th>
+                  <th rowspan="4">{{ $t('dataModel.enumerations') }} Enum</th>
                   <td rowspan="4" colspan="3">
                     <div class="button__group" style="margin: 0 0 5px;">
                       <button
@@ -505,7 +510,7 @@
                           :disabled="isDisabled"
                           @click="onPopupValueEnumAdd"
                       >
-                        추가
+                        {{ $t('comm.add') }}
                       </button>
                       <button
                           class="button__util button__util--remove material-icons"
@@ -513,7 +518,7 @@
                           :disabled="isDisabled"
                           @click="onPopupValueEnumDel"
                       >
-                        삭제
+                        {{ $t('comm.delete') }}
                       </button>
                     </div>
                     <label>
@@ -539,7 +544,7 @@
         @close-modal="onAlertClose"
         modalSize="w-360"
         :content="modalText"
-        close-name="확인"
+        :close-name="$t('comm.ok')"
         :isCancelBtn="true"
     />
   </div>

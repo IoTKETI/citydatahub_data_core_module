@@ -424,7 +424,7 @@ export default {
     },
     onTreeEvent(data, node) {
       if (this.searchChecked) {
-        this.$alert('검색어 지원 시, 상세 검색은 지원하지 않습니다.');
+        this.$alert(this.$i18n.t('message.notSupportDetailSearch'));
         return null;
       }
       this.searchId = data.id;
@@ -444,7 +444,7 @@ export default {
         return null;
       }
       if (this.addList.length > 9) {
-        this.$alert('최대 10개 입력 가능합니다.', '', {
+        this.$alert(this.$i18n.t('message.enterMaxNum', [10]), '', {
           confirmButtonText: 'OK'
         });
         return null;
@@ -623,7 +623,7 @@ export default {
             window.google.maps.drawing.OverlayType.RECTANGLE
           ]
         },
-        confirm: () => this.$alert('검색 영역 지정 범위가 변경 됩니다.', '', {
+        confirm: () => this.$alert(this.$i18n.t('message.changeSearchScope'), '', {
           confirmButtonText: 'OK',
           // cancelButtonText: '취소',
           type: 'info'

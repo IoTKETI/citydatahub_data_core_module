@@ -1,9 +1,9 @@
 <template>
   <div>
-    <h3 class="content__title">데이터 셋 정보 상세</h3>
+    <h3 class="content__title">{{ $t('dataset.datasetInformation') }}</h3>
     <div style="margin-top: 15px; text-align: right;" v-if="isMode === 'add'">
       <label>
-        <el-select v-model="searchModelValue" filterable placeholder="데이터 셋 정보 검색" size="mini">
+        <el-select v-model="searchModelValue" filterable :placeholder="$t('dataset.datasetLoad')" size="mini">
           <el-option
               size="mini"
               style="font-size: 12px;"
@@ -15,7 +15,7 @@
           </el-option>
         </el-select>
         <button type="button" class="button__primary" @click="setDataSetId">
-          불러오기
+          {{ $t('comm.load') }}
         </button>
       </label>
     </div>
@@ -39,7 +39,7 @@
               @click="onProvisioning('dataset')"
               style="width: 110px"
           >
-            데이터셋 프로비저닝
+            {{ $t('dataset.datasetProvisioning') }}
           </button>
           <button
               v-if="isFlowProvision"
@@ -48,14 +48,14 @@
               @click="onProvisioning('flow')"
               style="width: 100px"
           >
-            플로우 프로비저닝
+            {{ $t('dataset.flowProvision') }}
           </button>
           <button
               class="button__primary"
               type="button"
               @click="onDatasetSave"
           >
-            데이터셋 저장
+            {{ $t('dataset.datasetSave') }}
           </button>
           <button
               v-if="isMode === 'mod'"
@@ -63,14 +63,14 @@
               type="button"
               @click="onFlowSave"
           >
-            플로우 저장
+            {{ $t('dataset.flowSave') }}
           </button>
           <button
               class="button__primary"
               type="button"
               @click="onGoBack"
           >
-            목록
+            {{ $t('comm.backToList') }}
           </button>
         </div>
       </fieldset>

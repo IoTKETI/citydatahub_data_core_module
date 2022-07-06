@@ -152,7 +152,7 @@ public class SubscriptionSVC {
 			EntityInfo entityInfo = new EntityInfo();
 			
 			// type -> typeUri
-			ResponseEntity<DataModelVO> dataModelVO = dataModelSVC.getDataModel(subscriptionUIVO.getType());
+			ResponseEntity<DataModelVO> dataModelVO = dataModelSVC.getDataModelbyId(subscriptionUIVO.getType());
 			if(dataModelVO.getBody() != null) {
 				entityInfo.setType(dataModelVO.getBody().getTypeUri());
 			} else {

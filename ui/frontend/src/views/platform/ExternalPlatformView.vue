@@ -1,7 +1,7 @@
 <template>
   <div>
-    <h3 class="content__title">외부 플랫폼 인증</h3>
-    <p class="text__total">총 {{ totalCount }}건</p>
+    <h3 class="content__title">{{ $t('platform.title') }}</h3>
+    <p class="text__total">{{ $t('comm.total') }} {{ totalCount }}</p>
     <AppTable
         :meta-data="tableFields"
         :table-items="externalPlatList"
@@ -18,7 +18,7 @@
       <template v-slot:buttons>
         <div class="button__group">
           <AppButtons
-              button-name="등록"
+              :button-name="$t('comm.create')"
               @on-button-event="onCreate"
           />
         </div>
@@ -82,8 +82,14 @@ export default {
       isShow: false,
       isAlertShow: false,
       modalText: null,
-      formFields: Fields.EXTERNAL_PLATFORM_SEARCH_FIELDS,
-      tableFields: Fields.EXTERNAL_PLATFORM_TABLE_FIELDS,
+      formFields: [{ name: 'id', displayName: this.$i18n.t('platform.dataSourceId'), type: 'text', require: false }],
+      tableFields: [
+        { name: 'id', displayName: this.$i18n.t('platform.dataSourceId'), require: false, col: 10 },
+        { name: 'name', displayName: this.$i18n.t('platform.dataSourceName'), require: false, col: 10 },
+        { name: 'description', displayName: this.$i18n.t('platform.description'), require: false, col: 15 },
+        { name: 'createdAt', displayName: this.$i18n.t('comm.creationTime'), require: false, col: 10 },
+        { name: 'modifiedAt', displayName: this.$i18n.t('comm.modifierTime'), require: false, col: 10 }
+      ],
       externalPlatList: [],
       formData: { dataStoreUri: [] },
       totalCount: 0
@@ -172,6 +178,7 @@ export default {
     }
   },
   mounted() {
+    document.querySelectorAll('.breadcrumb__list')[0].innerText = this.$i18n.t('platform.title');
     this.formData = this.externalPlatformSearchData;
     this.setDataModelSearchData({});
     this.setDataSetFlowSearchData({});

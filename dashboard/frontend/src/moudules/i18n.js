@@ -14,6 +14,7 @@
 
 import Vue from 'vue'
 import VueI18n from 'vue-i18n'
+import { getCookie } from './cookieParser'
 
 Vue.use(VueI18n)
 
@@ -31,17 +32,6 @@ function loadLocaleMessages () {
 }
 
 export default new VueI18n({
-  locale: defaultLocale(),
-  // fallbackLocale: process.env.VUE_APP_I18N_FALLBACK_LOCALE || 'ko',
+  locale: getCookie('langCd') || 'en',
   messages: loadLocaleMessages()
 })
-
-// TODO 한영 전환 기능 추가 시 수정 및 적용 필요
-function defaultLocale() {
-  // Login 시점에 선택한 언어를 브라우저에 저장해 두고 계속 사용 (바꾸고 싶으면 다시 로그인하면 됨)
-  let locale = localStorage.getItem('langCd');
-  if (!locale) {
-    locale = 'en';
-  }
-  return locale;
-}

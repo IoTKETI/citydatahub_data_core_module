@@ -1,12 +1,12 @@
 <template>
   <div>
-    <h3 class="content__title">데이터 접근제어 관리</h3>
+    <h3 class="content__title">{{ $t('accessControl.title') }}</h3>
     <SmartSearch
         :is-text="true"
-        button-name="상세검색"
+        :button-name="$t('comm.search')"
         @smart-search="showSmartSearch"
     />
-    <p class="text__total">총 {{ totalCount }}건</p>
+    <p class="text__total">{{ $t('comm.total') }} {{ totalCount }}</p>
     <AppTable
         :meta-data="tableFields"
         :table-items="accessControls"
@@ -23,7 +23,7 @@
       <template v-slot:buttons>
         <div class="button__group">
           <AppButtons
-              button-name="등록"
+              :button-name="$t('comm.create')"
               @on-button-event="onCreate"
           />
         </div>
@@ -33,14 +33,13 @@
         :is-show="isShow"
         @close-modal="onClose"
         @on-event-modal="onSearch"
-        title="상세 조건 검색"
-        button-name="검색"
+        :title="$t('accessControl.popupTitle')"
+        :button-name="$t('comm.search')"
         :is-success-btn="true"
         :is-cancel-btn="true"
     >
       <template v-slot:elements>
         <AppForm
-            title="기본 정보"
             :meta-data="formFields"
             :form-data="formData"
             @add-event="onDataTableAdd"
@@ -53,7 +52,7 @@
         @close-modal="onClose"
         modalSize="w-360"
         :content="modalText"
-        close-name="확인"
+        :close-name="$t('comm.ok')"
         :isCancelBtn="true"
     />
   </div>
@@ -91,24 +90,20 @@ export default {
       isAlertShow: false,
       modalText: null,
       formFields: [
-        [{ name: 'resourceId', displayName: '리소스 ID', type: 'text', require: false },
-          { name: 'resourceType', displayName: '리소스 유형', type: 'choice', require: false,
-            choices: [
-              { value: 'DATASET', displayName: 'DATASET' }
-            ]}
-        ],
-        [{ name: 'userId', displayName: '사용자 ID', type: 'text', require: false },
-          { name: 'clientId', displayName: 'Client ID', type: 'text', require: false }]
+        [{ name: 'resourceId', displayName: this.$i18n.t('accessControl.resourceId'), type: 'text'},
+          { name: 'resourceType', displayName: this.$i18n.t('accessControl.resourceType'), type: 'text'}],
+        [{ name: 'userId', displayName: this.$i18n.t('accessControl.userId'), type: 'text'},
+          { name: 'clientId', displayName: this.$i18n.t('accessControl.clientId'), type: 'text'}]
       ],
       tableFields: [
-        { name: 'id', displayName: '접근제어 ID', require: false, col: 15 },
-        { name: 'resourceId', displayName: '리소스 ID', require: false, col: 15 },
-        { name: 'resourceType', displayName: '리소스 유형', require: false, col: 10 },
-        { name: 'userId', displayName: '사용자 ID', require: false, col: 10 },
-        { name: 'condition', displayName: 'condition', require: false, col: 15 },
-        { name: 'operation', displayName: 'operation', require: false, col: 10 },
-        { name: 'createdAt', displayName: '생성시간', require: false, col: 15 },
-        { name: 'modifiedAt', displayName: '수정시간', require: false, col: 15 },
+        { name: 'id', displayName: this.$i18n.t('accessControl.id'), require: false, col: 15 },
+        { name: 'resourceId', displayName: this.$i18n.t('accessControl.resourceId'), require: false, col: 15 },
+        { name: 'resourceType', displayName: this.$i18n.t('accessControl.resourceType'), require: false, col: 10 },
+        { name: 'userId', displayName: this.$i18n.t('accessControl.userId'), require: false, col: 10 },
+        { name: 'condition', displayName: this.$i18n.t('accessControl.condition'), require: false, col: 15 },
+        { name: 'operation', displayName: this.$i18n.t('accessControl.operation'), require: false, col: 10 },
+        { name: 'createdAt', displayName: this.$i18n.t('comm.creator'), require: false, col: 15 },
+        { name: 'modifiedAt', displayName: this.$i18n.t('comm.modifierTime'), require: false, col: 15 },
       ],
       accessControls: [],
       formData: { resourceId: '', resourceType: '', userId: '', clientId: '' },
@@ -173,7 +168,7 @@ export default {
       }
       let queryStr = 'acl/rules?';
       queryStr += Object.entries(this.formData).map(e => e.join('=')).join('&');
-
+console.log(queryStr);
       this.$http.get(APIHandler.buildUrl([queryStr]))
           .then(response => {
             const items = response.data.aclRuleResponseVOs;
@@ -185,10 +180,10 @@ export default {
                   resourceId: item.resourceId,
                   resourceType: item.resourceType,
                   userId: item.userId,
-                  condition: item.condition,
+                  condition: item.condition.toString(),
                   operation: item.operation,
-                  createdAt: dateFormat(new Date(item.createdAt), 'yyyy-MM-dd HH:mm:ss'),
-                  modifiedAt: dateFormat(new Date(item.modifiedAt), 'yyyy-MM-dd HH:mm:ss'),
+                  createdAt: item.createdAt,
+                  modifiedAt: item.modifiedAt,
                 }
               });
               this.totalCount = totalCnt;
@@ -215,6 +210,7 @@ export default {
     }
   },
   mounted() {
+    document.querySelectorAll('.breadcrumb__list')[0].innerText = this.$i18n.t('accessControl.title');
     // this.formData = this.dataSetInfoSearchData;
     this.setDataModelSearchData({});
     this.setDataSetFlowSearchData({});

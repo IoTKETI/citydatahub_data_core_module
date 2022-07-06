@@ -35,6 +35,23 @@
           @change="onCheckChange($event, node, data)"
           style="margin-bottom: 0;color: #67C23A;"
         >&nbsp;</el-checkbox>
+        <span v-if="visibleOption(data)">
+          <el-popover
+            placement="top"
+            width="200"
+            v-model="popover.visible[node.id]"
+            @show="() => popoverShow(node.id)"
+          >
+            <slot name="popover-content" :node="node" :show="popover.visible[node.id]"/>
+            <el-button
+              @click.stop
+              slot="reference"
+              type="text"
+              size="mini">
+            {{ $t('comm.option') }}
+          </el-button>
+          </el-popover>
+        </span>
       </label>
       </el-tree>
     </div>
@@ -65,12 +82,14 @@
       radioBox: Boolean, //  use radiobox(default false)
       radioValue: String, // for init selected radio
       chartList: Object, // for init checked List
+      option: Boolean, //  use option(default false)
+      optionFiltering: Boolean, // use option Filtering (default false)
     },
     computed: {
       normalizedCharacter () {
         this.radio = this.radioValue;
         return this.radioValue;
-      },
+      }
     },
     watch: {
       chartList(value) {
@@ -85,6 +104,10 @@
           label: 'label'
         },
         radio: '', // selected radio item (radiobox)
+        popover: {
+          visible: {}, // node popover list
+          activeId: null,
+        },
       }
     },
     methods: {
@@ -138,6 +161,16 @@
               <el-button size="mini" type="text" on-click={ () => this.remove(node, data) }>Delete</el-button>
             </span>
           </span>);
+      },
+      popoverShow(nodeId) {
+        if (this.popover.activeId) {
+          this.popover.visible[this.popover.activeId] = undefined;
+        }
+        this.popover.activeId = nodeId;
+        this.$emit('popover-show');
+      },
+      visibleOption(data) {
+        return this.option && (!this.optionFiltering || (this.optionFiltering && data.searchable))
       }
     },
     mounted() {}

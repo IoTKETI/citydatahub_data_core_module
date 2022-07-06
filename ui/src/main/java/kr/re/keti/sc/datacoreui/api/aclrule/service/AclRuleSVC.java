@@ -122,11 +122,13 @@ public class AclRuleSVC {
 	 * @return				List of ACL rules retrieved by AclRuleVO.
 	 */
 	public ResponseEntity<AclRuleListResponseVO> getAclRules(HttpServletRequest request, AclRuleVO aclRuleVO) {
-		String aclRule = new Gson().toJson(aclRuleVO);
 		Map<String, String> headers = new HashMap<String, String>();
+		Map<String, Object> params = new HashMap<String, Object>();
 		headers.put("Accept", "application/json");
 		
-		ResponseEntity<String> response = dataCoreRestSVC.get(datamanagerUrl, DEFAULT_PATH_URL, headers, aclRule, null, String.class);
+		aclRuleVOtoParams(aclRuleVO, params);
+		
+		ResponseEntity<String> response = dataCoreRestSVC.get(datamanagerUrl, DEFAULT_PATH_URL, headers, null, params, String.class);
 		
 		AclRuleListResponseVO aclRuleResponseList = new AclRuleListResponseVO();
 		try {
@@ -174,5 +176,42 @@ public class AclRuleSVC {
 		
 		return ResponseEntity.ok(aclRuleResponse);
 	}
-
+	
+	/**
+	 * AclRuleVO to Params
+	 * @param aclRuleVO		AclRuleVO
+	 * @param params		Http request params
+	 */
+	private void aclRuleVOtoParams(AclRuleVO aclRuleVO, Map<String, Object> params) {		
+		if(!ValidateUtil.isEmptyData(aclRuleVO.getId())) {
+			params.put("id", aclRuleVO.getId());
+		}
+		if(!ValidateUtil.isEmptyData(aclRuleVO.getUserId())) {
+			params.put("userId", aclRuleVO.getUserId());
+		}
+		if(!ValidateUtil.isEmptyData(aclRuleVO.getClientId())) {
+			params.put("clientId", aclRuleVO.getClientId());
+		}
+		if(!ValidateUtil.isEmptyData(aclRuleVO.getResourceId())) {
+			params.put("resourceId", aclRuleVO.getResourceId());
+		}
+		if(!ValidateUtil.isEmptyData(aclRuleVO.getResourceType())) {
+			params.put("resourceType", aclRuleVO.getResourceType());
+		}
+		if(!ValidateUtil.isEmptyData(aclRuleVO.getCondition())) {
+			params.put("condition", aclRuleVO.getCondition());
+		}
+		if(!ValidateUtil.isEmptyData(aclRuleVO.getOperation())) {
+			params.put("operation", aclRuleVO.getOperation());
+		}
+		if(!ValidateUtil.isEmptyData(aclRuleVO.getProvisioningRequestId())) {
+			params.put("provisioningRequestId", aclRuleVO.getProvisioningRequestId());
+		}
+		if(!ValidateUtil.isEmptyData(aclRuleVO.getCreatorId())) {
+			params.put("creatorId", aclRuleVO.getCreatorId());
+		}
+		if(!ValidateUtil.isEmptyData(aclRuleVO.getModifierId())) {
+			params.put("modifierId", aclRuleVO.getModifierId());
+		}
+	}
 }
