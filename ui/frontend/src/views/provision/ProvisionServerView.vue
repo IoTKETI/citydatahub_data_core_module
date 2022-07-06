@@ -1,12 +1,12 @@
 <template>
   <div>
-    <h3 class="content__title">Provision 서버</h3>
+    <h3 class="content__title">{{ $t('provision.title') }}</h3>
     <SmartSearch
         :is-text="true"
-        button-name="상세검색"
+        :button-name="$t('comm.detailSearch')"
         @smart-search="showSmartSearch"
     />
-    <p class="text__total">총 {{ totalCount }}건</p>
+    <p class="text__total">{{ $t('comm.total') }} {{ totalCount }}</p>
     <AppTable
         :meta-data="tableFields"
         :table-items="provisionList"
@@ -23,7 +23,7 @@
       <template v-slot:buttons>
         <div class="button__group">
           <AppButtons
-              button-name="등록"
+              :button-name="$t('comm.create')"
               @on-button-event="onCreate"
           />
         </div>
@@ -33,14 +33,13 @@
         :is-show="isShow"
         @close-modal="onClose"
         @on-event-modal="onSearch"
-        title="상세 조건 검색"
-        button-name="검색"
+        :title="$t('provision.popupTitle')"
+        :button-name="$t('comm.search')"
         :is-success-btn="true"
         :is-cancel-btn="true"
     >
       <template v-slot:elements>
         <AppForm
-            title="기본 정보"
             :meta-data="formFields"
             :form-data="formData"
         />
@@ -87,8 +86,36 @@ export default {
       isShow: false,
       isAlertShow: false,
       modalText: null,
-      formFields: Fields.PROVISION_SEARCH_FIELDS,
-      tableFields: Fields.PROVISION_TABLE_FIELDS,
+      formFields: [
+        [{ name: 'type', displayName: this.$i18n.t('provision.serverType'), type: 'choice',
+          choices: [
+            { value: 'dataServiceBroker', displayName: 'Data Service Broker' },
+            { value: 'bigDataStorageHandler', displayName: 'Bigdata Storage Handler' },
+            { value: 'ingestInterface', displayName: 'Ingest Interface' }
+          ],
+          selectedValue: null, require: false, isTable: false },
+          { name: 'provisionProtocol', displayName: this.$i18n.t('provision.protocol'), type: 'choice',
+            choices: [
+              { value: 'http', displayName: 'Http' },
+              { value: 'kafka', displayName: 'Kafka' }
+            ],
+            selectedValue: null, require: false, isTable: false }],
+        [{ name: 'enabled', displayName: this.$i18n.t('provision.isActive'), type: 'choice',
+          choices: [
+            { value: true, displayName: this.$i18n.t('comm.active') },
+            { value: false, displayName: this.$i18n.t('comm.inactive') }
+          ],
+          selectedValue: null, require: false, isTable: false }]
+      ],
+      tableFields: [
+        { name: 'id', displayName: this.$i18n.t('provision.serverId'), require: false, col: 15 },
+        { name: 'type', displayName: this.$i18n.t('provision.serverType'), require: false, col: 15 },
+        { name: 'provisionUri', displayName: this.$i18n.t('provision.uri'), require: false, col: 20 },
+        { name: 'provisionProtocol', displayName: this.$i18n.t('provision.protocol'), require: false, col: 10 },
+        { name: 'enabled', displayName: this.$i18n.t('provision.isActive'), require: false, col: 10 },
+        { name: 'createdAt', displayName: this.$i18n.t('comm.creationTime'), require: false, col: 15 },
+        { name: 'modifiedAt', displayName: this.$i18n.t('comm.modifierTime'), require: false, col: 15 }
+      ],
       provisionList: [],
       formData: {},
       totalCount: 0
@@ -179,6 +206,7 @@ export default {
     }
   },
   mounted() {
+    document.querySelectorAll('.breadcrumb__list')[0].innerText = this.$i18n.t('provision.title');
     this.formData = this.provisionSearchData;
     this.setDataModelSearchData({});
     this.setDataSetFlowSearchData({});

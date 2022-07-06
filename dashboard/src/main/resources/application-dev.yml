@@ -24,6 +24,9 @@ server:
 ## Logging 설정
 logging.config: classpath:logback-spring.xml
 logging.base.dir: logs
+
+# Language (en: English, ko: Korean)
+language.code: en
   
 # DB연결 정보
 datasource:
@@ -70,5 +73,7 @@ http.pool:
 entity.history:
   limit: 1000
   days: 3
+  
+chart.time.format: yyyy-MM-dd HH:mm:ss
   
 google.api.key: 

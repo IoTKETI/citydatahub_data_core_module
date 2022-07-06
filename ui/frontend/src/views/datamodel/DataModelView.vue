@@ -1,12 +1,12 @@
 <template>
   <div>
-    <h3 class="content__title">데이터 모델</h3>
+    <h3 class="content__title">{{ $t('dataModel.dataModel') }}</h3>
     <SmartSearch
         :is-text="true"
-        button-name="상세검색"
+        :button-name="$t('comm.detailSearch')"
         @smart-search="showSmartSearch"
     />
-    <p class="text__total">총 {{ totalCount }}건</p>
+    <p class="text__total">{{ $t('comm.total') }} {{ totalCount }}</p>
     <AppTable
         :meta-data="tableFields"
         :table-items="dataModelList"
@@ -23,7 +23,7 @@
       <template v-slot:buttons>
         <div class="button__group">
           <AppButtons
-              button-name="등록"
+              :button-name="$t('comm.create')"
               @on-button-event="onCreate"
           />
         </div>
@@ -33,14 +33,13 @@
         :is-show="isShow"
         @close-modal="onClose"
         @on-event-modal="onSearch"
-        title="상세 조건 검색"
-        button-name="검색"
+        :title="$t('dataModel.search')"
+        :button-name="$t('comm.search')"
         :is-success-btn="true"
         :is-cancel-btn="true"
     >
       <template v-slot:elements>
         <AppForm
-            title="기본 정보"
             :meta-data="formFields"
             :form-data="formData"
         />
@@ -68,7 +67,6 @@ import AppModal from '@/components/AppModal';
 import SmartSearch from '@/components/SmartSearch';
 import AppForm from "@/components/AppForm";
 import {APIHandler} from '@/modules/api-handler';
-import * as Fields from '@/modules/meta-fields';
 import {mapMutations, mapState} from 'vuex';
 import {errorRender} from "@/modules/utils";
 
@@ -88,8 +86,19 @@ export default {
       isShow: false,
       isAlertShow: false,
       modalText: null,
-      formFields: Fields.DATAMODEL_FORM_FIELDS,
-      tableFields: Fields.DATAMODEL_TABLE_FIELDS,
+      formFields: [
+        [{ name: 'id', displayName: this.$i18n.t('dataModel.dataModelId'), type: 'text', require: false, isTable: false },
+          { name: 'type', displayName: this.$i18n.t('dataModel.dataModelType'), type: 'text', require: false, isTable: false }],
+        [{ name: 'name', displayName: this.$i18n.t('dataModel.dataModelName'), type: 'text', require: false, isTable: false },
+          { type: null }]
+      ],
+      tableFields: [
+        { name: 'id', displayName: 'ID', require: false, col: 10 },
+        { name: 'typeUri', displayName: 'Type (Full URI)', require: false, col: 20 },
+        { name: 'type', displayName: 'Type', require: false, col: 10 },
+        { name: 'creatorId', displayName: this.$i18n.t('comm.creator'), require: false, col: 10 },
+        { name: 'createdAt', displayName: this.$i18n.t('comm.creationTime'), require: false, col: 15 }
+      ],
       dataModelList: [],
       formData: {},
       totalCount: 0
@@ -180,6 +189,7 @@ export default {
     }
   },
   mounted() {
+    document.querySelectorAll('.breadcrumb__list')[0].innerText = this.$i18n.t('dataModel.dataModelManage');
     this.formData = this.dataModelSearchData;
     this.setDataSetInfoSearchData({});
     this.setDataSetFlowSearchData({});

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.re.keti.sc.datacoreui.api.menu.vo.AccessableMenuRetrieveVO;
 import kr.re.keti.sc.datacoreui.api.menu.vo.MenuBaseVO;
 import kr.re.keti.sc.datacoreui.api.menu.vo.MenuRetrieveVO;
 import kr.re.keti.sc.datacoreui.api.menu.vo.MenuRoleBaseVO;
@@ -47,20 +48,20 @@ public class MenuDAO {
 
 	/**
 	 *  Delete menu
-	 * @param id
+	 * @param menuRetrieveVO
 	 * @return
 	 */
-	public int deleteMenu(String id) {
-		return sqlSession.delete("datacoreui.menu.deleteMenu", id);
+	public int deleteMenu(MenuRetrieveVO menuRetrieveVO) {
+		return sqlSession.delete("datacoreui.menu.deleteMenu", menuRetrieveVO);
 	}
 
 	/**
 	 * Select menu
-	 * @param id
+	 * @param menuRetrieveVO
 	 * @return
 	 */
-	public MenuBaseVO getMenu(String id) {
-		return sqlSession.selectOne("datacoreui.menu.selectMenu", id);
+	public MenuBaseVO getMenu(MenuRetrieveVO menuRetrieveVO) {
+		return sqlSession.selectOne("datacoreui.menu.selectMenu", menuRetrieveVO);
 	}
 
 	/**
@@ -77,8 +78,8 @@ public class MenuDAO {
 	 * @param menuRoleId
 	 * @return
 	 */
-	public List<MenuBaseVO> getAccessMenus(String menuRoleId) {
-		return sqlSession.selectList("datacoreui.menu.selectAccessMenus", menuRoleId);
+	public List<MenuBaseVO> getAccessMenus(AccessableMenuRetrieveVO accessableMenuRetrieveVO) {
+		return sqlSession.selectList("datacoreui.menu.selectAccessMenus", accessableMenuRetrieveVO);
 	}
 
 	/**

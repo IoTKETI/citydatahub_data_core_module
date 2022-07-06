@@ -1,7 +1,7 @@
 <template>
   <section class="section">
     <div class="section__header">
-      <h4 class="section__title">데이터 셋</h4>
+      <h4 class="section__title">{{ $t('dataset.datasetDetail') }}</h4>
       <div class="button__group" style="margin: 0; padding-top: 5px;">
         <!--        <button-->
         <!--            class="button__primary"-->
@@ -16,7 +16,7 @@
             type="button"
             @click="onDelete"
         >
-          삭제
+          {{ $t('comm.delete') }}
         </button>
       </div>
     </div>
@@ -35,7 +35,7 @@
         </colgroup>
         <tbody>
         <tr>
-          <th class="icon__require">데이터셋 ID</th>
+          <th class="icon__require">{{ $t('dataset.id') }}</th>
           <td>
             <label>
               <input
@@ -49,10 +49,10 @@
             </label>
             <br>
             <span v-show="error['id']" class="error__color">
-                필수 값 입니다.
+                {{ $t('comm.required') }}
               </span>
           </td>
-          <th class="icon__require">데이터셋 이름</th>
+          <th class="icon__require">{{ $t('dataset.name') }}</th>
           <td>
             <label>
               <input
@@ -65,10 +65,10 @@
             </label>
             <br>
             <span v-show="error['name']" class="error__color">
-                필수 값 입니다.
+                {{ $t('comm.required') }}
               </span>
           </td>
-          <th class="icon__require">갱신주기</th>
+          <th class="icon__require">{{ $t('dataset.refreshInterval') }}</th>
           <td>
             <label>
               <input
@@ -81,10 +81,10 @@
             </label>
             <br>
             <span v-show="error['updateInterval']" class="error__color">
-                필수 값 입니다.
+                {{ $t('comm.required') }}
               </span>
           </td>
-          <th class="icon__require">분류체계</th>
+          <th class="icon__require">{{ $t('dataset.category') }}</th>
           <td>
             <label>
               <select
@@ -110,12 +110,12 @@
             </label>
             <br>
             <span v-show="error['category']" class="error__color">
-                필수 값 입니다.
+                {{ $t('comm.required') }}
               </span>
           </td>
         </tr>
         <tr>
-          <th class="icon__require">제공기관</th>
+          <th class="icon__require">{{ $t('dataset.provider') }}</th>
           <td>
             <label>
               <input
@@ -128,10 +128,10 @@
             </label>
             <br>
             <span v-show="error['providerOrganization']" class="error__color">
-                필수 값 입니다.
+                {{ $t('comm.required') }}
               </span>
           </td>
-          <th class="icon__require">제공시스템</th>
+          <th class="icon__require">{{ $t('dataset.providerSystem') }}</th>
           <td>
             <label>
               <input
@@ -144,10 +144,10 @@
             </label>
             <br>
             <span v-show="error['providerSystem']" class="error__color">
-                필수 값 입니다.
-              </span>
+                {{ $t('comm.required') }}
+            </span>
           </td>
-          <th class="icon__require">데이터가공여부</th>
+          <th class="icon__require">{{ $t('dataset.dataType') }}</th>
           <td>
             <label>
               <select
@@ -173,10 +173,10 @@
             </label>
             <br>
             <span v-show="error['isProcessed']" class="error__color">
-                필수 값 입니다.
-              </span>
+                {{ $t('comm.required') }}
+            </span>
           </td>
-          <th rowspan="4">데이터저장위치</th>
+          <th rowspan="4">{{ $t('dataset.storageLocation') }}</th>
           <td rowspan="4">
             <AppTable
                 :meta-data="[]"
@@ -188,7 +188,7 @@
           </td>
         </tr>
         <tr>
-          <th class="icon__require">소유권</th>
+          <th class="icon__require">{{ $t('dataset.ownership') }}</th>
           <td>
             <label>
               <input
@@ -201,10 +201,10 @@
             </label>
             <br>
             <span v-show="error['ownership']" class="error__color">
-                필수 값 입니다.
-              </span>
+                {{ $t('comm.required') }}
+            </span>
           </td>
-          <th class="icon__require">라이선스</th>
+          <th class="icon__require">{{ $t('dataset.license') }}</th>
           <td>
             <label>
               <select
@@ -230,10 +230,10 @@
             </label>
             <br>
             <span v-show="error['license']" class="error__color">
-                필수 값 입니다.
+                {{ $t('comm.required') }}
               </span>
           </td>
-          <th class="icon__require">제공항목</th>
+          <th class="icon__require">{{ $t('dataset.dataElements') }}</th>
           <td>
             <label>
               <input
@@ -246,12 +246,12 @@
             </label>
             <br>
             <span v-show="error['datasetItems']" class="error__color">
-                필수 값 입니다.
+                {{ $t('comm.required') }}
               </span>
           </td>
         </tr>
         <tr>
-          <th>생성자</th>
+          <th>{{ $t('comm.creator') }}</th>
           <td>
             <label>
               <input
@@ -263,7 +263,7 @@
               />
             </label>
           </td>
-          <th>생성시간</th>
+          <th>{{ $t('comm.createTime') }}</th>
           <td>
             <label>
               <input
@@ -275,7 +275,7 @@
               />
             </label>
           </td>
-          <th class="icon__require">지역범위</th>
+          <th class="icon__require">{{ $t('dataset.geographicScope') }}</th>
           <td>
             <label>
               <input
@@ -288,12 +288,12 @@
             </label>
             <br>
             <span v-show="error['targetRegions']" class="error__color">
-                필수 값 입니다.
+                {{ $t('comm.required') }}
               </span>
           </td>
         </tr>
         <tr>
-          <th>수정자</th>
+          <th>{{ $t('comm.modifier') }}</th>
           <td>
             <label>
               <input
@@ -305,7 +305,7 @@
               />
             </label>
           </td>
-          <th>수정시간</th>
+          <th>{{ $t('comm.modifierTime') }}</th>
           <td>
             <label>
               <input
@@ -317,7 +317,7 @@
               />
             </label>
           </td>
-          <th class="icon__require">품질검증여부</th>
+          <th class="icon__require">{{ $t('dataset.qualityCheckEnabled') }}</th>
           <td>
             <label>
               <select
@@ -343,12 +343,12 @@
             </label>
             <br>
             <span v-show="error['qualityCheckEnabled']" class="error__color">
-                필수 값 입니다.
+                {{ $t('comm.required') }}
               </span>
           </td>
         </tr>
         <tr>
-          <th>제공API주소</th>
+          <th>{{ $t('dataset.sourceUrl') }}</th>
           <td>
             <label>
               <input
@@ -359,7 +359,7 @@
               />
             </label>
           </td>
-          <th>제약사항</th>
+          <th>{{ $t('dataset.restriction') }}</th>
           <td>
             <label>
               <input
@@ -370,7 +370,7 @@
               />
             </label>
           </td>
-          <th>이력저장기간(Day)</th>
+          <th>{{ $t('dataset.dataExpiration') }}</th>
           <td>
             <label>
               <input
@@ -381,7 +381,7 @@
               />
             </label>
           </td>
-          <th>토픽저장기간(ms)</th>
+          <th>{{ $t('dataset.topicExpiration') }}</th>
           <td>
             <label>
               <input
@@ -394,7 +394,7 @@
           </td>
         </tr>
         <tr>
-          <th>데이터셋설명</th>
+          <th>{{ $t('dataset.description') }}</th>
           <td colspan="3">
             <label>
               <input
@@ -405,7 +405,7 @@
               />
             </label>
           </td>
-          <th rowspan="5">식별자</th>
+          <th rowspan="5">{{ $t('dataset.ids') }}</th>
           <td rowspan="5">
             <div class="button__group" style="margin: 0 0 5px;">
               <button
@@ -414,7 +414,7 @@
                   name="sourceDatasetIdsAdd"
                   @click="onTableAdd"
               >
-                추가
+                {{ $t('comm.add') }}
               </button>
               <button
                   class="button__util button__util--remove material-icons"
@@ -422,7 +422,7 @@
                   name="sourceDatasetIdsDel"
                   @click="onTableDel"
               >
-                삭제
+                {{ $t('comm.delete') }}
               </button>
             </div>
             <label>
@@ -436,7 +436,7 @@
                 @on-row-event="onTableRowEvent"
             />
           </td>
-          <th rowspan="5">키워드</th>
+          <th rowspan="5">{{ $t('dataset.keywords') }}</th>
           <td rowspan="5">
             <div class="button__group" style="margin: 0 0 5px;">
               <button
@@ -445,7 +445,7 @@
                   name="keywordAdd"
                   @click="onTableAdd"
               >
-                추가
+                {{ $t('comm.add') }}
               </button>
               <button
                   class="button__util button__util--remove material-icons"
@@ -453,7 +453,7 @@
                   name="keywordDel"
                   @click="onTableDel"
               >
-                삭제
+                {{ $t('comm.delete') }}
               </button>
             </div>
             <label>
@@ -469,7 +469,7 @@
           </td>
         </tr>
         <tr>
-          <th class="icon__require">데이터모델ID</th>
+          <th class="icon__require">{{ $t('dataModel.dataModelId') }}</th>
           <td>
             <label>
               <select
@@ -495,10 +495,10 @@
             </label>
             <br>
             <span v-show="formData['qualityCheckEnabled'] === 'true' && !formData['dataModelId']" class="error__color">
-                필수 값 입니다.
+                {{ $t('comm.required') }}
               </span>
           </td>
-          <th>확장자</th>
+          <th>{{ $t('dataset.fileExtension') }}</th>
           <td>
             <label>
               <input
@@ -511,7 +511,7 @@
           </td>
         </tr>
         <tr>
-          <th>식별자유형</th>
+          <th>{{ $t('dataset.entityIdType') }}</th>
           <td>
             <label>
               <select
@@ -550,7 +550,7 @@
         @on-event-modal="onConfirmSave"
         modalSize="w-360"
         :content="modalText"
-        button-name="확인"
+        :button-name="$t('comm.ok')"
         :is-success-btn="true"
         :isCancelBtn="true"
     />
@@ -560,7 +560,7 @@
         @on-event-modal="onConfirmDel"
         modalSize="w-360"
         :content="modalText"
-        button-name="확인"
+        :button-name="$t('comm.ok')"
         :is-success-btn="true"
         :isCancelBtn="true"
     />
@@ -569,7 +569,7 @@
         @close-modal="onClose"
         modalSize="w-360"
         :content="modalText"
-        close-name="확인"
+        :button-name="$t('comm.ok')"
         :isCancelBtn="true"
     />
     <Loading
@@ -686,11 +686,11 @@ export default {
         return null;
       }
       this.isSaveShow = true;
-      this.modalText = '저장하시겠습니까?';
+      this.modalText = this.$i18n.t('comm.saveCheck');
     },
     onDelete() {
       this.isDelShow = true;
-      this.modalText = '삭제하시겠습니까?';
+      this.modalText = this.$i18n.t('comm.deleteCheck');
     },
     onGoBack() {
       this.$router.push({
@@ -784,7 +784,7 @@ export default {
               const resultCode = response.status;
               if (resultCode === 200 || 201 || 204) {
                 this.isLoading = false;
-                alert('데이터 셋 수정을 통해\n플로우 등록 해주셔야 데이터가 저장 됩니다.');
+                alert(this.$i18n.t('comm.datasetModifyMessage'));
                 this.$router.push('datasetView');
               }
             }).catch((error) => {

@@ -1,12 +1,12 @@
 <template>
   <div>
-    <h3 class="content__title">메뉴 권한 관리</h3>
+    <h3 class="content__title">{{ $t('role.title') }}</h3>
     <form>
       <fieldset>
         <section class="section">
-          <div class="section__header">
-            <h4 class="section__title">기본정보</h4>
-          </div>
+<!--          <div class="section__header">-->
+<!--            <h4 class="section__title">기본정보</h4>-->
+<!--          </div>-->
           <div class="section__content">
             <table class="table--row">
               <caption>테이블 제목</caption>
@@ -20,7 +20,7 @@
               </colgroup>
               <tbody>
               <tr>
-                <th>메뉴 권한</th>
+                <th>{{ $t('role.menuAuth') }}</th>
                 <td colspan="2">
                   <label>
                     <select
@@ -51,7 +51,7 @@
                       name="add"
                       @click="onShowPopup"
                   >
-                    추가
+                    {{ $t('comm.add') }}
                   </button>
                   <button
                       class="button__outline w-68"
@@ -59,7 +59,7 @@
                       name="mod"
                       @click="onShowPopup"
                   >
-                    조회
+                    {{ $t('comm.getInfo') }}
                   </button>
                 </td>
               </tr>
@@ -68,14 +68,14 @@
           </div>
         </section>
         <section class="section">
-          <div class="section__header">
-            <h4 class="section__title">부가정보</h4>
-          </div>
+<!--          <div class="section__header">-->
+<!--            <h4 class="section__title">부가정보</h4>-->
+<!--          </div>-->
           <div class="section__content" style="text-align: center; padding: 10px;">
             <el-transfer
                 filterable
                 style="text-align: left; display: inline-block;"
-                :titles="['권한 미부여 메뉴 리스트', '권한 부여 메뉴 리스트']"
+                :titles="[$t('role.unAuthMenu'), $t('role.authMenu')]"
                 v-model="value"
                 :data="noRoleAssignMenu"
             >
@@ -88,7 +88,7 @@
               type="button"
               @click="onSave"
           >
-            저장
+            {{ $t('comm.save') }}
           </button>
         </div>
       </fieldset>
@@ -97,8 +97,8 @@
         :is-show="isShow"
         @close-modal="onClose"
         @on-event-modal="onPopupEvent"
-        title="메뉴 권한 유형 상세"
-        button-name="저장"
+        :title="$t('role.popupTitle')"
+        :button-name="$t('comm.save')"
         :is-del-btn="isDelBtn"
         :is-success-btn="true"
         :isCancelBtn="true"
@@ -115,7 +115,7 @@
               </colgroup>
               <tbody>
               <tr>
-                <th class="icon__require">메뉴권한 아이디</th>
+                <th class="icon__require">{{ $t('role.id') }}</th>
                 <td>
                   <label>
                     <input
@@ -128,10 +128,10 @@
                   </label>
                   <br>
                   <span v-show="error['id']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
-                <th class="icon__require">메뉴권한명</th>
+                <th class="icon__require">{{ $t('role.name') }}</th>
                 <td>
                   <label>
                     <input
@@ -144,12 +144,12 @@
                   </label>
                   <br>
                   <span v-show="error['name']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
               </tr>
               <tr>
-                <th class="icon__require">사용여부</th>
+                <th class="icon__require">{{ $t('role.isActive') }}</th>
                 <td>
                   <label>
                     <select
@@ -175,12 +175,12 @@
                   </label>
                   <br>
                   <span v-show="error['enabled']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
               </tr>
               <tr>
-                <th>메뉴 권한 설명</th>
+                <th>{{ $t('role.description') }}</th>
                 <td colspan="3">
                   <label>
                     <input
@@ -193,7 +193,7 @@
                 </td>
               </tr>
               <tr>
-                <th>생성자</th>
+                <th>{{ $t('comm.creator') }}</th>
                 <td>
                   <label>
                     <input
@@ -205,7 +205,7 @@
                     />
                   </label>
                 </td>
-                <th>생성시간</th>
+                <th>{{ $t('comm.creationTime') }}</th>
                 <td>
                   <label>
                     <input
@@ -219,7 +219,7 @@
                 </td>
               </tr>
               <tr>
-                <th>수정자</th>
+                <th>{{ $t('comm.modifier') }}</th>
                 <td>
                   <label>
                     <input
@@ -231,7 +231,7 @@
                     />
                   </label>
                 </td>
-                <th>수정시간</th>
+                <th>{{ $t('comm.modifierTime') }}</th>
                 <td>
                   <label>
                     <input
@@ -255,7 +255,7 @@
         @close-modal="onClose"
         modalSize="w-360"
         :content="modalText"
-        close-name="확인"
+        :close-name="$t('comm.ok')"
         :isCancelBtn="true"
     />
   </div>
@@ -501,6 +501,8 @@ export default {
     document.getElementsByClassName('el-transfer-panel')[0].style.width = '350px';
     document.getElementsByClassName('el-transfer-panel')[1].style.width = '350px';
     document.getElementsByClassName('el-transfer__buttons')[0].children[0].style.marginBottom = 0;
+
+    document.querySelectorAll('.breadcrumb__list')[0].innerText = this.$i18n.t('menu.systemManage');
   }
 }
 </script>

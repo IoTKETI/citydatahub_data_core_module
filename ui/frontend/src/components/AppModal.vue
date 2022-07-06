@@ -38,7 +38,7 @@
               name="deleteBtn"
               @click="onDelivery"
           >
-            삭제
+            {{ $t('comm.delete') }}
           </button>
           <button
               v-for="item in buttonGroup"
@@ -56,7 +56,7 @@
               class="button__secondary button__modal--close"
               type="button"
           >
-            {{ closeName ? closeName: '취소' }}
+            {{ closeName ? closeName: $t('comm.cancel') }}
           </button>
         </div>
       </div>

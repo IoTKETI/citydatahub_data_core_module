@@ -7,15 +7,15 @@
         </button>
         <el-dropdown size="small" trigger="click">
         <span class="header__user el-dropdown-link" style="cursor: pointer;">
-          {{ `${userInfo['name']}(${userInfo['userId']})` }} 님
+          {{ `${userInfo['name']}(${userInfo['userId']})` }}
           <i class="el-icon-arrow-down el-icon--right" />
         </span>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item icon="el-icon-user-solid">
-              <a href="#" @click="onShowPopup">사용자 정보</a>
+              <a href="#" @click="onShowPopup">{{ $t('comm.userInfo') }}</a>
             </el-dropdown-item>
             <el-dropdown-item icon="el-icon-user-solid">
-              <a href="#" @click="logout">로그아웃</a>
+              <a href="#" @click="logout">{{ $t('comm.logout') }}</a>
             </el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
@@ -24,15 +24,15 @@
         <a class="breadcrumb__list--home" href="#none">
           <span class="hidden">Home</span>
         </a><span class="breadcrumb__list">{{ $route.meta.breadcrumb[0] }}</span>
-        <span class="breadcrumb__list--current">{{ $route.meta.breadcrumb[1] }}</span>
+<!--        <span class="breadcrumb__list&#45;&#45;current">{{ $route.meta.breadcrumb[1] }}</span>-->
       </div>
     </header>
     <AppModal
         :is-show="isShow"
         @close-modal="onClose"
-        title="사용자 정보"
+        :title="$t('comm.userPopupTitle')"
         modalSize="w-360"
-        close-name="확인"
+        :close-name="$t('comm.ok')"
         :isCancelBtn="true"
     >
       <template v-slot:elements>
@@ -41,15 +41,15 @@
             <table class="table--row">
               <tbody>
               <tr>
-                <th>사용자 아이디</th>
+                <th>{{ $t('comm.userId') }}</th>
                 <td>{{ userInfo['userId'] }}</td>
               </tr>
               <tr>
-                <th>사용자 명</th>
+                <th>{{ $t('comm.name') }}</th>
                 <td>{{ userInfo['name'] }}</td>
               </tr>
               <tr>
-                <th>사용자 연락처</th>
+                <th>{{ $t('comm.contact') }}</th>
                 <td>{{ userInfo['phone'] }}</td>
               </tr>
               </tbody>

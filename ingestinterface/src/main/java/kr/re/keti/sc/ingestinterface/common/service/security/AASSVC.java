@@ -75,6 +75,17 @@ public class AASSVC {
                     datasetIds.add(aclRuleVO.getResourceId());
                     operationTypes.addAll(aclRuleVO.getOperation());
                 }
+
+                // default OR 로 처리
+            } else {
+                if (clientId.equals(aclRuleVO.getClientId())) {
+                    datasetIds.add(aclRuleVO.getResourceId());
+                    operationTypes.addAll(aclRuleVO.getOperation());
+                }
+                if (userId.equals(aclRuleVO.getUserId()) ) {
+                    datasetIds.add(aclRuleVO.getResourceId());
+                    operationTypes.addAll(aclRuleVO.getOperation());
+                }
             }
         }
 

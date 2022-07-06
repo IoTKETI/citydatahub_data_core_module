@@ -1,7 +1,7 @@
 <template>
   <section class="section">
     <div class="section__header">
-      <h4 class="section__title">데이터셋 플로우 상세</h4>
+      <h4 class="section__title">{{ $t('dataset.datasetFlow') }}</h4>
       <div class="button__group" style="margin: 0; padding-top: 5px;">
         <button
             v-if="isMode === 'mod'"
@@ -9,7 +9,7 @@
             type="button"
             @click="onDelete"
         >
-          삭제
+          {{ $t('comm.delete') }}
         </button>
       </div>
     </div>
@@ -28,7 +28,7 @@
         </colgroup>
         <tbody>
         <tr>
-          <th class="icon__require">데이터셋ID</th>
+          <th class="icon__require">{{ $t('dataset.datasetId') }}</th>
           <td>
             <label>
               <input
@@ -40,7 +40,7 @@
               />
             </label>
           </td>
-          <th class="icon__require">사용여부</th>
+          <th class="icon__require">{{ $t('dataset.isActive') }}</th>
           <td>
             <label>
               <select
@@ -66,10 +66,10 @@
             </label>
             <br>
             <span v-show="error['enabled']" class="error__color">
-              필수 값 입니다.
+              {{ $t('comm.required') }}
             </span>
           </td>
-          <th class="icon__require">이력저장유형</th>
+          <th class="icon__require">{{ $t('dataset.historicalData') }}</th>
           <td>
             <label>
               <select
@@ -96,10 +96,10 @@
             </label>
             <br>
             <span v-show="error['historyStoreType']" class="error__color">
-              필수 값 입니다.
+              {{ $t('comm.required') }}
             </span>
           </td>
-          <th rowspan="3" class="icon__require">Provision 서버유형</th>
+          <th rowspan="3" class="icon__require">{{ $t('dataset.provisionServer') }}</th>
           <td rowspan="3">
             <div class="button__group" style="margin: 0 0 5px;">
               <button
@@ -108,7 +108,7 @@
                   name="targetTypesAdd"
                   @click="onShowPopup"
               >
-                추가
+                {{ $t('comm.add') }}
               </button>
             </div>
             <AppTable
@@ -120,12 +120,12 @@
                 @on-row-event="onTableRowEvent"
             />
             <span v-show="error['targetTypes']" class="error__color">
-              필수 값 입니다.
+              {{ $t('comm.required') }}
             </span>
           </td>
         </tr>
         <tr>
-          <th>생성자</th>
+          <th>{{ $t('comm.creator') }}</th>
           <td>
             <label>
               <input
@@ -137,7 +137,7 @@
               />
             </label>
           </td>
-          <th>생성시간</th>
+          <th>{{ $t('comm.creationTime') }}</th>
           <td>
             <label>
               <input
@@ -149,7 +149,7 @@
               />
             </label>
           </td>
-          <th>설명</th>
+          <th>{{ $t('dataset.description') }}</th>
           <td>
             <label>
               <input
@@ -162,7 +162,7 @@
           </td>
         </tr>
         <tr>
-          <th>수정자아이디</th>
+          <th>{{ $t('comm.modifier') }}</th>
           <td>
             <label>
               <input
@@ -174,7 +174,7 @@
               />
             </label>
           </td>
-          <th>수정시간</th>
+          <th>{{ $t('comm.modifierTime') }}</th>
           <td>
             <label>
               <input
@@ -196,8 +196,8 @@
         :is-show="isTargetTypesShow"
         @close-modal="onClose"
         @on-event-modal="onTargetTypeSave"
-        title="Provision 서버 유형 상세"
-        button-name="저장"
+        :title="$t('dataset.provisionServer')"
+        :button-name="$t('comm.save')"
         :is-del-btn="isDelBtn"
         :is-success-btn="true"
         :isCancelBtn="true"
@@ -212,7 +212,7 @@
               </colgroup>
               <tbody>
               <tr>
-                <th class="icon__require">Provision 서버유형</th>
+                <th class="icon__require">{{ $t('dataset.provisionServer') }}</th>
                 <td>
                   <label>
                     <select
@@ -240,12 +240,12 @@
                   </label>
                   <br>
                   <span v-show="error['type']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
               </tr>
               <tr>
-                <th>저장소유형</th>
+                <th>{{ $t('dataset.storageType') }}</th>
                 <td>
                   <div class="button__group">
                     <label>
@@ -277,7 +277,7 @@
                         name="addButton"
                         @click="onTableAdd"
                     >
-                      추가
+                      {{ $t('comm.add') }}
                     </button>
                     <button
                         class="button__util button__util--remove material-icons"
@@ -285,7 +285,7 @@
                         name="deleteButton"
                         @click="onTableDel"
                     >
-                      삭제
+                      {{ $t('comm.delete') }}
                     </button>
                     <AppTable
                         :meta-data="[]"
@@ -309,7 +309,7 @@
         @on-event-modal="onConfirmSave"
         modalSize="w-360"
         :content="modalText"
-        button-name="확인"
+        :button-name="$t('comm.ok')"
         :is-success-btn="true"
         :isCancelBtn="true"
     />
@@ -319,7 +319,7 @@
         @on-event-modal="onConfirmDel"
         modalSize="w-360"
         :content="modalText"
-        button-name="확인"
+        :button-name="$t('comm.ok')"
         :is-success-btn="true"
         :isCancelBtn="true"
     />
@@ -328,7 +328,7 @@
         @close-modal="onClose"
         modalSize="w-360"
         :content="modalText"
-        close-name="확인"
+        :button-name="$t('comm.ok')"
         :isCancelBtn="true"
     />
   </section>
@@ -374,7 +374,7 @@ export default {
       },
       isMode: null,
       modalText: null,
-      closeName: '취소',
+      closeName: this.$i18n.t('comm.cancel'),
       isSuccessBtn: true,
       addText: { receptionIps: null, receptionDatasetIds: null, receptionClientIds: null },
       delText: null,
@@ -403,12 +403,12 @@ export default {
       }
       this.isSaveShow = true;
       this.isSuccessBtn = true;
-      this.closeName = '취소';
-      this.modalText = '저장하시겠습니까?';
+      this.closeName = this.$i18n.t('comm.cancel');
+      this.modalText = this.$i18n.t('comm.saveCheck');
     },
     onDelete() {
       this.isDelShow = true;
-      this.modalText = '삭제하시겠습니까?';
+      this.modalText = this.$i18n.t('comm.deleteCheck');
     },
     onConfirmSave() {
       const { id } = this.$route.query;
@@ -568,7 +568,7 @@ export default {
         });
 
         if (checked) {
-          alert('Provision 서버유형이 중복된 데이터가 있습니다.');
+          alert(this.$i18n.t('comm.provisionDuplicateMessage'));
           return null;
         }
         this.formData.targetTypes.push(this.popupFormData);

@@ -47,7 +47,7 @@ public class DataModelController {
 			@RequestParam(value="id") String id) throws Exception {
 		
 		// 1. Retrieve data model
-		ResponseEntity<DataModelVO> dataModelVO = dataModelSVC.getDataModel(id);
+		ResponseEntity<DataModelVO> dataModelVO = dataModelSVC.getDataModelbyId(id);
 		
 		return dataModelVO;
 	}
@@ -85,16 +85,18 @@ public class DataModelController {
 	/**
 	 * Retrieve attribute, objectMember
 	 * @param id			DataModel ID
+	 * @param typeUri		Data model type uri
 	 * @return				List of data model attribute retrieved by data model ID.
 	 * @throws Exception	Throw an exception when an error occurs.
 	 */
 	@GetMapping(value="datamodels/attrs")
 	@ApiOperation(value = "Retrieve attribute", notes = "Retrieve attribute list")
-	public ResponseEntity<List<String>> getDataModelAttrs(HttpServletRequest request, HttpServletResponse response, @RequestParam String id)
+	public ResponseEntity<List<String>> getDataModelAttrs(HttpServletRequest request, HttpServletResponse response, 
+			@RequestParam(value="id", required=false) String id, @RequestParam(value="typeUri", required=false) String typeUri)
 			throws Exception {
 		
 		// 1. Retrieve data model attributes
-		ResponseEntity<List<String>> attrInfo = dataModelSVC.getDataModelAttrs(id, Constants.ALL_LEVEL_ATTR);
+		ResponseEntity<List<String>> attrInfo = dataModelSVC.getDataModelAttrs(id, typeUri, Constants.ALL_LEVEL_ATTR);
 		
 		return attrInfo;
 	}
@@ -102,16 +104,18 @@ public class DataModelController {
 	/**
 	 * Retrieve top-level attribute
 	 * @param id			Data model ID	
+	 * @param typeUri		Data model type uri
 	 * @return				The value of the top-level attribute in the data model.
 	 * @throws Exception	Throw an exception when an error occurs.
 	 */
 	@GetMapping(value="datamodels/topattrs")
 	@ApiOperation(value = "Retrieve top-level attribute", notes = "Retrieve top-level attribute list")
-	public ResponseEntity<List<String>> getDataModelTopAttrs(HttpServletRequest request, HttpServletResponse response, @RequestParam String id)
+	public ResponseEntity<List<String>> getDataModelTopAttrs(HttpServletRequest request, HttpServletResponse response, 
+			@RequestParam(value="id", required=false) String id, @RequestParam(value="typeUri", required=false) String typeUri)
 			throws Exception {
 		
 		// 1. Retrieve top-level attribute
-		ResponseEntity<List<String>> attrInfo = dataModelSVC.getDataModelAttrs(id, Constants.TOP_LEVEL_ATTR);
+		ResponseEntity<List<String>> attrInfo = dataModelSVC.getDataModelAttrs(id, typeUri, Constants.TOP_LEVEL_ATTR);
 		
 		return attrInfo;
 	}
@@ -119,16 +123,18 @@ public class DataModelController {
 	/**
 	 * Attribute/ObjectMember information of data model is composed of tree structure
 	 * @param id			Data model ID
+	 * @param typeUri		Data model type uri
 	 * @return				Attribute in the tree structure
 	 * @throws Exception	Throw an exception when an error occurs.
 	 */
 	@GetMapping(value="datamodels/attrstree")
 	@ApiOperation(value = "Retrieve Attribute/ObjectMember tree structure", notes = "Attribute/ObjectMember information of data model is composed of tree structure.")
-	public ResponseEntity<List<UiTreeVO>> getAttrsTree(HttpServletRequest request, HttpServletResponse response, @RequestParam String id)
+	public ResponseEntity<List<UiTreeVO>> getAttrsTree(HttpServletRequest request, HttpServletResponse response, 
+			@RequestParam(value="id", required=false) String id, @RequestParam(value="typeUri", required=false) String typeUri)
 			throws Exception {
 	
 		// 1. Attribute/ObjectMember information of data model is composed of tree structure
-		ResponseEntity<List<UiTreeVO>> uiTreeVO = dataModelSVC.getAttrsTree(id);
+		ResponseEntity<List<UiTreeVO>> uiTreeVO = dataModelSVC.getAttrsTree(id, typeUri);
 		
 		return uiTreeVO;
 	}

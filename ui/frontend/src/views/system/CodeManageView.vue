@@ -1,11 +1,11 @@
 <template>
   <div>
-    <h3 class="content__title">코드 관리</h3>
+    <h3 class="content__title">{{ $t('code.title') }}</h3>
     <form>
       <fieldset>
         <section class="section">
           <div class="section__header">
-            <h4 class="section__title">코드그룹</h4>
+            <h4 class="section__title">{{ $t('code.subTitle') }}</h4>
           </div>
           <div class="section__content">
             <table class="table--row">
@@ -16,7 +16,7 @@
               </colgroup>
               <tbody>
               <tr>
-                <th rowspan="2">코드그룹 상세</th>
+                <th rowspan="2">{{ $t('code.groups') }}</th>
                 <td>
                   <input
                       class="input__text"
@@ -33,7 +33,7 @@
                         name="codeGroupSearch"
                         @click="onSearch"
                     >
-                      검색
+                      {{ $t('comm.search') }}
                     </button>
                     <button
                         type="button"
@@ -41,7 +41,7 @@
                         name="codeGroup"
                         @click="codeAddEvent"
                     >
-                      추가
+                      {{ $t('comm.add') }}
                     </button>
                   </div>
                 </td>
@@ -72,7 +72,7 @@
         </section>
         <section class="section">
           <div class="section__header">
-            <h4 class="section__title">코드</h4>
+            <h4 class="section__title">{{ $t('code.code') }}</h4>
           </div>
           <div class="section__content">
             <table class="table--row">
@@ -82,7 +82,7 @@
               </colgroup>
               <tbody>
               <tr>
-                <th rowspan="2">코드 상세</th>
+                <th rowspan="2">{{ $t('code.codes') }}</th>
                 <td>
                   <input
                       class="input__text"
@@ -99,7 +99,7 @@
                         name="codeSearch"
                         @click="onSearch"
                     >
-                      검색
+                      {{ $t('comm.search') }}
                     </button>
                     <button
                         type="button"
@@ -107,7 +107,7 @@
                         name="code"
                         @click="codeAddEvent"
                     >
-                      추가
+                      {{ $t('comm.add') }}
                     </button>
                   </div>
                 </td>
@@ -144,7 +144,7 @@
         @close-modal="onClose"
         @on-event-modal="onPopupEvent"
         :title="title"
-        button-name="저장"
+        :button-name="$t('comm.save')"
         :is-del-btn="isDelBtn"
         :is-success-btn="true"
         :isCancelBtn="true"
@@ -161,7 +161,7 @@
               </colgroup>
               <tbody>
               <tr>
-                <th class="icon__require">코드그룹 아이디</th>
+                <th class="icon__require">{{ $t('code.groupId') }}</th>
                 <td>
                   <input
                       :class="codeGroupError['codeGroupId'] ? `input__text error__border` : `input__text`"
@@ -173,10 +173,10 @@
                   />
                   <br>
                   <span v-show="codeGroupError['codeGroupId']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
-                <th class="icon__require">코드그룹 명</th>
+                <th class="icon__require">{{ $t('code.groupName') }}</th>
                 <td>
                   <input
                       :class="codeGroupError['codeGroupName'] ? `input__text error__border` : `input__text`"
@@ -187,12 +187,12 @@
                   />
                   <br>
                   <span v-show="codeGroupError['codeGroupName']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
               </tr>
               <tr>
-                <th class="icon__require">사용여부</th>
+                <th class="icon__require">{{ $t('code.isActive') }}</th>
                 <td>
                   <select
                       class="input__text"
@@ -207,19 +207,19 @@
                     >
                       Please select one
                     </option>
-                    <option value="true">사용</option>
-                    <option value="false">미사용</option>
+                    <option value="true">{{ $t('comm.active') }}</option>
+                    <option value="false">{{ $t('comm.inactive') }}</option>
                   </select>
                   <br>
                   <span v-show="codeGroupError['enabled']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
                 <th></th>
                 <td></td>
               </tr>
               <tr>
-                <th>코드그룹 설명</th>
+                <th>{{ $t('code.description') }}</th>
                 <td colspan="3">
                   <input
                       class="input__text"
@@ -230,7 +230,7 @@
                 </td>
               </tr>
               <tr v-if="isMode === 'mod'">
-                <th>생성자</th>
+                <th>{{ $t('comm.creator') }}</th>
                 <td>
                   <input
                       class="input__text"
@@ -240,7 +240,7 @@
                       disabled="true"
                   />
                 </td>
-                <th>생성시간</th>
+                <th>{{ $t('comm.creationTime') }}</th>
                 <td>
                   <input
                       class="input__text"
@@ -252,7 +252,7 @@
                 </td>
               </tr>
               <tr v-if="isMode === 'mod'">
-                <th>수정자</th>
+                <th>{{ $t('comm.modifier') }}</th>
                 <td>
                   <input
                       class="input__text"
@@ -262,7 +262,7 @@
                       disabled="true"
                   />
                 </td>
-                <th>수정시간</th>
+                <th>{{ $t('comm.modifierTime') }}</th>
                 <td>
                   <input
                       class="input__text"
@@ -288,7 +288,7 @@
               </colgroup>
               <tbody>
               <tr>
-                <th class="icon__require">코드그룹 아이디</th>
+                <th class="icon__require">{{ $t('code.groupId') }}</th>
                 <td>
                   <input
                       :class="codeError['codeGroupId'] ? `input__text error__border` : `input__text`"
@@ -300,10 +300,10 @@
                   />
                   <br>
                   <span v-show="codeError['codeGroupId']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
-                <th class="icon__require">코드 아이디</th>
+                <th class="icon__require">{{ $t('code.codeId') }}</th>
                 <td>
                   <input
                       :class="codeError['codeId'] ? `input__text error__border` : `input__text`"
@@ -315,12 +315,12 @@
                   />
                   <br>
                   <span v-show="codeError['codeId']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
               </tr>
               <tr>
-                <th class="icon__require">코드명</th>
+                <th class="icon__require">{{ $t('code.codeName') }}</th>
                 <td>
                   <input
                       :class="codeError['codeName'] ? `input__text error__border` : `input__text`"
@@ -331,10 +331,10 @@
                   />
                   <br>
                   <span v-show="codeError['codeName']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
-                <th class="icon__require">정렬순서</th>
+                <th class="icon__require">{{ $t('code.order') }}</th>
                 <td>
                   <input
                       :class="codeError['sortOrder'] ? `input__text error__border` : `input__text`"
@@ -345,12 +345,12 @@
                   />
                   <br>
                   <span v-show="codeError['sortOrder']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
               </tr>
               <tr>
-                <th class="icon__require">사용여부</th>
+                <th class="icon__require">{{ $t('code.isActive') }}</th>
                 <td>
                   <select
                       class="input__text"
@@ -365,19 +365,19 @@
                     >
                       Please select one
                     </option>
-                    <option value="true">사용</option>
-                    <option value="false">미사용</option>
+                    <option value="true">{{ $t('comm.active') }}</option>
+                    <option value="false">{{ $t('comm.inactive') }}</option>
                   </select>
                   <br>
                   <span v-show="codeError['enabled']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
                 <th></th>
                 <td></td>
               </tr>
               <tr>
-                <th>코드 설명</th>
+                <th>{{ $t('code.description') }}</th>
                 <td colspan="3">
                   <input
                       class="input__text"
@@ -388,7 +388,7 @@
                 </td>
               </tr>
               <tr v-if="isMode === 'mod'">
-                <th>생성자</th>
+                <th>{{ $t('comm.creator') }}</th>
                 <td>
                   <input
                       class="input__text"
@@ -398,7 +398,7 @@
                       disabled="true"
                   />
                 </td>
-                <th>생성시간</th>
+                <th>{{ $t('comm.creationTime') }}</th>
                 <td>
                   <input
                       class="input__text"
@@ -410,7 +410,7 @@
                 </td>
               </tr>
               <tr v-if="isMode === 'mod'">
-                <th>수정자</th>
+                <th>{{ $t('comm.modifier') }}</th>
                 <td>
                   <input
                       class="input__text"
@@ -420,7 +420,7 @@
                       disabled="true"
                   />
                 </td>
-                <th>수정시간</th>
+                <th>{{ $t('comm.modifierTime') }}</th>
                 <td>
                   <input
                       class="input__text"
@@ -442,7 +442,7 @@
         @close-modal="onClose"
         modalSize="w-360"
         :content="modalText"
-        close-name="확인"
+        :close-name="$t('comm.ok')"
         :isCancelBtn="true"
     />
   </div>
@@ -469,8 +469,19 @@ export default {
   },
   data() {
     return {
-      codeGroupFields: Fields.CODE_GROUP_TABLE_FIELDS,
-      codeFields: Fields.CODE_TABLE_FIELDS,
+      codeGroupFields: [
+        { name: 'codeGroupId', displayName: this.$i18n.t('code.groupId'), require: false, col: 10 },
+        { name: 'codeGroupName', displayName: this.$i18n.t('code.groupName'), require: false, col: 10 },
+        { name: 'enabled', displayName: this.$i18n.t('code.isActive'), require: false, col: 10 },
+        { name: 'description', displayName: this.$i18n.t('code.description'), require: false, col: 20 }
+      ],
+      codeFields: [
+        { name: 'codeGroupId', displayName: this.$i18n.t('code.groupId'), require: false, col: 10 },
+        { name: 'codeId', displayName: this.$i18n.t('code.codeId'), require: false, col: 10 },
+        { name: 'codeName', displayName: this.$i18n.t('code.codeName'), require: false, col: 10 },
+        { name: 'enabled', displayName: this.$i18n.t('code.isActive'), require: false, col: 10 },
+        { name: 'description', displayName: this.$i18n.t('code.description'), require: false, col: 20 }
+      ],
       formData: { enabled: null },
       searchData: {},
       codeSearchData: {},
@@ -529,7 +540,7 @@ export default {
                 return {
                   codeGroupId: item.codeGroupId,
                   codeGroupName: item.codeGroupName,
-                  enabled: item.enabled ? '사용' : '미사용',
+                  enabled: item.enabled ? this.$i18n.t('comm.active') : this.$i18n.t('comm.inactive'),
                   description: item.description
                 }
               });
@@ -575,7 +586,7 @@ export default {
                   codeGroupId: item.codeGroupId,
                   codeId: item.codeId,
                   codeName: item.codeName,
-                  enabled: item.enabled ? '사용' : '미사용',
+                  enabled: item.enabled ? this.$i18n.t('comm.active') : this.$i18n.t('comm.inactive'),
                   description: item.description
                 }
               });
@@ -594,12 +605,12 @@ export default {
     codeAddEvent(event) {
       const { name } = event.target;
       if (name === 'codeGroup') {
-        this.title = '코드그룹 등록';
+        this.title = this.$i18n.t('code.groupCreate');
         this.popupName = 'codeGroup';
         this.isMode = 'add';
         this.isDelBtn = false;
       } else {
-        this.title = '코드 등록';
+        this.title = this.$i18n.t('code.codeCreate');
         this.popupName = 'code';
         this.isMode = 'add';
         this.isDelBtn = false;
@@ -614,7 +625,7 @@ export default {
       this.codeError = { codeGroupId: false, codeId: false, codeName: false, enabled: false, sortOrder: false };
     },
     onCodeGroupTableEvent(item) {
-      this.title = '코드그룹 상세';
+      this.title = this.$i18n.t('code.groupDetail');
       this.popupName = 'codeGroup';
       this.isMode = 'mod';
       this.isDelBtn = true;
@@ -628,7 +639,7 @@ export default {
           });
     },
     onCodeTableEvent(item) {
-      this.title = '코드 상세';
+      this.title = this.$i18n.t('code.codeDetail');
       this.popupName = 'code';
       this.isMode = 'mod';
       this.isDelBtn = true;
@@ -774,6 +785,8 @@ export default {
   mounted() {
     this.getCodeGroupList();
     this.getCodeList();
+
+    document.querySelectorAll('.breadcrumb__list')[0].innerText = this.$i18n.t('menu.systemManage');
   }
 }
 </script>

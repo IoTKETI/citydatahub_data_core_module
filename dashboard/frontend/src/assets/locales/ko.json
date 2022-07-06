@@ -11,12 +11,13 @@
     "widgetOptions": "위젯 설정",
     "widgetType": "차트 유형",
     "dataModelID": "데이터 모델 ID",
-    "numberOfInstances": "데이터 유형",
     "entityInstanceID": "엔티티 ID",
     "widgetTitle": "타이틀",
     "rangeOfYaxis": "Y축 범위",
     "labelOfYaxis": "Y축명",
     "labelOfXaxis": "X축명",
+    "valueOfYaxis": "Y축 값",
+    "valueOfXaxis": "X축 값",
     "time": "일시",
     "autoRefresh": "실시간 갱신",
     "refreshInterval": "갱신주기(초)",
@@ -30,7 +31,16 @@
     "minMaxAverage": "0-100 (최소-최대)",
     "dataModel": "데이터모델",
     "searchDetails": "상세 검색",
-    "displayAttribute": "차트 값"
+    "displayAttribute": "차트 값",
+    "typeUri": "타입 URI",
+    "displayData": "표시 데이터",
+    "chartUnit": "차트 단위",
+    "displayHistorical": "단일 엔티티 이력 데이터 (historical)",
+    "displayLatest": "다수 엔티티 최종 데이터 (Latest)",
+    "YaxisSetting": "Y축 설정",
+    "XaxisSetting": "X축 설정",
+    "legendDisplay": "범례 표시 항목",
+    "XaxisDisplay": "X축 표시 항목"
   },
   "message": {
     "deleteCheck": "삭제하시겠습니까?",
@@ -39,6 +49,7 @@
     "dashboardDescription": "위젯의 우측 버튼을 더블클릭하면 위젯 설정 확인/수정이 가능합니다.",
     "defaultWidgetTitle": "제목을 입력하세요.",
     "fileMaxDescription": "10MB이하 사이즈의 jpg/png 파일만 업로드 가능합니다.",
+    "fileExist": "이미 등록된 파일이 있습니다. 삭제 후 재등록 가능합니다.",
     "selectOption": "값을 선택해주세요.",
     "selectDateTime": "값을 선택해주세요.",
     "ZeroEqualRefresh": "0 입력시 갱신 안함",
@@ -61,7 +72,12 @@
     "saved": "저장되었습니다.",
     "deleted": "삭제되었습니다.",
     "selectDataModels": "데이터 모델을 선택해주세요.",
-    "selectDataEntityIds": "Entity ID를 선택해주세요."
+    "selectDataEntityIds": "Entity ID를 선택해주세요.",
+    "selectChartAttribute": "차트 값을 선택해주세요.",
+    "notSupportStringType": "해당 차트 유형에서는 String 타입의 차트 값을 선택할 수 없습니다.",
+    "onlySupportNumberType": "해당 차트 유형에서는 Number 타입의 x, y축만 선택할 수 있습니다.",
+    "selectXandYaxis": "x축, y축 모두 설정해주세요.",
+    "selectTimeAndRel": "시간 조건/일시를 선택해주세요."
   },
   "search": {
     "subscribe": "구독",
@@ -105,6 +121,8 @@
     "reset": "초기화",
     "close": "닫기",
     "name": "이름",
-    "regDt": "가입일"
+    "regDt": "가입일",
+    "option": "선택",
+    "setting": "설정"
   }
 }

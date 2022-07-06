@@ -30,6 +30,10 @@ public class WidgetDashboardDAO {
 	public int updateWidget(WidgetDashboardVO widgetDashboardVO) {
 		return sqlSession.update("datacoreusertool.widgetdashboard.updateWidget", widgetDashboardVO);
 	}
+	
+	public int updateWidgetLayout(WidgetDashboardVO widgetDashboardVO) {
+		return sqlSession.update("datacoreusertool.widgetdashboard.updateWidgetLayout", widgetDashboardVO);
+	}
 
 	public int deleteWidget(WidgetDashboardVO widgetDashboardVO) {
 		return sqlSession.delete("datacoreusertool.widgetdashboard.deleteWidget", widgetDashboardVO);

@@ -5,7 +5,7 @@
       <!-- section-write -->
       <section class="section">
         <div class="section__header">
-          <h4 class="section__title">기본 정보</h4>
+          <h4 class="section__title">{{ $t('dataModel.entityDetail') }}</h4>
         </div>
         <div class="section__content">
           <table class="table--row">
@@ -15,12 +15,12 @@
               <col style="width:auto">
               <col style="width:120px">
               <col style="width:auto">
-              <col style="width:120px">
+              <col style="width:130px">
               <col style="width:auto">
             </colgroup>
             <tbody>
             <tr>
-              <th class="icon__require" rowspan="1">Context 정보</th>
+              <th class="icon__require" rowspan="1">{{ $t('dataModel.context') }}</th>
               <td rowspan="1">
                 <div class="button__group" style="margin: 0 0 5px;">
                   <button
@@ -28,21 +28,21 @@
                       type="button"
                       @click="getContextSearch"
                   >
-                    확인
+                    {{ $t('comm.ok') }}
                   </button>
                   <button
                       class="button__util button__util--add material-icons"
                       type="button"
                       @click="onContextAdd"
                   >
-                    추가
+                    {{ $t('comm.add') }}
                   </button>
                   <button
                       class="button__util button__util--remove material-icons"
                       type="button"
                       @click="onContextDel"
                   >
-                    삭제
+                    {{ $t('comm.delete') }}
                   </button>
                 </div>
                 <label>
@@ -57,10 +57,10 @@
                     :class-name="error['context'] ? `error__border` : null"
                 />
                 <span v-show="error['context']" class="error__color">
-                  필수 값 입니다.
+                  {{ $t('comm.required') }}
                 </span>
               </td>
-              <th>인덱스 속성</th>
+              <th>{{ $t('dataModel.indexing') }}</th>
               <td>
                 <div class="button__group" style="margin: 0 0 5px;">
                   <button
@@ -68,14 +68,14 @@
                       type="button"
                       @click="onIndexAdd"
                   >
-                    추가
+                    {{ $t('comm.add') }}
                   </button>
                   <button
                       class="button__util button__util--remove material-icons"
                       type="button"
                       @click="onIndexDel"
                   >
-                    삭제
+                    {{ $t('comm.delete') }}
                   </button>
                 </div>
                 <label>
@@ -89,7 +89,9 @@
                     @on-row-event="onIndexTableRowEvent"
                 />
               </td>
-              <th rowspan="7" class="icon__require">Entity<br>Attribute정보</th>
+              <th rowspan="7" class="icon__require">
+                {{ $t('dataModel.entityAttr') }}
+              </th>
               <td colspan="2" rowspan="7">
                 <div class="button__group">
                   <button
@@ -98,7 +100,7 @@
                       name="add"
                       @click="onEntityEvent"
                   >
-                    추가
+                    {{ $t('comm.add') }}
                   </button>
                   <button
                       type="button"
@@ -106,7 +108,7 @@
                       class="button__util button__util--remove material-icons"
                       @click="onEntityEvent"
                   >
-                    삭제
+                    {{ $t('comm.delete') }}
                   </button>
                 </div>
                 <ElementTree
@@ -118,17 +120,18 @@
                 >
                   <el-tooltip placement="left">
                     <div slot="content">
+                      {{ $t('comm.required2') }}
                       * 속성 값 : Object, ArrayObject 일 경우, 필수입력 입니다.
                     </div>
                   </el-tooltip>
                 </ElementTree>
                 <span v-show="error['attributes']" class="error__color">
-                  필수 값 입니다.
+                  {{ $t('comm.required') }}
                 </span>
               </td>
             </tr>
             <tr>
-              <th class="icon__require">데이터 모델ID</th>
+              <th class="icon__require">{{ $t('dataModel.dataModelId') }}</th>
               <td>
                 <label>
                   <input
@@ -142,10 +145,10 @@
                 </label>
                 <br>
                 <span v-show="error['id']" class="error__color">
-                  필수 값 입니다.
+                  {{ $t('comm.required') }}
                 </span>
               </td>
-              <th>Entity 설명</th>
+              <th>{{ $t('dataModel.description') }}</th>
               <td>
                 <label>
                   <input class="input__text" type="text" name="description" v-model="formData['description']" />
@@ -153,7 +156,7 @@
               </td>
             </tr>
             <tr>
-              <th class="icon__require">데이터 모델 유형</th>
+              <th class="icon__require">{{ $t('dataModel.dataModelType') }}</th>
               <td>
                 <label>
                   <el-select
@@ -179,10 +182,10 @@
                 </label>
                 <br>
                 <span v-show="error['type']" class="error__color">
-                  필수 값 입니다.
+                  {{ $t('comm.required') }}
                 </span>
               </td>
-              <th>생성자</th>
+              <th>{{ $t('comm.creator') }}</th>
               <td>
                 <label>
                   <input class="input__text" type="text" v-model="formData['creatorId']" disabled />
@@ -190,7 +193,7 @@
               </td>
             </tr>
             <tr>
-              <th class="icon__require">데이터 모델 Uri</th>
+              <th class="icon__require">{{ $t('dataModel.typeUri') }}</th>
               <td>
                 <label>
 
@@ -218,10 +221,10 @@
                 </label>
                 <br>
                 <span v-show="error['typeUri']" class="error__color">
-                  필수 값 입니다.
+                  {{ $t('comm.required') }}
                 </span>
               </td>
-              <th>생성시간</th>
+              <th>{{ $t('comm.creationTime') }}</th>
               <td>
                 <label>
                   <input class="input__text" type="text" v-model="formData['createdAt']" disabled />
@@ -229,13 +232,13 @@
               </td>
             </tr>
             <tr>
-              <th>데이터 모델명</th>
+              <th>{{ $t('dataModel.dataModelName') }}</th>
               <td>
                 <label>
                   <input class="input__text" type="text" v-model="formData['name']" />
                 </label>
               </td>
-              <th>수정자</th>
+              <th>{{ $t('comm.modifier') }}</th>
               <td>
                 <label>
                   <input class="input__text" type="text" v-model="formData['modifierId']" disabled />

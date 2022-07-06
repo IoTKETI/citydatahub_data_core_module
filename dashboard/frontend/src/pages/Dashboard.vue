@@ -146,6 +146,10 @@
                 :chartTitle="item.title"
                 :chartKey="`latest_map_${item.i}`"
               />
+              <HistogramChart class="chartWrapper" v-if="item.chartType === 'histogram'"
+                        :options="item.options" :chartData="item.data"/>
+              <ScatterChart class="chartWrapper" v-if="item.chartType === 'scatter'"
+                              :options="item.options" :chartData="item.data"/>
             </div>
           </div>
         </GridItem>
@@ -172,6 +176,8 @@
  * - LineChart,
  * - Doughnut,
  * - LatestMapChart
+ * - HistogramChart
+ * - ScatterChart
  * - element-ui
  * @props props { ... }
  * @state data() { ... }
@@ -183,6 +189,8 @@ import BarChart from '@/components/Chart/BarChart';
 import PieChart from '@/components/Chart/PieChart';
 import CardChart from '@/components/Chart/CardChart';
 import LatestMapChart from '@/components/Chart/LatestMapChart';
+import HistogramChart from '@/components/Chart/HistogramChart';
+import ScatterChart from '@/components/Chart/ScatterChart';
 import AddWidgetPopup from "@/pages/Widgets/AddWidgetPopup";
 
 import {dashboardApi, widgetApi} from '@/moudules/apis';
@@ -191,9 +199,16 @@ import {
   setBarChartLast,
   setBarChartHistory,
   setLineChart,
+  setHistogramNumberChart,
+  setHistogramStrChart,
   chartOptions,
   barChartOptions,
-  lineChartOptions
+  lineChartOptions,
+  histogramNumberChartOptions,
+  histogramStrChartOptions,
+  setScatterLastChart,
+  scatterChartOptions,
+  setScatterHistoryChart,
 } from '@/components/Chart/Dataset';
 
 const GridLayout = VueGridLayout.GridLayout;
@@ -210,7 +225,9 @@ export default {
     BarChart,
     LineChart,
     Doughnut,
-    LatestMapChart
+    LatestMapChart,
+    HistogramChart,
+    ScatterChart,
   },
   data() {
     return {
@@ -276,24 +293,24 @@ export default {
     // websocket connection
     socketConnect() {
       if (!this.websocket) {
-        // TODO process.env - subtract it as an environmental variable.
-        // const serverURL = 'ws://localhost:8084/widgetevents'
         const serverURL = `ws://${window.location.host}/widgetevents`;
         this.websocket = new WebSocket(serverURL);
 
         this.websocket.onopen = (event) => {
-          // console.log(event);
-          // console.log('websocket open');
+          console.log('websocket open');
+          console.log(event);
           this.onOpen();
         };
 
         this.websocket.onmessage = (event) => {
+          console.log('websocket onMessage');
+          console.log(event);
           this.onMessage(event);
         };
 
         this.websocket.onclose = (event) => {
-          // console.log(event);
-          // console.log('websocket close');
+          console.log('websocket close');
+          console.log(event);
         };
       }
     },
@@ -306,36 +323,62 @@ export default {
     async onMessage(event) {
       const socketData = JSON.parse(event.data);
       console.log(socketData);
-      if (socketData.chartType === 'text' || socketData.chartType === 'boolean' || socketData.chartType === 'custom_text') {
+      const {chartType, dataType} = socketData;
+      if (chartType === 'text' || chartType === 'boolean' || chartType === 'custom_text') {
         const index = this.layout.findIndex(item => item.widgetId === socketData.widgetId);
         this.layout[index].data = {result: JSON.parse(event.data)};
         return null;
       }
 
       let resultData = null;
-      if (socketData.chartType === 'donut' || socketData.chartType === 'pie') {
+      if (chartType === 'donut' || chartType === 'pie') {
         resultData = setDonutChart(socketData);
       }
 
-      if (socketData.chartType === 'bar') {
-        if (socketData.dataType === 'last') {
+      if (chartType === 'bar') {
+        if (dataType === 'last') {
           resultData = setBarChartLast(socketData);
         } else {
           resultData = setBarChartHistory(socketData);
         }
       }
 
-      if (socketData.chartType === 'line') {
+      if (chartType === 'line') {
         resultData = setLineChart(socketData);
       }
 
-      this.layout.some(item => {
+      if (chartType === 'scatter') {
+        if (dataType === 'last') resultData = setScatterLastChart(socketData);
+        else resultData = setScatterHistoryChart(socketData);
+      }
+
+      if (chartType === 'histogram') {
+        const index = this.layout.findIndex(item => item.widgetId === socketData.widgetId);
+        const {chartUnit, valueType} = this.layout[index];
+        if (valueType && valueType.toUpperCase() === 'STRING') {
+          resultData = setHistogramStrChart(socketData);
+        } else {
+          resultData = setHistogramNumberChart(socketData, chartUnit);
+        }
+      }
+
+      this.layout.forEach(item => {
         if (item.widgetId === socketData.widgetId) {
           item.data = resultData;
           if (item.chartType === 'bar') {
             item.options = barChartOptions(item);
           } else if (item.chartType === 'line') {
             item.options = lineChartOptions(item);
+          } else if (item.chartType === 'histogram') {
+            const {chartUnit, valueType} = item;
+            // 차트의 max xAxis 설정 위함
+            const N = socketData.data.length;
+            const maxX = N > 0 ? socketData.data[N-1].x + (chartUnit / 2) : 10;
+            if (valueType && valueType.toUpperCase() === 'STRING') {
+              item.options = histogramStrChartOptions(item);
+            } else {
+              item.options = histogramNumberChartOptions(item, chartUnit, maxX);
+            }
           } else {
             item.options = chartOptions(item);
           }
@@ -527,6 +570,12 @@ export default {
                 mapSearchConditionId: mapSearchConditionId
               });
 
+              if (chartType === 'histogram') {
+                const {extention1, extention2} = item;
+                this.layout[this.index].chartUnit = extention1;
+                this.layout[this.index].valueType = extention2;
+              }
+
               if (chartType === 'custom_text') {
                 const {extention1, extention2} = item;
                 this.layout[this.index].data = {
@@ -542,7 +591,7 @@ export default {
               this.index++;
             });
           }
-        });
+        })
     },
     getBase64Image(index, file, name) {
       const url = `data:image/png;base64,${file}`

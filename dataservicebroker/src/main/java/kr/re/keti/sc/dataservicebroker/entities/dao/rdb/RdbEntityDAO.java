@@ -965,7 +965,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
             // timerel param 처리, 이력 데이터 조회시에만 적용 
             if (queryVO.getTimerel() != null) {
                 queryVO = convertTimerel(queryVO);
-                dbConditionVO.setQueryCondition(queryVO.getTimeQuery());
+                dbConditionVO.setTimerelCondition(queryVO.getTimeQuery());
             }
         }
 

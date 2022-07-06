@@ -1,13 +1,13 @@
 <template>
   <div>
-    <h3 class="content__title">메뉴관리</h3>
+    <h3 class="content__title">{{ $t('menu.title') }}</h3>
     <form>
       <fieldset>
         <legend>필드셋 제목</legend>
         <!-- section-write -->
         <section class="section">
           <div class="section__header">
-            <h4 class="section__title">메뉴구성</h4>
+            <h4 class="section__title">{{ $t('menu.menuConf') }}</h4>
           </div>
           <div class="section__content">
             <ElementTree
@@ -27,7 +27,7 @@
         <!-- section-write -->
         <section class="section">
           <div class="section__header">
-            <h4 class="section__title">메뉴정보</h4>
+            <h4 class="section__title">{{ $t('menu.menuInfo') }}</h4>
           </div>
           <div class="section__content">
             <table class="table--row">
@@ -42,7 +42,7 @@
               </colgroup>
               <tbody>
               <tr>
-                <th class="icon__require">메뉴 ID</th>
+                <th class="icon__require">{{ $t('menu.id') }}</th>
                 <td>
                   <label>
                     <input
@@ -56,7 +56,7 @@
                   </label>
                   <br>
                   <span v-show="error['id']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
                 <th>URL</th>
@@ -67,7 +67,7 @@
                 </td>
               </tr>
               <tr>
-                <th class="icon__require">메뉴명</th>
+                <th class="icon__require">{{ $t('menu.name') }}</th>
                 <td>
                   <label>
                     <input
@@ -80,16 +80,16 @@
                   </label>
                   <br>
                   <span v-show="error['name']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
-                <th>상위메뉴 ID</th>
+                <th>{{ $t('menu.parentMenuId') }}</th>
                 <td>
                   <label>
                     <input type="text" v-model="formData['upMenuId']" class="input__text" />
                   </label>
                 </td>
-                <th>순번</th>
+                <th>{{ $t('menu.order') }}</th>
                 <td>
                   <label>
                     <input type="text" v-model="formData['sortOrder']" class="input__text" />
@@ -97,7 +97,7 @@
                 </td>
               </tr>
               <tr>
-                <th class="icon__require">레벨</th>
+                <th class="icon__require">{{ $t('menu.level') }}</th>
                 <td>
                   <label>
                     <select
@@ -126,10 +126,10 @@
                   </label>
                   <br>
                   <span v-show="error['level']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
-                <th class="icon__require">사용여부</th>
+                <th class="icon__require">{{ $t('menu.isActive') }}</th>
                 <td>
                   <label>
                     <select
@@ -155,10 +155,10 @@
                   </label>
                   <br>
                   <span v-show="error['enabled']" class="error__color">
-                    필수 값 입니다.
+                    {{ $t('comm.required') }}
                   </span>
                 </td>
-                <th>생성자</th>
+                <th>{{ $t('comm.creator') }}</th>
                 <td>
                   <label>
                     <input type="text" v-model="formData['creatorId']" class="input__text" disabled="true" />
@@ -166,19 +166,19 @@
                 </td>
               </tr>
               <tr>
-                <th>생성일시</th>
+                <th>{{ $t('comm.creationDate') }}</th>
                 <td>
                   <label>
                     <input type="text" v-model="formData['createdAt']" class="input__text" disabled="true" />
                   </label>
                 </td>
-                <th>수정자</th>
+                <th>{{ $t('comm.modifier') }}</th>
                 <td>
                   <label>
                     <input type="text" v-model="formData['modifierId']" class="input__text" disabled="true" />
                   </label>
                 </td>
-                <th>수정일시</th>
+                <th>{{ $t('comm.modifierDate') }}</th>
                 <td>
                   <label>
                     <input type="text" v-model="formData['modifiedAt']" class="input__text" disabled="true" />
@@ -195,21 +195,21 @@
               type="button"
               @click="onSave"
           >
-            저장
+            {{ $t('comm.save') }}
           </button>
           <button
               class="button__primary"
               type="button"
               @click="initMenu"
           >
-            추가
+            {{ $t('comm.add') }}
           </button>
           <button
               class="button__secondary"
               type="button"
               @click="onDelete"
           >
-            삭제
+            {{ $t('comm.delete') }}
           </button>
         </div>
       </fieldset>
@@ -219,7 +219,7 @@
         @close-modal="onClose"
         modalSize="w-360"
         :content="modalText"
-        close-name="확인"
+        :close-name="$t('comm.ok')"
         :isCancelBtn="true"
     />
   </div>
@@ -288,7 +288,7 @@ export default {
       const level = this.formData.level;
       if (level === 2 || level > 2) {
         this.isAlertShow = true;
-        this.modalText = '메뉴 등록은 2레벨까지 가능합니다.';
+        this.modalText = this.$i18n.t('comm.menuCheckMessage');
         return null;
       }
       const id = this.formData.id;
@@ -379,6 +379,8 @@ export default {
     }
   },
   mounted() {
+    document.querySelectorAll('.breadcrumb__list')[0].innerText = this.$i18n.t('menu.systemManage');
+
     this.getMenuList();
     this.getCommonCodeList();
   }

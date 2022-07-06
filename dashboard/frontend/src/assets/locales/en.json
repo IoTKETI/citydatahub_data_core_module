@@ -11,12 +11,13 @@
     "widgetOptions": "Widget Options",
     "widgetType": "Widget Type",
     "dataModelID": "Data Model ID",
-    "numberOfInstances": "Number of instances",
     "entityInstanceID": "Entity Instance ID",
     "widgetTitle": "Widget Title",
     "rangeOfYaxis": "Range of Y-axis",
     "labelOfYaxis": "Label of Y-axis",
     "labelOfXaxis": "Label of X-axis",
+    "valueOfYaxis": "Value of Y-axis",
+    "valueOfXaxis": "Value of X-axis",
     "time": "Time",
     "autoRefresh": "Auto Refresh",
     "refreshInterval": "Refresh Interval (sec)",
@@ -30,7 +31,16 @@
     "minMaxAverage": "0-100 (min-max)",
     "dataModel": "Data Model",
     "searchDetails": "Search Details",
-    "displayAttribute": "Attribute to Display"
+    "displayAttribute": "Attribute to Display",
+    "typeUri": "타입 URI",
+    "displayData": "표시 데이터",
+    "chartUnit": "차트 단위",
+    "displayHistorical": "단일 엔티티 이력 데이터 (historical)",
+    "displayLatest": "다수 엔티티 최종 데이터 (Latest)",
+    "YaxisSetting": "Y축 설정",
+    "XaxisSetting": "X축 설정",
+    "legendDisplay": "범례 표시 항목",
+    "XaxisDisplay": "X축 표시 항목"
   },
   "message": {
     "deleteCheck": "Do you want to delete?",
@@ -39,6 +49,7 @@
     "dashboardDescription": "To configure each widget, double click on the right-top corner.",
     "defaultWidgetTitle": "Provide widget title here.",
     "fileMaxDescription": "Max 10MB JPG or PNG file is allowed.",
+    "fileExist": "이미 등록된 파일이 있습니다. 삭제 후 재등록 가능합니다.",
     "selectOption": "Please select an option",
     "selectDateTime": "Select date and time",
     "ZeroEqualRefresh": "0 means no refresh",
@@ -61,7 +72,12 @@
     "saved": "Saved.",
     "deleted": "Deleted.",
     "selectDataModels": "Select Data Model(s).",
-    "selectDataEntityIds": "Select Data Entity ID(s)."
+    "selectDataEntityIds": "Select Data Entity ID(s).",
+    "selectChartAttribute": "Select Attribute to Display.",
+    "notSupportStringType": "해당 차트 유형에서는 String 타입의 차트 값을 선택할 수 없습니다.",
+    "onlySupportNumberType": "해당 차트 유형에서는 Number 타입의 X, y축만 선택할 수 있습니다.",
+    "selectXandYaxis": "x축, y축 모두 설정해주세요.",
+    "selectTimeAndRel": "시간 조건/일시를 선택해주세요."
   },
   "search": {
     "subscribe": "Subscribe",
@@ -105,6 +121,8 @@
     "reset": "Reset",
     "close": "Close",
     "name": "Name",
-    "regDt": "Member since"
+    "regDt": "Member since",
+    "option": "option",
+    "setting": "setting"
   }
 }

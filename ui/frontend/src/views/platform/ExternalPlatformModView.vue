@@ -1,14 +1,14 @@
 <template>
   <div>
-    <h3 class="content__title">외부 플랫폼 인증 상세</h3>
+    <h3 class="content__title">{{ $t('platform.detailTitle') }}</h3>
     <form>
       <fieldset>
         <legend>필드셋 제목</legend>
         <!-- section-write -->
         <section class="section">
-          <div class="section__header">
-            <h4 class="section__title">기본 정보</h4>
-          </div>
+<!--          <div class="section__header">-->
+<!--            <h4 class="section__title">기본 정보</h4>-->
+<!--          </div>-->
           <div class="section__content">
             <table class="table--row">
               <caption>테이블 제목</caption>
@@ -22,7 +22,7 @@
               </colgroup>
               <tbody>
                 <tr>
-                  <th class="icon__require">외부 플랫폼 ID</th>
+                  <th class="icon__require">{{ $t('platform.id') }}</th>
                   <td>
                     <label>
                       <input
@@ -36,10 +36,10 @@
                     </label>
                     <br>
                     <span v-show="error['id']" class="error__color">
-                      필수 값 입니다.
+                      {{ $t('comm.required') }}
                     </span>
                   </td>
-                  <th class="icon__require">외부 플랫폼 명</th>
+                  <th class="icon__require">{{ $t('platform.name') }}</th>
                   <td>
                     <label>
                       <input
@@ -52,10 +52,10 @@
                     </label>
                     <br>
                     <span v-show="error['name']" class="error__color">
-                      필수 값 입니다.
+                      {{ $t('comm.required') }}
                     </span>
                   </td>
-                  <th>생성자</th>
+                  <th>{{ $t('comm.creator') }}</th>
                   <td>
                     <label>
                       <input
@@ -69,7 +69,7 @@
                   </td>
                 </tr>
                 <tr>
-                  <th>생성시간</th>
+                  <th>{{ $t('comm.creationTime') }}</th>
                   <td>
                     <label>
                       <input
@@ -81,7 +81,7 @@
                       />
                     </label>
                   </td>
-                  <th>수정자</th>
+                  <th>{{ $t('comm.modifier') }}</th>
                   <td>
                     <label>
                       <input
@@ -93,7 +93,7 @@
                       />
                     </label>
                   </td>
-                  <th>수정시간</th>
+                  <th>{{ $t('comm.modifierTime') }}</th>
                   <td>
                     <label>
                       <input
@@ -107,18 +107,18 @@
                   </td>
                 </tr>
                 <tr>
-                  <th class="icon__require">수신가능 IP</th>
+                  <th class="icon__require">{{ $t('platform.allowedIp') }}</th>
                   <td>
                     <div class="button__group" style="margin: 0 0 5px;">
                       <input class="input__checkbox" id="receptionAll" type="checkbox" :checked="receptionChecked" @click="onAll">
-                      <label class="label__checkbox" for="receptionAll">전체</label>
+                      <label class="label__checkbox" for="receptionAll">{{ $t('platform.selectAll') }}</label>
                       <button
                           class="button__util button__util--add material-icons"
                           type="button"
                           name="receptionIpsAdd"
                           @click="onTableAdd"
                       >
-                        추가
+                        {{ $t('comm.add') }}
                       </button>
                       <button
                           class="button__util button__util--remove material-icons"
@@ -126,7 +126,7 @@
                           name="receptionIpsDel"
                           @click="onTableDel"
                       >
-                        삭제
+                        {{ $t('comm.delete') }}
                       </button>
                     </div>
                     <label>
@@ -141,22 +141,22 @@
                         @on-row-event="onTableRowEvent"
                     />
                     <span v-show="error['receptionIps']" class="error__color">
-                      필수 값 입니다.
+                      {{ $t('comm.required') }}
                     </span>
                   </td>
 
-                  <th class="icon__require">수신가능 데이터셋 ID</th>
+                  <th class="icon__require">{{ $t('platform.allowedDataset') }}</th>
                   <td>
                     <div class="button__group" style="margin: 0 0 5px;">
                       <input class="input__checkbox" id="receptionDatasetAll" type="checkbox" :checked="receptionDatasetChecked" @click="onAll">
-                      <label class="label__checkbox" for="receptionDatasetAll">전체</label>
+                      <label class="label__checkbox" for="receptionDatasetAll">{{ $t('platform.selectAll') }}</label>
                       <button
                           class="button__util button__util--add material-icons"
                           type="button"
                           name="receptionDatasetIdsAdd"
                           @click="onShowDatasetPopup"
                       >
-                        검색
+                        {{ $t('comm.search') }}
                       </button>
                       <button
                           class="button__util button__util--remove material-icons"
@@ -164,7 +164,7 @@
                           name="receptionDatasetIdsDel"
                           @click="onTableDel"
                       >
-                        삭제
+                        {{ $t('comm.delete') }}
                       </button>
                     </div>
                     <AppTable
@@ -176,22 +176,22 @@
                         @on-row-event="onTableRowEvent"
                     />
                     <span v-show="error['receptionDatasetIds']" class="error__color">
-                      필수 값 입니다.
+                      {{ $t('comm.required') }}
                     </span>
                   </td>
 
-                  <th class="icon__require">수신가능 Client ID</th>
+                  <th class="icon__require">{{ $t('platform.allowedClient') }}</th>
                   <td>
                     <div class="button__group" style="margin: 0 0 5px;">
                       <input class="input__checkbox" id="receptionClientAll" type="checkbox" :checked="receptionClientChecked" @click="onAll">
-                      <label class="label__checkbox" for="receptionClientAll">전체</label>
+                      <label class="label__checkbox" for="receptionClientAll">{{ $t('platform.selectAll') }}</label>
                       <button
                           class="button__util button__util--add material-icons"
                           type="button"
                           name="receptionClientIdsAdd"
                           @click="onTableAdd"
                       >
-                        추가
+                        {{ $t('comm.add') }}
                       </button>
                       <button
                           class="button__util button__util--remove material-icons"
@@ -199,7 +199,7 @@
                           name="receptionClientIdsDel"
                           @click="onTableDel"
                       >
-                        삭제
+                        {{ $t('comm.delete') }}
                       </button>
                     </div>
                     <label>
@@ -214,7 +214,7 @@
                         @on-row-event="onTableRowEvent"
                     />
                     <span v-show="error['receptionClientIds']" class="error__color">
-                      필수 값 입니다.
+                      {{ $t('comm.required') }}
                     </span>
                   </td>
                 </tr>
@@ -223,9 +223,9 @@
           </div>
         </section>
         <section class="section">
-          <div class="section__header">
-            <h4 class="section__title">부가 정보</h4>
-          </div>
+<!--          <div class="section__header">-->
+<!--            <h4 class="section__title">부가 정보</h4>-->
+<!--          </div>-->
           <div class="section__content">
             <table class="table--row">
               <caption>테이블 제목</caption>
@@ -237,7 +237,7 @@
               </colgroup>
               <tbody>
               <tr>
-                <th>외부 플랫폼 설명</th>
+                <th>{{ $t('platform.description') }}</th>
                 <td>
                   <label>
                     <input
@@ -248,7 +248,7 @@
                     />
                   </label>
                 </td>
-                <th>인스턴스 Prefix</th>
+                <th>{{ $t('platform.instanceIdPrefix') }}</th>
                 <td>
                   <label>
                     <input
@@ -270,7 +270,7 @@
               type="button"
               @click="onSave"
           >
-            저장
+            {{ $t('comm.save') }}
           </button>
           <button
               v-if="isMode === 'mod'"
@@ -278,14 +278,14 @@
               type="button"
               @click="onDelete"
           >
-            삭제
+            {{ $t('comm.delete') }}
           </button>
           <button
               class="button__primary"
               type="button"
               @click="onGoBack"
           >
-            목록
+            {{ $t('comm.backToList') }}
           </button>
         </div>
       </fieldset>
@@ -296,7 +296,7 @@
         @on-event-modal="onConfirmSave"
         modalSize="w-360"
         :content="modalText"
-        button-name="확인"
+        :button-name="$t('comm.ok')"
         :is-success-btn="true"
         :isCancelBtn="true"
     />
@@ -306,7 +306,7 @@
         @on-event-modal="onConfirmDel"
         modalSize="w-360"
         :content="modalText"
-        button-name="확인"
+        :button-name="$t('comm.ok')"
         :is-success-btn="true"
         :isCancelBtn="true"
     />
@@ -315,15 +315,15 @@
         @close-modal="onClose"
         modalSize="w-360"
         :content="modalText"
-        close-name="확인"
+        :button-name="$t('comm.ok')"
         :isCancelBtn="true"
     />
     <AppModal
         :is-show="isShow"
         @close-modal="onClose"
         @on-event-modal="onDatasetSave"
-        title="데이터셋 ID 검색"
-        button-name="저장"
+        :title="$t('platform.datasetSearch')"
+        :button-name="$t('comm.save')"
         :is-success-btn="true"
         :isCancelBtn="true"
     >
@@ -338,7 +338,7 @@
               </colgroup>
               <tbody>
               <tr>
-                <th rowspan="4">데이터 셋</th>
+                <th rowspan="4">{{ $t('platform.dataset') }}</th>
                 <td colspan="3">
                   <label>
                     <input class="input__text" type="text" v-model="searchText" />
@@ -350,7 +350,7 @@
                       type="button"
                       @click="onDatasetSearch"
                   >
-                    검색
+                    {{ $t('comm.search') }}
                   </button>
                 </td>
               </tr>
@@ -358,8 +358,8 @@
                 <td colspan="4">
                   <AppTable
                       :meta-data="[
-                      { name: 'id', displayName: '데이터 셋 아이디', require: false, col: 15 },
-                      { name: 'name', displayName: '데이터 셋 이름', require: false, col: 15 }]"
+                      { name: 'id', displayName: $t('platform.datasetId'), require: false, col: 15 },
+                      { name: 'name', displayName: $t('platform.datasetName'), require: false, col: 15 }]"
                       :table-items="datasetList"
                       tableHeight="125px"
                       overflowY="auto"
@@ -458,11 +458,11 @@
         return null;
       }
       this.isSaveShow = true;
-      this.modalText = '저장하시겠습니까?';
+      this.modalText = this.$i18n.t('comm.saveCheck');
     },
     onDelete() {
       this.isDelShow = true;
-      this.modalText = '삭제하시겠습니까?';
+      this.modalText = this.$i18n.t('comm.deleteCheck');
     },
     onGoBack() {
       this.$router.push({

@@ -44,4 +44,7 @@ public class Properties {
 	
 	@Value("${spring.security.enabled}") 
 	private Boolean springSecurityEnabled;
+	
+	@Value("${language.code}") 
+	private String langCd;
 }

@@ -16,6 +16,8 @@ import lombok.Data;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MenuRetrieveVO {
+	/** Menu ID */
+	private String id;
 	/** Menu name */
 	private String name;
 	/** Menu URL */
@@ -28,4 +30,6 @@ public class MenuRetrieveVO {
 	private Boolean enabled;
 	/** Menu level */
 	private Integer level;
+	/** Language code */
+	private String langCd;
 }

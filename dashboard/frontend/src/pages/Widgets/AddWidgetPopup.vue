@@ -6,6 +6,7 @@
     :activeName="activeName"
     :chartType="formData['chartType']"
     :visibleChartTree="visibleChartTree"
+    :visibleSearchOption="visibleSearchOption"
     @close-event="onClose"
     @tab-click="tabClick"
   >
@@ -58,27 +59,20 @@
               </el-select>
             </div>
           </div>
-          <div class="col-md-4" v-if="display['chartType']">
+          <div class="col-md-4" v-if="display['typeUri']">
             <div class="form-group">
-            </div>
-          </div>
-          <div
-            class="col-md-4"
-            v-if="display['dataType']"
-          >
-            <div class="form-group">
-              <label class="control-label">{{ $t('widget.numberOfInstances') }}</label>
+              <label class="control-label">{{ $t('widget.typeUri') }}</label>
               <el-select
                 class="mr-sm-2"
-                v-model="formData['dataType']"
-                :placeholder="$t('comm.select')"
+                v-model="typeUri"
+                placeholder="Select"
                 size="small"
                 style="width: 100%;"
-                @change="onDataTypeChange"
-                :disabled="isDataTypeDisabled"
+                @change="onTypeUriChange"
+                :disabled="dataModelDisabled['typeUri']"
               >
                 <el-option
-                  v-for="item in dataTypes"
+                  v-for="item in typeUris"
                   :key="item.value"
                   :label="item.text"
                   :value="item.value"
@@ -94,18 +88,45 @@
           >
             <div class="form-group">
               <label class="control-label">{{ $t('widget.entityInstanceID') }}</label>
+<!--              :multiple="isEntityIdMultiple && (['bar'].indexOf(formData['chartType']) > -1)"-->
               <el-select
                 class="mr-sm-2"
                 v-model="entityId"
-                :multiple="formData['dataType'] === 'last' && (['bar'].indexOf(formData['chartType']) > -1)"
-                :collapse-tags="formData['dataType'] === 'last'"
+                :multiple="isEntityIdMultiple"
+                :collapse-tags="isEntityIdMultiple"
                 size="small"
                 style="width: 100%;"
                 :placeholder="$t('message.selectOption')"
                 @change="onSelectedEntity"
+                :disabled="isEntityIdDisabled"
               >
                 <el-option
                   v-for="item in entityIds"
+                  :key="item.value"
+                  :label="item.text"
+                  :value="item.value"
+                  :disabled="item.disabled"
+                >
+                </el-option>
+              </el-select>
+            </div>
+          </div>
+          <div
+            class="col-md-4"
+            v-if="display['displayData']"
+          >
+            <div class="form-group">
+              <label class="control-label">{{ $t('widget.displayData') }}</label>
+              <el-select
+                class="mr-sm-2"
+                v-model="formData['dataType']"
+                :placeholder="$t('comm.select')"
+                size="small"
+                style="width: 100%;"
+                @change="onDataTypeChange"
+              >
+                <el-option
+                  v-for="item in dataTypes"
                   :key="item.value"
                   :label="item.text"
                   :value="item.value"
@@ -346,18 +367,70 @@
         @on-tree-event="onChartClick"
         nodeKey="chart"
         :checkList="{}"
+        :option="visibleTreeOption"
+        :optionFiltering="formData.chartType === 'scatter'"
+        @popover-show="chartOptRadio = null"
       >
+        <template v-slot:popover-content="{show, node}">
+          <el-radio-group v-model="chartOptRadio" @change="() => onChartOptChange(show, node)">
+            <el-radio :label="1" v-if="formData['chartType'] === 'scatter'">{{ $t('widget.XaxisSetting') }}</el-radio>
+            <el-radio :label="2" v-if="formData['chartType'] === 'scatter'">{{ $t('widget.YaxisSetting') }}</el-radio>
+            <el-radio :label="3" v-if="isLineOrBarChartType">{{ $t('widget.selectedAttribute') }} {{ $t('comm.setting') }}</el-radio>
+            <el-radio :label="4" v-if="isLineOrBarChartType">{{ legendText }} {{ $t('comm.setting') }}</el-radio>
+          </el-radio-group>
+        </template>
       </ElementTree>
     </template>
     <template v-slot:addAttr>
-      <label class="control-label mb-2">{{ $t('widget.selectedAttribute') }}
-      </label>
-      <input
-        type="text"
-        class="form-control"
-        v-model="formData['chartAttribute']"
-        disabled
-      />
+      <div v-if="!display['chartAttributeXY']" class="mt-2">
+        <label class="control-label mb-2">{{ $t('widget.selectedAttribute') }}</label>
+        <input
+          type="text"
+          class="form-control"
+          v-model="selectedAttrsText"
+          disabled
+        />
+      </div>
+      <div v-if="display['legendDisplay']" class="mt-2">
+        <label class="control-label mb-2">{{ legendText }}</label>
+        <div>
+          <input
+            type="text"
+            class="form-control legend-display mr-2"
+            v-model="legendDisplay"
+            disabled
+          />
+          <el-button size="small" type="primary" @click="legendDisplay = 'ID'">{{ $t('comm.reset') }}</el-button>
+        </div>
+      </div>
+      <div v-if="display['chartUnit']">
+        <label class="control-label mb-2">{{ $t('widget.chartUnit') }}
+        </label>
+        <input
+          type="number"
+          class="form-control"
+          v-model="chartUnit"
+          :disabled="isChartAttributeString"
+        />
+      </div>
+      <div v-if="display['chartAttributeXY']" class="mt-2">
+        <label class="control-label mb-2">{{ $t('widget.valueOfXaxis') }}</label>
+        <input
+          type="text"
+          class="form-control legend-display ml-2"
+          v-model="attrsXText"
+          disabled
+        />
+      </div>
+      <div v-if="display['chartAttributeXY']" class="mt-2">
+        <label class="control-label mb-2">{{ $t('widget.valueOfYaxis') }}</label>
+        <input
+          type="text"
+          class="form-control legend-display ml-2"
+          v-model="attrsYText"
+          disabled
+        />
+      </div>
     </template>
     <template v-slot:tree>
       <ElementTree
@@ -445,6 +518,53 @@ export default {
     visibleChartTree() {
       const chartType = this.formData['chartType'];
       return chartType && !(chartType === 'custom_text' || chartType === 'Image' || chartType === 'map_latest');
+    },
+    visibleSearchOption() {
+      const {chartType, dataType} = this.formData;
+      return ['pie', 'donut'].indexOf(chartType) >= 0 || (chartType === 'histogram' && dataType === 'last') || (chartType === 'scatter' && dataType === 'history');
+    },
+    isChartAttributeString() {
+      const chartAttribute = this.validation.chartAttribute;
+      if (!chartAttribute) return false;
+      return !(chartAttribute === 'DOUBLE' || chartAttribute === 'INTEGER');
+    },
+    isEntityIdMultiple() {
+      if (this.isLineOrBarChartType) return true;
+      return this.formData['dataType'] === 'last';
+    },
+    isEntityIdDisabled() {
+      const {chartType, dataType} = this.formData;
+      return chartType === 'histogram' && dataType === 'last';
+    },
+    isLineOrBarChartType() {
+      const {chartType} = this.formData;
+      return ['line', 'bar'].indexOf(chartType) >= 0
+    },
+    visibleTreeOption() {
+      return this.isLineOrBarChartType || this.formData.chartType === 'scatter';
+    },
+    treeOptionLegendText() {
+      const {chartType} = this.formData;
+      return ['line', 'scatter'].indexOf(chartType) >= 0 ? this.$i18n.t('widget.legendDisplay') : this.$i18n.t('widget.XaxisDisplay');
+    },
+    legendText() {
+      const {chartType, dataType} = this.formData;
+      return chartType === 'bar' && dataType === 'last' ? this.$i18n.t('widget.XaxisDisplay') : this.$i18n.t('widget.legendDisplay');
+    },
+    selectedAttrsText() {
+      if (this.formData['chartType'] === 'scatter') {
+        let text = null;
+        if (this.attrsXText.length > 0) text = this.attrsXText;
+        if (this.attrsYText.length > 0) text = `${text}, ${this.attrsYText}`;
+        return text || '';
+      }
+      return this.formData['chartAttribute'];
+    },
+    attrsXText() {
+      return this.attrs.x && Object.hasOwn(this.attrs.x, 'fullId') ? this.attrs.x.fullId : '';
+    },
+    attrsYText() {
+      return this.attrs.y && Object.hasOwn(this.attrs.y, 'fullId') ? this.attrs.y.fullId : '';
     }
   },
   data() {
@@ -454,7 +574,7 @@ export default {
       time: null,
       times: [],
       timerel: null,
-      entityIds: [],
+      entityIds: [], // DummyData
       entityId: null,
       typeUri: null,
       typeUris: [],
@@ -464,7 +584,6 @@ export default {
       searchId: null,
       activeName: 'first',
       dataModel: null,
-      isDataTypeDisabled: true,
       isRealtimeDisabled: false,
       isModify: false,
       treeData: [],
@@ -472,22 +591,28 @@ export default {
       imageFile: null,
       latestMaps: [],
       latestValue: null,
+      chartUnit: null,
+      chartOptRadio: null,
+      legendDisplay: 'ID', // default ID
+      attrs: {
+        x: null, y: null,
+      },
       display: {
         chartType: false, chartTitle: false, chartXName: false, chartYName: false, updateInterval: false,
-        realtimeUpdateEnabled: false, timerel: false, entityId: false, time: false, yaxisRange: false,
-        custom_text: false, image: false, dataType: false, latestMap: false,
+        realtimeUpdateEnabled: false, timerel: false, entityId: false, displayData: false, time: false,
+        yaxisRange: false, custom_text: false, image: false, latestMap: false, chartAttributeXY: false,
       },
       dataTypes: [
         {value: null, text: this.$i18n.t('message.selectOption'), disabled: true},
-        {value: 'history', text: 'Multiple Instances', disabled: false},
-        {value: 'last', text: 'Single Instance', disabled: false}
+        {value: 'history', text: this.$i18n.t('widget.displayHistorical'), disabled: false},
+        {value: 'last', text: this.$i18n.t('widget.displayLatest'), disabled: false}
       ],
       dataModelDisabled: {dataModelId: false, typeUri: false},
       formData: {
         dashboardId: null,
         widgetId: null, chartType: null, chartOrder: null, chartSize: null, dataType: null, chartTitle: null,
-        updateInterval: null, realtimeUpdateEnabled: false, chartAttribute: null, yaxisRange: null,
-        chartXName: null, chartYName: null, realTimeOption: null, q: null,
+        updateInterval: null, realtimeUpdateEnabled: false, yaxisRange: null,
+        chartAttribute: null, chartXName: null, chartYName: null, realTimeOption: null, q: null,
         extention1: null, extention2: null, image: null
       },
       validation: {
@@ -504,6 +629,8 @@ export default {
         {value: 'custom_text', text: 'Text(Custom)', disabled: false},
         {value: 'Image', text: 'Image', disabled: false},
         {value: 'map_latest', text: 'Latest Map', disabled: false},
+        {value: 'histogram', text: 'Histogram', disabled: false},
+        {value: 'scatter', text: 'Scatter', disabled: false},
       ],
       dateOptions: [
         {value: null, text: this.$i18n.t('message.selectOption'), disabled: true},
@@ -554,7 +681,7 @@ export default {
         return null;
       }
       if (this.addList.length > 9) {
-        this.$alert('최대 10개 입력 가능합니다.', '', {
+        this.$alert(this.$i18n.t('message.enterMaxNum', [10]), '', {
           confirmButtonText: 'OK'
         });
         return null;
@@ -571,13 +698,13 @@ export default {
       });
     },
     handleExceed() {
-      this.$message.warning(`이미 등록된 파일이 있습니다. 삭제 후 재등록 가능합니다.`);
+      this.$message.warning(this.$i18n.t('message.fileExist'));
     },
     handleImageChange(file, fileList) {
       const isLt10M = file.size / 1024 / 1024 < 10;
 
       if (!isLt10M) {
-        this.$message.error('10MB 이하의 파일만 등록 가능합니다.');
+        this.$message.error('message.fileMaxDescription');
         this.imageFiles = [];
         this.imageFile = null;
       } else this.imageFile = file.raw;
@@ -605,8 +732,8 @@ export default {
     tabClick(tab, event, active) {
       this.activeName = active;
     },
-    async getEntityList(dataModelId) {
-      this.$http.post('/entityIds', {dataModelId: this.dataModel})
+    async getEntityList(dataModelId, typeUri) {
+      this.$http.post('/entityIds', {dataModelId, typeUri})
         .then(response => {
           const status = response.status;
           const items = response.data;
@@ -621,12 +748,13 @@ export default {
             return result.push({value: item, text: item, disabled: false});
           });
           this.entityIds = result;
-          this.entityIds.at(0).disabled = this.formData.dataType === 'history' && this.formData.chartType === 'bar';
+          const {dataType, chartType} = this.formData;
+          this.entityIds.at(0).disabled = dataType === 'history' && (['scatter', 'histogram'].indexOf(chartType) >= 0);
 
           return true;
         }).then(hasEntityIds => {
         if (hasEntityIds) {
-          dataModelApi.attributes(dataModelId)
+          dataModelApi.attributes({dataModelId, typeUri})
             .then(data => {
               this.treeData = data;
             });
@@ -690,8 +818,12 @@ export default {
 
       widgetApi.fetch(this.dashboardId, widgetId)
         .then(data => {
-          const {chartType, entityRetrieveVO, file, extention1, dataType} = data;
+          const {chartType, entityRetrieveVO, file, extention1, extention2, dataType, chartAttribute} = data;
           this.formData = data;
+
+          if (chartType === 'histogram') {
+            this.chartUnit = extention1;
+          }
 
           if (chartType === 'Image') {
             this.imageFile = new Blob([file]);
@@ -708,26 +840,45 @@ export default {
               // new Date('2022-03-04T15:00:00.000Z')
               this.times = [new Date(entityRetrieveVO.time), new Date(entityRetrieveVO.endtime)];
             } else {
-              this.time = new Date(entityRetrieveVO.time);
+              this.time = entityRetrieveVO.time ? new Date(entityRetrieveVO.time) : null;
             }
 
-            if (['donut', 'pie'].indexOf(chartType) > -1) {
-              this.entityId = null;
-            } else if (['line', 'bar'].indexOf(chartType) > -1) {
+            if (['line', 'bar', 'donut', 'pie'].indexOf(chartType) > -1) {
+              this.entityId = entityRetrieveVO.id.split(',');
+            } else if (['scatter'].indexOf(chartType) > -1) {
               this.entityId = dataType === 'history' ? entityRetrieveVO.id : entityRetrieveVO.id.split(',');
             } else {
-              this.entityId = entityRetrieveVO.id;
+              this.entityId = entityRetrieveVO.id; // histogram...
             }
 
-            this.onDataModelChange(this.dataModel);
+            if (this.dataModel) this.onDataModelChange(this.dataModel);
+            if (this.typeUri) this.onTypeUriChange(this.typeUri);
+
+            if (entityRetrieveVO.attrs.length > 1 && chartAttribute) {
+              const ids = chartAttribute.split(', ');
+              this.attrs.x = {
+                fullId: entityRetrieveVO.attrs[0],
+                id: ids[0],
+                valueType: 'NUMBER'
+              };
+              this.attrs.y = {
+                fullId: entityRetrieveVO.attrs[1],
+                id: ids[1],
+                valueType: 'NUMBER'
+              };
+            }
+
+            if (extention1 === 'legend') this.legendDisplay = extention2;
 
             // Changing the data type to set detailed search conditions.
             if (entityRetrieveVO.q) {
               const query = [...entityRetrieveVO.q];
-              query.map(item => {
+              query.map((item, i) => {
                 const key = item.attr;
                 if (item.condition === ';') {
                   item.temp = 'AND';
+                } else if (i === 0) {
+                  item.temp = null; // first Option
                 } else {
                   item.temp = 'OR';
                 }
@@ -751,22 +902,56 @@ export default {
       this.addList = [];
       Object.keys(this.dynamicQuery).some(key => {
         if (key === data.fullId) {
-          this.addList = this.dynamicQuery[key]
+          this.dynamicQuery[key].map(_ => _.valueType = data.valueType);
+          this.addList = this.dynamicQuery[key];
         }
       });
     },
     onChartClick(data, node) {
-      const {fullId, valueType} = data;
-      this.formData.chartAttribute = fullId;
-      this.validation.chartAttribute = valueType;
+      if (!this.visibleTreeOption) {
+        const {fullId, valueType} = data;
+        this.formData.chartAttribute = fullId;
+        this.validation.chartAttribute = valueType;
+        this.chartUnit = null;
+      }
     },
     onDataTypeChange(value) {
       this.entityId = null;
+      const {dataType, chartType} = this.formData;
       if (this.entityIds.length > 0) {
-        this.entityIds.at(0).disabled = value === 'history' && this.formData['chartType'] === 'bar';
+        this.entityIds.at(0).disabled = dataType === 'history' && (['scatter', 'histogram'].indexOf(chartType) >= 0);
+      }
+      if (chartType === 'histogram') {
+        this.chartUnit = null;
+        this.formData['chartAttribute'] = null;
+        const displayOption = {
+          chartType: true,
+          typeUri: true,
+          entityId: true,
+          displayData: true,
+          chartTitle: true,
+          chartUnit: true,
+        };
+        if (value === 'history') {
+          displayOption.time = true;
+          displayOption.timerel = true;
+          this.dynamicQuery = {};
+        }
+        this.initDisplay(displayOption);
+      }
+      if (chartType === 'scatter') {
+        const visible = !!(dataType === 'last');
+        this.display['timerel'] = visible;
+        this.display['time'] = visible;
       }
     },
-    onTypeUriChange(value) {
+    async onTypeUriChange(value) {
+      this.attrs = {x: null, y: null};
+      if (!this.dataModelDisabled['typeUri']) {
+        this.entityId = null
+      }
+      await this.getEntityList(null, value);
+
       this.dataModelDisabled = {dataModelId: true, typeUri: false};
     },
     ontimerelChange(value) {
@@ -777,38 +962,36 @@ export default {
       console.log(value);
     },
     async onDataModelChange(value) {
+      this.attrs = {x: null, y: null};
       if (!this.dataModelDisabled['dataModelId']) {
         this.entityId = null
       }
-      await this.getEntityList(value);
+      await this.getEntityList(value, null);
 
       this.dataModelDisabled = {dataModelId: this.isModify, typeUri: true};
     },
     onSelectedEntity(array) {
-      if (this.dataType === 'history') {
-        let newArr = [];
-        let text = null;
-        array.some(item => {
-          if (item === '') {
-            text = 'ALL';
-            return newArr.push(item);
-          } else {
-            newArr.push(item);
-          }
-        });
-
-        if (text === 'ALL') {
-          this.entityId = this.entityIds.map(item => item.value);
+      if (this.isEntityIdMultiple) {
+        if (array.indexOf('') >= 0) {
+          this.entityId = this.entityIds.filter(_ => _.value !== '').map(item => item.value);
         } else {
-          this.entityId = newArr;
+          this.entityId = array;
+        }
+      }
+    },
+    onChartOptChange(show, node) {
+      if (show && node) {
+        switch (this.chartOptRadio) {
+          case 1: this.attrs.x = node.data; break;
+          case 2: this.attrs.y = node.data; break;
+          case 3: this.formData['chartAttribute'] = node.data.fullId; break;
+          case 4: this.legendDisplay = node.data.fullId; break;
         }
       }
     },
     onChartTypeChange(value, type) {
       // Form information exposed according to chart type.
       this.display['chartType'] = !(value === 'custom_text' || value === 'Image' || value === 'latestMap');
-
-      this.isDataTypeDisabled = value !== 'bar';
 
       // Data to be reset.
       if (!type) {
@@ -817,18 +1000,22 @@ export default {
         this.dataModel = null;
         this.entityId = null;
         this.typeUri = null;
-        this.typeUris = [];
+        // this.typeUris = [];
         this.dataModelDisabled = {dataModelId: false, typeUri: false};
         this.treeData = [];
+        this.attrs = {x: null, y: null};
       }
 
       // Display setting according to chart type.
       switch (value) {
         case 'donut' :
+          this.formData.dataType = 'last';
           this.initDisplay({
             chartType: true,
             chartTitle: true,
             updateInterval: true,
+            entityId: true,
+            typeUri: true,
           });
           break;
         case 'bar' :
@@ -837,34 +1024,41 @@ export default {
             chartTitle: true,
             chartXName: true,
             chartYName: true,
-            dataType: true,
+            displayData: true,
             realtimeUpdateEnabled: true,
             timerel: true,
             entityId: true,
             time: true,
-            yaxisRange: true
+            yaxisRange: true,
+            typeUri: true,
+            legendDisplay: true,
           });
           break;
         case 'pie' :
+          this.formData.dataType = 'last';
           this.initDisplay({
             chartType: true,
             chartTitle: true,
             updateInterval: true,
+            entityId: true,
+            typeUri: true,
           });
           break;
         case 'line' :
-          this.formData.dataType = 'history';
+          this.formData.dataType = this.formData.dataType || 'history';
           this.initDisplay({
             chartType: true,
             chartTitle: true,
             chartXName: true,
             chartYName: true,
-            dataType: true,
+            displayData: true,
             realtimeUpdateEnabled: true,
             timerel: true,
             entityId: true,
             time: true,
-            yaxisRange: true
+            yaxisRange: true,
+            typeUri: true,
+            legendDisplay: true,
           });
           break;
         case 'text' :
@@ -903,6 +1097,30 @@ export default {
           // Call the list of stored latest maps
           this.getLatestList();
           break;
+        case 'histogram' :
+          this.formData.dataType = this.formData.dataType || 'history';
+          this.initDisplay({
+            chartType: true,
+            typeUri: true,
+            timerel: true,
+            entityId: true,
+            displayData: true,
+            chartTitle: true,
+            time: true,
+            chartUnit: true,
+          });
+          break;
+        case 'scatter' :
+          this.formData.dataType = this.formData.dataType || 'history';
+          this.initDisplay({
+            chartType: true,
+            typeUri: true,
+            entityId: true,
+            displayData: true,
+            chartTitle: true,
+            chartAttributeXY: true,
+          });
+          break;
       }
     },
     handleRemove() {
@@ -935,22 +1153,48 @@ export default {
       // 1. String value cannot be selected for chart-type widgets.
       const notPermitStrChartType = chartType === 'pie' || chartType === 'donut' || chartType === 'bar' || chartType === 'line';
       if (notPermitStrChartType && this.validation.chartAttribute === "STRING") {
-        this.$alert('해당 차트 유형에서는 String 타입의 차트 값을 선택할 수 없습니다.');
+        this.$alert(this.$i18n.t('message.notSupportStringType'));
         return;
       }
 
       // 2. Required verification of entity ID.
-      if (this.display['entityId'] && this.entityId === null) {
-        this.$alert('엔티티 ID를 선택해주세요.');
+      if (!this.isEntityIdDisabled && this.display['entityId'] && this.entityId === null) {
+        this.$alert(this.$i18n.t('message.selectDataEntityIds'));
         return;
       }
 
+      // 3. Required verification of X, Y axis at Scatter
+      if (chartType === 'scatter' && !(this.attrs.x && this.attrs.y)) {
+        this.$alert(this.$i18n.t('message.selectXandYaxis'));
+        return;
+      }
+
+      // 3-1. Number value only can be selected for scatter widgets.
+      const isNumberType = (data) => (['INTEGER', 'DOUBLE', 'NUMBER'].indexOf(data.valueType) < 0);
+      if (chartType === 'scatter' && (isNumberType(this.attrs.x) || isNumberType(this.attrs.y))) {
+        this.$alert(this.$i18n.t('message.onlySupportNumberType'));
+        return;
+      }
+
+      // 4. Required verification of chartAttribute
+      if (this.display['chartType'] && chartType !== 'scatter' && !this.formData.chartAttribute) {
+        this.$alert(this.$i18n.t('message.selectChartAttribute'));
+        return;
+      }
+
+      // 5. Required verification of imageFile
       if (!this.isEditImage && this.isModify && chartType === 'Image') {
         this.editImageWidget();
         return;
       }
 
-      if (chartType === 'pie' || chartType === 'donut') {
+      // 6. Required verification of time for Line, Bar Widgets
+      if (this.isLineOrBarChartType && (this.entityId || []).length > 1 && !(this.time && this.timerel)) {
+        this.$alert(this.$i18n.t('message.selectTimeAndRel'));
+        return;
+      }
+
+      if (chartType === 'pie' || chartType === 'donut' || chartType === 'histogram') {
         Object.keys(this.dynamicQuery).map(key => {
           this.dynamicQuery[key].forEach(item => {
             query.push(item);
@@ -964,7 +1208,7 @@ export default {
         this.formData.entityRetrieveVO = {
           dataModelId: this.dataModel,
           typeUri: this.typeUri,
-          attrs: [this.formData['chartAttribute']],
+          attrs: chartType === 'scatter' ? [this.attrs.x.fullId, this.attrs.y.fullId] : [this.formData['chartAttribute']],
           id: entityId,
           timerel: this.timerel,
           time: this.timerel === 'between' ? this.times.at(0) : this.time,
@@ -987,10 +1231,23 @@ export default {
       } else if (chartType === 'Image') {
         this.formData.chartAttribute = 'Image';
         this.formData.extention1 = this.imageFile.name;
+      } else if (chartType === 'map_latest') {
+        this.formData.chartAttribute = 'map_latest';
+      } else if (chartType === 'histogram') {
+        this.formData.extention1 = this.chartUnit;
+        this.formData.extention2 = this.validation.chartAttribute;
+      } else if (chartType === 'scatter') {
+        this.formData.chartAttribute = `${this.attrs.x.id}, ${this.attrs.y.id}`;
       }
 
-      if (chartType === 'map_latest') {
-        this.formData.chartAttribute = 'map_latest';
+      if (this.visibleTreeOption) {
+        if (this.legendDisplay !== 'ID') { // not default Legend
+          this.formData.extention1 = 'legend';
+          this.formData.extention2 = this.legendDisplay;
+        } else {
+          this.formData.extention1 = null;
+          this.formData.extention2 = null;
+        }
       }
 
       // Save the chart size location.
@@ -1008,6 +1265,10 @@ export default {
           i: this.index
         });
         this.formData.chartOrder = this.index;
+      }
+
+      if (chartType === 'line') { // line is only history
+        this.formData.dataType = 'history';
       }
 
       // add modify logic
@@ -1044,6 +1305,9 @@ export default {
               };
             } else if (this.formData.chartType === 'map_latest') {
               item.mapSearchConditionId = mapSearchConditionId;
+            } else if (chartType === 'histogram') {
+              item.chartUnit = this.formData.extention1;
+              item.valueType = this.formData.extention2;
             } else {
               item.options = chartOptions(item);
             }
@@ -1053,7 +1317,7 @@ export default {
         return null;
       }
 
-      if (chartType !== 'line' && chartType !== 'bar' && chartType !== 'custom_text') {
+      if (['line', 'bar', 'custom_text', 'histogram', 'scatter'].indexOf(chartType) < 0) {
         this.formData.dataType = 'last';
       }
 
@@ -1098,6 +1362,9 @@ export default {
             item.data = {
               file: URL.createObjectURL(file)
             }
+          } else if (chartType === 'histogram') {
+            item.chartUnit = this.formData.extention1;
+            item.valueType = this.formData.extention2;
           } else {
             item.options = chartOptions(item);
           }
@@ -1127,6 +1394,8 @@ export default {
       this.dataModels = [];
       this.imageFiles = [];
       this.imageFile = null;
+      this.chartUnit = null;
+      this.attrs = {x: null, y: null};
 
       this.formData = {
         dashboardId: null,
@@ -1148,12 +1417,13 @@ export default {
       // only update param obj
       this.display = {
         chartType: false,
-        chartTitle: false, chartXName: false, chartYName: false, updateInterval: false, dataType: false,
-        realtimeUpdateEnabled: false, timerel: false, entityId: false, time: false, yaxisRange: false
-        , custom_text: false, image: false, latestMap: false,
+        chartTitle: false, chartXName: false, chartYName: false, updateInterval: false,
+        realtimeUpdateEnabled: false, timerel: false, entityId: false, time: false, displayData: false,
+        yaxisRange: false, custom_text: false, image: false, latestMap: false,
+        chartUnit: false, legendDisplay: false,
         ...obj,
       };
-    }
+    },
   }
 }
 </script>
@@ -1168,5 +1438,10 @@ export default {
   position: absolute;
   left: 20%;
   top: 22px;
+}
+
+.legend-display {
+  width: 75%;
+  display: inline-block;
 }
 </style>

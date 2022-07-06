@@ -34,6 +34,7 @@ export default {
     AppFooter
   },
   mounted() {
+    console.log(this.$route);
   }
 };
 </script>

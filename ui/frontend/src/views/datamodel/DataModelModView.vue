@@ -1,9 +1,9 @@
 <template>
   <div>
-    <h3 class="content__title">{{ $route.meta.breadcrumb[1] }}</h3>
+    <h3 class="content__title">{{ $t('dataModel.dataModelInfo') }}</h3>
     <div style="margin-top: 15px; text-align: right;" v-if="isMode === 'add'">
       <label>
-        <el-select v-model="searchModelValue" filterable placeholder="데이터 모델 검색" size="mini" id="choiceModel">
+        <el-select v-model="searchModelValue" filterable :placeholder="$t('dataModal.search')" size="mini" id="choiceModel">
           <el-option
               size="mini"
               style="font-size: 12px;"
@@ -15,7 +15,7 @@
           </el-option>
         </el-select>
         <button type="button" class="button__primary" @click="getDataModel('load')">
-          불러오기
+          {{ $t('comm.load') }}
         </button>
       </label>
     </div>
@@ -47,14 +47,14 @@
           type="button"
           @click="onProvisioning"
       >
-        프로비저닝
+        {{ $t('dataModel.provisioning') }}
       </button>
       <button
           class="button__primary"
           type="button"
           @click="onSave"
       >
-        저장
+        {{ $t('dataModel.modelSave') }}
       </button>
       <button
           v-if="isMode === 'mod'"
@@ -62,14 +62,14 @@
           type="button"
           @click="onDelete"
       >
-        삭제
+        {{ $t('dataModel.modelDelete') }}
       </button>
       <button
           class="button__primary"
           type="button"
           @click="onGoBack"
       >
-        목록
+        {{ $t('comm.backToList') }}
       </button>
     </div>
 
