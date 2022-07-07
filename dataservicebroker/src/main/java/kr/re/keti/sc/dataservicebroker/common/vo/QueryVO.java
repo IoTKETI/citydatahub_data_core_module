@@ -3,6 +3,7 @@ package kr.re.keti.sc.dataservicebroker.common.vo;
 import java.io.Serializable;
 import java.util.List;
 
+import kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode;
 import kr.re.keti.sc.dataservicebroker.datamodel.vo.DataModelCacheVO;
 import lombok.Data;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -47,6 +48,8 @@ public class QueryVO implements Serializable {
     private String geometry;
     private String coordinates;
     private String geoproperty;
+
+    private DataServiceBrokerCode.GeometryType georelType;
     private Integer maxDistance;
     private Integer minDistance;
 
@@ -122,4 +125,5 @@ public class QueryVO implements Serializable {
                 ", alreadyTraversedCSourceIds=" + alreadyTraversedCSourceIds +
                 '}';
     }
+
 }

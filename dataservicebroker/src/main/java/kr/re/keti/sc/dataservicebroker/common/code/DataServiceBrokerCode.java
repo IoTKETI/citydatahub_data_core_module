@@ -1120,4 +1120,36 @@ public class DataServiceBrokerCode {
             return null;
         }
     }
+
+    public static enum CsourceGeoProperty {
+        LOCATION("location", "location"),
+        OBSERVATION_SPACE("observationSpace", "observation_space"),
+        OPERATION_SPACE("operationSpace", "operation_space"),
+        ;
+
+        private String code;
+        private String columnName;
+
+        private CsourceGeoProperty(String code, String columnName) {
+            this.code = code;
+            this.columnName = columnName;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getColumnName() {
+            return columnName;
+        }
+
+        public static CsourceGeoProperty parseType(String code) {
+            for (CsourceGeoProperty csourceGeoProperty : values()) {
+                if (csourceGeoProperty.getCode().equals(code)) {
+                    return csourceGeoProperty;
+                }
+            }
+            return null;
+        }
+    }
 }

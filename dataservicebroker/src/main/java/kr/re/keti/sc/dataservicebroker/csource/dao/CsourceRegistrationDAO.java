@@ -1,13 +1,13 @@
 package kr.re.keti.sc.dataservicebroker.csource.dao;
 
 import java.sql.SQLException;
-import java.util.EmptyStackException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import kr.re.keti.sc.dataservicebroker.datamodel.DataModelManager;
+import kr.re.keti.sc.dataservicebroker.util.QueryUtil;
+import kr.re.keti.sc.dataservicebroker.util.ValidateUtil;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.postgis.LineString;
 import org.postgis.MultiLineString;
@@ -37,17 +37,16 @@ import kr.re.keti.sc.dataservicebroker.datamodel.vo.DataModelCacheVO;
 import kr.re.keti.sc.dataservicebroker.util.ConvertTimeParamUtil;
 import lombok.extern.slf4j.Slf4j;
 
+import static kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode.*;
+
 @Component
 @Slf4j
 public class CsourceRegistrationDAO implements CsourceRegistrationDAOInterface {
 
-    @Autowired
-    private SqlSessionTemplate sqlSession;
-    @Autowired
-    @Qualifier("retrieveSqlSession")
-    private SqlSessionTemplate retrieveSqlSession;
-    @Autowired
-    protected ObjectMapper objectMapper;
+    private final SqlSessionTemplate sqlSession;
+    private final SqlSessionTemplate retrieveSqlSession;
+    private final DataModelManager dataModelManager;
+    private final ObjectMapper objectMapper;
 
     @Value("${entity.retrieve.default.limit:1000}")
     private Integer defaultLimit;
@@ -58,7 +57,17 @@ public class CsourceRegistrationDAO implements CsourceRegistrationDAOInterface {
     @Value("${geometry.default.EPSG:4326}")
     private String defaultEPSG;
 
-
+    public CsourceRegistrationDAO(
+            SqlSessionTemplate sqlSession,
+            SqlSessionTemplate retrieveSqlSession,
+            DataModelManager dataModelManager,
+            ObjectMapper objectMapper
+    ) {
+        this.sqlSession = sqlSession;
+        this.retrieveSqlSession = retrieveSqlSession;
+        this.dataModelManager = dataModelManager;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public Integer createCsourceRegistrationBase(CsourceRegistrationBaseDaoVO csourceRegistrationBaseDaoVO) {
@@ -204,9 +213,15 @@ public class CsourceRegistrationDAO implements CsourceRegistrationDAOInterface {
 
         // id  조건 넣기
         // • A list (one or more) of Entity identifiers (optional).
-        if (queryVO.getId() != null) {
+        if (!ValidateUtil.isEmptyData(queryVO.getId())) {
+            List<String> searchIdList = Arrays.asList(queryVO.getId().split(","));
+            dbConditionVO.setSearchIdList(searchIdList);
+        }
 
-            dbConditionVO.setId(queryVO.getId());
+        if (!ValidateUtil.isEmptyData(queryVO.getType())) {
+            List<String> typeList = Arrays.asList(queryVO.getType().split(","));
+            List<String> typeUriList = dataModelManager.convertAttrNameToFullUri(queryVO.getLinks(), typeList);
+            dbConditionVO.setSearchTypeList(typeUriList);
         }
 
         //A reference to a JSON-LD @context (optional).
@@ -218,24 +233,20 @@ public class CsourceRegistrationDAO implements CsourceRegistrationDAOInterface {
 
         //1. 조회 대상 컬럼 세팅
         //• A list (one or more) of Attribute names (optional).
-        dbConditionVO.setWatchAttributeList(queryVO.getAttrs());
+        if(queryVO.getAttrs() != null) {
+            List<String> attrsUriList = dataModelManager.convertAttrNameToFullUri(queryVO.getLinks(), queryVO.getAttrs());
+            dbConditionVO.setWatchAttributeList(attrsUriList);
+        }
 
-
-//        // id pattern 조건 넣기
-        if (queryVO.getIdPattern() != null) {
-        	try {
-        		Pattern.compile(queryVO.getIdPattern());
-        	} catch(PatternSyntaxException e) {
-        		log.warn("invalid RegEx expression. idPattern={}", queryVO.getIdPattern());
-        		throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid RegEx expression");
-        	}
+        // id pattern 조건 넣기
+        if (includeValidIdPattern(queryVO.getIdPattern())) {
             dbConditionVO.setIdPattern(queryVO.getIdPattern());
         }
 
         //2. geo-query param 처리
         // • An NGSI-LD geo-query (optional) as per clause 4.10.
-        if (queryVO.getGeorel() != null) {
-            dbConditionVO.setGeoCondition(this.convertGeoQuery(generateGeoQuery(queryVO)));
+        if (QueryUtil.validateGeoQuery(queryVO) && QueryUtil.includeGeoQuery(queryVO)) {
+            dbConditionVO.setGeoCondition(QueryUtil.convertGeoQuery(generateGeoQuery(queryVO)));
         }
 
         if (queryVO.getLimit() == null) {
@@ -244,104 +255,42 @@ public class CsourceRegistrationDAO implements CsourceRegistrationDAOInterface {
             dbConditionVO.setLimit(queryVO.getLimit());
         }
         dbConditionVO.setOffset(queryVO.getOffset());
-//
-//
-//        //4. 시간 조건(time rel) param 처리
-//        if (isTemproal == true) {
-//
-//            //4. timerel param 처리, 이력 데이터 조회시에만 적용
-//            if (queryVO.getTimerel() != null) {
-//                queryVO = convertTimerel(queryVO);
-//                dbConditionVO.setQueryCondition(queryVO.getTimeQuery());
-//            }
-//        }
+
+        //3. 상세쿼리(q-query) param 처리
+        if (QueryUtil.includeQQuery(queryVO)) {
+            dbConditionVO.setSearchQparamList(extractQparam(queryVO));
+        }
+
         //4. timerel param 처리, 이력 데이터 조회시에만 적용
         if (queryVO.getTimerel() != null) {
-            queryVO = convertCsourceRegistrationTimerel(queryVO);
-            dbConditionVO.setQueryCondition(queryVO.getTimeQuery());
+            dbConditionVO.setTimerelCondition(convertCsourceRegistrationTimerel(queryVO));
         }
         //• An NGSI-LD query (optional) as per clause 4.9.
 
         return dbConditionVO;
     }
 
-
-    public String convertGeoQuery(QueryVO queryVO) {
-
-        String geoRel = queryVO.getGeorel();
-
-        String query = null;
-        StringBuilder stringBuilder = new StringBuilder();
-
-        if (geoRel.equalsIgnoreCase(DataServiceBrokerCode.GeometryType.NEAR_REL.getCode())) {
-
-            if (queryVO.getMinDistance() != null) {
-
-                stringBuilder.append(" ST_DWithin(")
-                        .append(queryVO.getLocationCol())
-                        .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')")
-                        .append(", " + queryVO.getMinDistance())
-                        .append(") is false");
-
-
-            } else if (queryVO.getMaxDistance() != null) {
-
-                stringBuilder.append(" ST_DWithin(")
-                        .append(queryVO.getLocationCol())
-                        .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')")
-                        .append(", " + queryVO.getMaxDistance())
-                        .append(")");
-
-
+    private boolean includeValidIdPattern(String idPattern) {
+        if (!ValidateUtil.isEmptyData(idPattern)) {
+            try {
+                Pattern.compile(idPattern);
+                return true;
+            } catch(PatternSyntaxException e) {
+                log.warn("invalid RegEx expression. idPattern={}", idPattern);
+                throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid RegEx expression");
             }
-
-        } else if (geoRel.equalsIgnoreCase("within")) {
-
-            stringBuilder.append("ST_Within(")
-                    .append(queryVO.getLocationCol())
-                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
-                    .append(")");
-
-        } else if (geoRel.equalsIgnoreCase("contains")) {
-
-            stringBuilder.append("ST_Contains(")
-                    .append(queryVO.getLocationCol())
-                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
-                    .append(")");
-
-        } else if (geoRel.equalsIgnoreCase("overlaps")) {
-
-            stringBuilder.append("ST_Overlaps(")
-                    .append(queryVO.getLocationCol())
-                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
-                    .append(")");
-
-        } else if (geoRel.equalsIgnoreCase("intersects")) {
-
-            stringBuilder.append("ST_Intersects(")
-                    .append(queryVO.getLocationCol())
-                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
-                    .append(")");
-
-        } else if (geoRel.equalsIgnoreCase("equals")) {
-
-            stringBuilder.append("ST_Equals(")
-                    .append(queryVO.getLocationCol())
-                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
-                    .append(")");
-        } else if (geoRel.equalsIgnoreCase("disjoint")) {
-
-            stringBuilder.append("ST_Disjoint(")
-                    .append(queryVO.getLocationCol())
-                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
-                    .append(")");
-
         }
-
-        query = stringBuilder.toString();
-
-        return query;
+        return false;
     }
+
+    private List<String> extractQparam(QueryVO queryVO) {
+        // 1. q-query 파라미터에서 field name 만 추출
+        List<String> qQueryPropertyNames = QueryUtil.extractQueryFieldNames(queryVO);
+
+        // 2. q-query에서 추출한 파라미터가 full uri 형태가 아닐 경우 context 정보를 통해 full uri 정보로 변환
+        return dataModelManager.convertAttrNameToFullUri(queryVO.getLinks(), qQueryPropertyNames);
+    }
+
 
     /**
      * location 정보 -> postgis geometry Value(text)로 변환
@@ -363,80 +312,63 @@ public class CsourceRegistrationDAO implements CsourceRegistrationDAOInterface {
             ; near;max(min)Distance==x (in meters)
          */
 
-        if (queryVO.getGeorel() != null && queryVO.getCoordinates() != null && queryVO.getGeometry() != null) {
+        if (QueryUtil.includeGeoQuery(queryVO)) {
 
             try {
                 String georelFullTxt = queryVO.getGeorel();
                 String georelName = georelFullTxt.split(";")[0];
 
-                if (georelFullTxt.startsWith(DataServiceBrokerCode.GeometryType.NEAR_REL.getCode())) {
-                    queryVO.setGeorel(georelName);
+                GeometryType geometryType = GeometryType.parseType(georelName);
+                if (geometryType == null) {
+                    log.warn("invalid geo-query parameter");
+                    throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid geo-query parameter");
+                }
+
+                queryVO.setGeorelType(geometryType);
+
+                if (geometryType == GeometryType.NEAR_REL) {
                     String distanceText = georelFullTxt.split(";")[1];
                     String distanceColName = distanceText.split("==")[0];
                     int distance = Integer.parseInt(distanceText.split("==")[1]);
 
-                    if (distanceColName.equals(DataServiceBrokerCode.GeometryType.MIN_DISTANCE.getCode())) {
+                    if (distanceColName.equals(GeometryType.MIN_DISTANCE.getCode())) {
                         queryVO.setMinDistance(distance);
-                    } else if (distanceColName.equals(DataServiceBrokerCode.GeometryType.MAX_DISTANCE.getCode())) {
+                    } else if (distanceColName.equals(GeometryType.MAX_DISTANCE.getCode())) {
                         queryVO.setMaxDistance(distance);
                     } else {
-
-                        log.warn("invalid geo-query parameter");
-                        throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "invalid geo-query parameter");
+                        throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid geo-query parameter");
                     }
-
                 }
 
-                DataServiceBrokerCode.GeometryType geometryType = DataServiceBrokerCode.GeometryType.parseType(georelName);
-                if (geometryType == null) {
-                    log.warn("invalid geo-query parameter");
-                    throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "invalid geo-query parameter");
-                }
             } catch (Exception e) {
-                throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "invalid geo-query parameter", e);
+                throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid geo-query parameter", e);
             }
 
-
-            if (log.isDebugEnabled()) {
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("queryVO =").append(queryVO.toString());
-                log.debug(stringBuilder.toString());
-            }
-
-
-            int srid = Integer.parseInt(defaultEPSG);
-            String locationCol;
-
+            CsourceGeoProperty searchGeoProperty = null;
             if (queryVO.getGeoproperty() != null) {
+                searchGeoProperty = CsourceGeoProperty.parseType(queryVO.getGeoproperty());
 
-                locationCol = queryVO.getGeoproperty();
-//                locationCol = locationCol.replace(".", "_") + "_" + srid;
+                if(searchGeoProperty == null) {
+                    throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid geo-query parameter. geoproperty=" + queryVO.getGeoproperty());
+                }
 
             } else {
-                locationCol = defaultLocationAttrName;
+                searchGeoProperty = CsourceGeoProperty.LOCATION;
             }
 
+            int srid = Integer.parseInt(defaultEPSG);
             PGgeometry pGgeometry = makePostgisType(queryVO.getGeometry(), queryVO.getCoordinates(), srid);
 
             String pGgeometryValue = pGgeometry.getValue();
 
             queryVO.setGeometryValue(pGgeometryValue);
-            queryVO.setLocationCol(locationCol);
-
-            if (log.isDebugEnabled()) {
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("geometryValue : ")
-                        .append(pGgeometryValue)
-                        .append(" locationCol : ")
-                        .append(locationCol);
-                log.debug(stringBuilder.toString());
-            }
+            queryVO.setLocationCol(searchGeoProperty.getColumnName());
 
             return queryVO;
 
         } else {
             log.warn("invalid geo-query parameter");
-            throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "invalid geo-query parameter");
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid geo-query parameter");
         }
     }
 
@@ -461,7 +393,7 @@ public class CsourceRegistrationDAO implements CsourceRegistrationDAOInterface {
 
         } else {
             for (Attribute rootAttribute : dataModelCacheVO.getDataModelVO().getAttributes()) {
-                if (rootAttribute.getAttributeType() == DataServiceBrokerCode.AttributeType.GEO_PROPERTY) {
+                if (rootAttribute.getAttributeType() == AttributeType.GEO_PROPERTY) {
                     locationColName = rootAttribute.getName() + Constants.GEO_PREFIX_4326;
                     break;
                 }
@@ -589,10 +521,13 @@ public class CsourceRegistrationDAO implements CsourceRegistrationDAOInterface {
 
         } catch (EmptyStackException et) {
             log.warn("invalid coordinates : " + et.getMessage());
-            throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "invalid coordinates", et);
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid coordinates", et);
         } catch (SQLException se) {
             log.warn("invalid coordinates : " + se.getMessage());
-            throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "invalid coordinates", se);
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid coordinates", se);
+        } catch (Exception se) {
+            log.warn("invalid coordinates : " + se.getMessage());
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid coordinates", se);
         }
     }
 
@@ -637,7 +572,7 @@ public class CsourceRegistrationDAO implements CsourceRegistrationDAOInterface {
             return changedCoordinates;
 
         } catch (Exception e) {
-            throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "invalid coordinates", e);
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid coordinates", e);
         }
     }
 
@@ -648,7 +583,7 @@ public class CsourceRegistrationDAO implements CsourceRegistrationDAOInterface {
      * @param queryVO
      * @return
      */
-    public QueryVO convertCsourceRegistrationTimerel(QueryVO queryVO) {
+    public String convertCsourceRegistrationTimerel(QueryVO queryVO) {
 
 
         String timerel = queryVO.getTimerel();
@@ -667,13 +602,11 @@ public class CsourceRegistrationDAO implements CsourceRegistrationDAOInterface {
         String colName = timerelToColName(queryVO.getTimerel());
 
 
-        if (timerel.equalsIgnoreCase(DataServiceBrokerCode.TemporalOperator.BETWEEN_REL.getCode())) {
-            queryVO.setTimeQuery(makeCsourceRegistrationFragmentBetweenTimeQuery(timerel, colName, time, endTime));
+        if (timerel.equalsIgnoreCase(TemporalOperator.BETWEEN_REL.getCode())) {
+            return makeCsourceRegistrationFragmentBetweenTimeQuery(timerel, colName, time, endTime);
         } else {
-            queryVO.setTimeQuery(makeCsourceRegistrationFragmentTimeQuery(timerel, colName, time));
+            return makeCsourceRegistrationFragmentTimeQuery(timerel, colName, time);
         }
-
-        return queryVO;
     }
 
 
@@ -688,12 +621,12 @@ public class CsourceRegistrationDAO implements CsourceRegistrationDAOInterface {
     private String makeCsourceRegistrationFragmentTimeQuery(String timerel, String colName, String timeStr) {
 
         StringBuilder timeQuery = new StringBuilder();
-        if (timerel.equalsIgnoreCase(DataServiceBrokerCode.TemporalOperator.AFTER_REL.getCode())) {
+        if (timerel.equalsIgnoreCase(TemporalOperator.AFTER_REL.getCode())) {
             timeQuery.append(colName + "_START");
             timeQuery.append(" ");
             timeQuery.append(" > ");
             timeQuery.append("'" + timeStr + "'");
-        } else if (timerel.equalsIgnoreCase(DataServiceBrokerCode.TemporalOperator.BEFORE_REL.getCode())) {
+        } else if (timerel.equalsIgnoreCase(TemporalOperator.BEFORE_REL.getCode())) {
             timeQuery.append(colName + "_START");
             timeQuery.append(" ");
             timeQuery.append(" < ");

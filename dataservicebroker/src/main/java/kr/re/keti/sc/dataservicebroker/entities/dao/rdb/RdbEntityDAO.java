@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode;
 import kr.re.keti.sc.dataservicebroker.entities.dao.EntityDataModelDAO;
 import kr.re.keti.sc.dataservicebroker.entities.vo.EntityDataModelVO;
 import org.apache.commons.lang3.StringUtils;
@@ -951,7 +952,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
         //2. geo-query param 처리
         if (QueryUtil.validateGeoQuery(queryVO) && QueryUtil.includeGeoQuery(queryVO)) {
-            dbConditionVO.setGeoCondition(convertGeoQuery(generateGeoQuery(dataModelCacheVO, queryVO)));
+            dbConditionVO.setGeoCondition(QueryUtil.convertGeoQuery(generateGeoQuery(dataModelCacheVO, queryVO)));
         }
 
         //3. 상세쿼리(q-query) param 처리
@@ -1246,8 +1247,15 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
                 String georelFullTxt = queryVO.getGeorel();
                 String georelName = georelFullTxt.split(";")[0];
 
+                GeometryType geometryType = GeometryType.parseType(georelName);
+                if (geometryType == null) {
+                    log.warn("invalid geo-query parameter");
+                    throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid geo-query parameter");
+                }
+
+                queryVO.setGeorelType(geometryType);
+
                 if (georelFullTxt.startsWith(GeometryType.NEAR_REL.getCode())) {
-                    queryVO.setGeorel(georelName);
                     String distanceText = georelFullTxt.split(";")[1];
                     String distanceColName = distanceText.split("==")[0];
                     int distance = Integer.parseInt(distanceText.split("==")[1]);
@@ -1262,11 +1270,6 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
                     }
                 }
 
-                GeometryType geometryType = GeometryType.parseType(georelName);
-                if (geometryType == null) {
-                    log.warn("invalid geo-query parameter");
-                    throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid geo-query parameter. geometryType=" + geometryType);
-                }
             } catch (Exception e) {
                 throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid geo-query parameter");
             }
@@ -2083,84 +2086,6 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         timeQuery.append("'" + endTimeStr + "'");
         return timeQuery.toString();
 
-    }
-
-
-    public String convertGeoQuery(QueryVO queryVO) {
-
-        String geoRel = queryVO.getGeorel();
-
-        String query = null;
-        StringBuilder stringBuilder = new StringBuilder();
-
-        if (geoRel.equalsIgnoreCase(GeometryType.NEAR_REL.getCode())) {
-
-            if (queryVO.getMinDistance() != null) {
-
-                stringBuilder.append(" ST_DWithin(")
-                        .append(queryVO.getLocationCol())
-                        .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')")
-                        .append(", " + queryVO.getMinDistance())
-                        .append(") is false");
-
-
-            } else if (queryVO.getMaxDistance() != null) {
-
-                stringBuilder.append(" ST_DWithin(")
-                        .append(queryVO.getLocationCol())
-                        .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')")
-                        .append(", " + queryVO.getMaxDistance())
-                        .append(")");
-
-
-            }
-
-        } else if (geoRel.equalsIgnoreCase("within")) {
-
-            stringBuilder.append("ST_Within(")
-                    .append(queryVO.getLocationCol())
-                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
-                    .append(")");
-
-        } else if (geoRel.equalsIgnoreCase("contains")) {
-
-            stringBuilder.append("ST_Contains(")
-                    .append(queryVO.getLocationCol())
-                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
-                    .append(")");
-
-        } else if (geoRel.equalsIgnoreCase("overlaps")) {
-
-            stringBuilder.append("ST_Overlaps(")
-                    .append(queryVO.getLocationCol())
-                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
-                    .append(")");
-
-        } else if (geoRel.equalsIgnoreCase("intersects")) {
-
-            stringBuilder.append("ST_Intersects(")
-                    .append(queryVO.getLocationCol())
-                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
-                    .append(")");
-
-        } else if (geoRel.equalsIgnoreCase("equals")) {
-
-            stringBuilder.append("ST_Equals(")
-                    .append(queryVO.getLocationCol())
-                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
-                    .append(")");
-        } else if (geoRel.equalsIgnoreCase("disjoint")) {
-
-            stringBuilder.append("ST_Disjoint(")
-                    .append(queryVO.getLocationCol())
-                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
-                    .append(")");
-
-        }
-
-        query = stringBuilder.toString();
-
-        return query;
     }
 
 

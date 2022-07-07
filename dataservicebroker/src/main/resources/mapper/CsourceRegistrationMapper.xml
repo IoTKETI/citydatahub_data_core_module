@@ -203,57 +203,77 @@
 
     <select id="selectCsourceRegistration" resultMap="csourceregistrationBase" parameterType="kr.re.keti.sc.dataservicebroker.common.vo.DbConditionVO">
 
-        SELECT MERGED.*,
-        ENTITY.ENTITY_ID,
-        ENTITY.ENTITY_ID_PATTERN,
-        ENTITY.ENTITY_TYPE
-        FROM (SELECT BASE.*,
-        INFO.CSOURCE_REGISTRATION_INFO_ID,
-        INFO.PROPERTIES,
-        INFO.RELATIONSHIPS
+        SELECT  MERGED.*,
+                ENTITY.ENTITY_ID,
+                ENTITY.ENTITY_ID_PATTERN,
+                ENTITY.ENTITY_TYPE
         FROM (
-        SELECT *
-        FROM DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_BASE
+                SELECT  BASE.*,
+                        INFO.CSOURCE_REGISTRATION_INFO_ID,
+                        INFO.PROPERTIES,
+                        INFO.RELATIONSHIPS
+                FROM (
+                        SELECT *
+                        FROM DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_BASE
+                        WHERE 1=1
+                        <if test="contextList != null">
+                            <foreach collection="contextList" item="item">
+                                AND #{item} = any(CONTEXT)
+                            </foreach>
+                        </if>
+                        <if test="geoCondition != null">
+                            AND ${geoCondition}
+                        </if>
+                        <if test="limit != null">
+                            LIMIT #{limit}
+                        </if>
+                        <if test="offset != null">
+                            OFFSET #{offset}
+                        </if>
+                      ) AS BASE
+                LEFT JOIN DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_INFO AS INFO
+                ON BASE.ID = INFO.CSOURCE_REGISTRATION_BASE_ID
+            ) AS MERGED
+        LEFT JOIN (
+                    SELECT  *
+                    FROM    DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_ENTITY
+                   ) AS ENTITY
+        ON MERGED.CSOURCE_REGISTRATION_INFO_ID = ENTITY.CSOURCE_REGISTRATION_INFO_ID
         WHERE 1=1
-        <if test="contextList != null">
-            <foreach collection="contextList" item="item">
-                AND #{item} = any(CONTEXT)
+        <if test="searchIdList != null">
+            AND ENTITY_ID in
+            <foreach collection="searchIdList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="searchTypeList != null">
+            AND ENTITY_TYPE in
+            <foreach collection="searchTypeList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="idPattern != null">
+            AND ENTITY_ID_PATTERN in (#{idPattern})
+        </if>
+        <if test="watchAttributeList != null">
+            <foreach collection="watchAttributeList" item="item">
+                AND ( #{item} = ANY(MERGED.PROPERTIES)
+                OR #{item} = ANY(MERGED.RELATIONSHIPS)
+                )
+            </foreach>
+        </if>
+        <if test="searchQparamList != null">
+            <foreach collection="searchQparamList" item="item">
+                AND ( #{item} = ANY(MERGED.PROPERTIES)
+                OR #{item} = ANY(MERGED.RELATIONSHIPS)
+                )
             </foreach>
         </if>
         <if test="geoCondition != null">
             AND ${geoCondition}
         </if>
-        <if test="limit != null">
-            LIMIT #{limit}
-        </if>
-        <if test="offset != null">
-            OFFSET #{offset}
-        </if>
-        ) AS BASE
-        LEFT JOIN DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_INFO AS INFO
-        ON BASE.ID = INFO.CSOURCE_REGISTRATION_BASE_ID) AS MERGED
-        LEFT JOIN (
-        SELECT * FROM DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_ENTITY )AS ENTITY
-        ON MERGED.CSOURCE_REGISTRATION_INFO_ID =
-        ENTITY.CSOURCE_REGISTRATION_INFO_ID
-        WHERE 1=1
-        <if test="id !=null">
-            AND ENTITY_ID in (#{id})
-        </if>
-        <if test="type !=null">
-            AND ENTITY_TYPE in (#{type})
-        </if>
-        <if test="idPattern !=null">
-            AND ENTITY_ID_PATTERN in (#{idPattern})
-        </if>
-        <if test="watchAttributeList !=null">
-            <foreach collection="watchAttributeList" item="item" open="AND (" close=")">
-                #{item} = ANY(MERGED.PROPERTIES)
-                OR #{item} = ANY(MERGED.RELATIONSHIPS)
-            </foreach>
-        </if>
-        <if test="queryCondition !=null">
-            AND ${queryCondition}
+        <if test="timerelCondition != null">
+            AND ${timerelCondition}
         </if>
         ORDER BY MERGED.ID
 
@@ -263,47 +283,67 @@
     <select id="selectCsourceRegistrationCount" resultType="integer" parameterType="kr.re.keti.sc.dataservicebroker.common.vo.DbConditionVO">
 
         SELECT COUNT(*)
-        FROM (SELECT BASE.*,
-        INFO.CSOURCE_REGISTRATION_INFO_ID,
-        INFO.PROPERTIES,
-        INFO.RELATIONSHIPS
         FROM (
-        SELECT *
-        FROM DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_BASE
+                SELECT  BASE.*,
+                        INFO.CSOURCE_REGISTRATION_INFO_ID,
+                        INFO.PROPERTIES,
+                        INFO.RELATIONSHIPS
+                FROM (
+                        SELECT  *
+                        FROM    DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_BASE
+                        WHERE   1=1
+                        <if test="contextList != null">
+                            <foreach collection="contextList" item="item">
+                                AND #{item} = any(CONTEXT)
+                            </foreach>
+                        </if>
+                        <if test="geoCondition != null">
+                            AND ${geoCondition}
+                        </if>
+                        ) AS BASE
+                LEFT JOIN DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_INFO AS INFO
+                ON BASE.ID = INFO.CSOURCE_REGISTRATION_BASE_ID
+            ) AS MERGED
+        LEFT JOIN (
+                    SELECT  *
+                    FROM    DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_ENTITY
+                  ) AS ENTITY
+        ON MERGED.CSOURCE_REGISTRATION_INFO_ID = ENTITY.CSOURCE_REGISTRATION_INFO_ID
         WHERE 1=1
-        <if test="contextList != null">
-            <foreach collection="contextList" item="item">
-                AND #{item} = any(CONTEXT)
+        <if test="searchIdList != null">
+            AND ENTITY_ID in
+            <foreach collection="searchIdList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="searchTypeList != null">
+            AND ENTITY_TYPE in
+            <foreach collection="searchTypeList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="idPattern != null">
+            AND ENTITY_ID_PATTERN in (#{idPattern})
+        </if>
+        <if test="watchAttributeList != null">
+            <foreach collection="watchAttributeList" item="item">
+                AND ( #{item} = ANY(MERGED.PROPERTIES)
+                    OR #{item} = ANY(MERGED.RELATIONSHIPS)
+                    )
+            </foreach>
+        </if>
+        <if test="searchQparamList != null">
+            <foreach collection="searchQparamList" item="item">
+                AND ( #{item} = ANY(MERGED.PROPERTIES)
+                    OR #{item} = ANY(MERGED.RELATIONSHIPS)
+                    )
             </foreach>
         </if>
         <if test="geoCondition != null">
             AND ${geoCondition}
         </if>
-        ) AS BASE
-        LEFT JOIN DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_INFO AS INFO
-        ON BASE.ID = INFO.CSOURCE_REGISTRATION_BASE_ID) AS MERGED
-        LEFT JOIN (
-        SELECT * FROM DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_ENTITY )AS ENTITY
-        ON MERGED.CSOURCE_REGISTRATION_INFO_ID =
-        ENTITY.CSOURCE_REGISTRATION_INFO_ID
-        WHERE 1=1
-        <if test="id !=null">
-            AND ENTITY_ID in (#{id})
-        </if>
-        <if test="type !=null">
-            AND ENTITY_TYPE in (#{type})
-        </if>
-        <if test="idPattern !=null">
-            AND ENTITY_ID_PATTERN in (#{idPattern})
-        </if>
-        <if test="watchAttributeList !=null">
-            <foreach collection="watchAttributeList" item="item" open="AND (" close=")">
-                #{item} = ANY(MERGED.PROPERTIES)
-                OR #{item} = ANY(MERGED.RELATIONSHIPS)
-            </foreach>
-        </if>
-        <if test="queryCondition !=null">
-            AND ${queryCondition}
+        <if test="timerelCondition != null">
+            AND ${timerelCondition}
         </if>
     </select>
 

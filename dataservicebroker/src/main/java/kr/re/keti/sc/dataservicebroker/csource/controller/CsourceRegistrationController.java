@@ -218,11 +218,15 @@ public class CsourceRegistrationController {
     public @ResponseBody void queryContextSourceRegistrations(HttpServletRequest request,
                                                               HttpServletResponse response,
                                                               @RequestHeader(HttpHeaders.ACCEPT) String accept,
+                                                              @RequestHeader(value = HttpHeaders.LINK, required = false) String link,
                                                               @ModelAttribute QueryVO queryVO) throws Exception {
 
-        log.info("query ContextSource request. accept={}, queryVO={}", accept, queryVO);
+        log.info("query ContextSource request. accept={}, link={}, queryVO={}", accept, link, queryVO);
 
-        // 1. subscription 조회
+        // 1. link 추출 및 설정
+        queryVO.setLinks(HttpHeadersUtil.extractLinkUris(link));
+
+        // 2. subscription 조회
         Integer totalCount = csourceRegistrationSVC.queryCsourceRegistrationsCount(queryVO);
         List<CsourceRegistrationVO> csourceRegistrationVOs = csourceRegistrationSVC.queryCsourceRegistrations(queryVO);
 
@@ -234,7 +238,7 @@ public class CsourceRegistrationController {
             }
         }
 
-        // link 헤더 추가
+        // 3. 응답 link 헤더 추가
         HttpHeadersUtil.addPaginationLinkHeader(bigDataStorageType, request, response, accept, queryVO.getLimit(), queryVO.getOffset(), totalCount, defaultLimit);
         response.getWriter().print(objectMapper.writeValueAsString(csourceRegistrationVOs));
     }

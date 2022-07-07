@@ -29,6 +29,8 @@ import kr.re.keti.sc.dataservicebroker.datamodel.vo.DataModelDbColumnVO;
 import kr.re.keti.sc.dataservicebroker.datamodel.vo.ObjectMember;
 import lombok.extern.slf4j.Slf4j;
 
+import static kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode.*;
+
 @Slf4j
 public class QueryUtil {
 
@@ -88,96 +90,100 @@ public class QueryUtil {
     		return null;
     	}
 
-        Map<String, String> queryFieldNames = new HashMap<>();
+        try {
+            Map<String, String> queryFieldNames = new HashMap<>();
 
-        String qQuery = queryVO.getQ();
+            String qQuery = queryVO.getQ();
 
-        //불필요한 부분 정제
-        qQuery = qQuery.replace("\"", "'").replace("\\", "");
+            //불필요한 부분 정제
+            qQuery = qQuery.replace("\"", "'").replace("\\", "");
 
-        //상세쿼리 조건 단위 인(;)로 쪼개서 처리함
-        String[] splitedAndQuery = qQuery.split(";");
+            //상세쿼리 조건 단위 인(;)로 쪼개서 처리함
+            String[] splitedAndQuery = qQuery.split(";");
 
-        for (String andQueryItem : splitedAndQuery) {
-            String[] splitedOrQuery = andQueryItem.split("\\|");
-            for (String orQuery : splitedOrQuery) {
+            for (String andQueryItem : splitedAndQuery) {
+                String[] splitedOrQuery = andQueryItem.split("\\|");
+                for (String orQuery : splitedOrQuery) {
 
-                orQuery = orQuery.replace("%x", "%");
-                try {
-                    orQuery = URLDecoder.decode(orQuery, Constants.CHARSET_ENCODING);
-                } catch (UnsupportedEncodingException e) {
-                    log.warn("QueryUtil extractQueryFieldNames qQuery parsing error", e);
+                    orQuery = orQuery.replace("%x", "%");
+                    try {
+                        orQuery = URLDecoder.decode(orQuery, Constants.CHARSET_ENCODING);
+                    } catch (UnsupportedEncodingException e) {
+                        log.warn("QueryUtil extractQueryFieldNames qQuery parsing error", e);
+                    }
+
+                    String qOperator = null;
+
+                    // operator가 EQUAL(==) 경우 처리
+                    if (orQuery.contains(QueryOperator.EQUAL.getSign())
+                            || orQuery.contains(QueryOperator.EQUAL.getUnicode())) {
+
+                        qOperator = QueryOperator.EQUAL.getSign();
+
+                    } else if (orQuery.contains(QueryOperator.UNEQUAL.getSign())
+                            || orQuery.contains(QueryOperator.UNEQUAL.getUnicode())) {
+
+                        // operator가 unequal(!=) 일 경우
+                        qOperator = QueryOperator.UNEQUAL.getSign();
+
+                    } else if (orQuery.contains(QueryOperator.NOT_PATTERN_OP.getSign())
+                            || orQuery.contains(QueryOperator.NOT_PATTERN_OP.getUnicode())) {
+
+                        qOperator = QueryOperator.NOT_PATTERN_OP.getSign();
+
+                    } else if (orQuery.contains(QueryOperator.PATTERN_OP.getSign())
+                            || orQuery.contains(QueryOperator.PATTERN_OP.getUnicode())) {
+
+                        qOperator = QueryOperator.PATTERN_OP.getSign();
+
+                    }
+
+                    if (orQuery.contains(QueryOperator.GREATEREQ.getSign())
+                            || orQuery.contains(QueryOperator.GREATEREQ.getUnicode())) {
+                        //greaterEq
+                        qOperator = QueryOperator.GREATEREQ.getSign();
+
+                    } else if (orQuery.contains(QueryOperator.LESSEQ.getSign())
+                            || orQuery.contains(QueryOperator.LESSEQ.getUnicode())) {
+                        //lessEq
+                        qOperator = QueryOperator.LESSEQ.getSign();
+
+                    } else if (orQuery.contains(QueryOperator.GREATER.getSign()) || orQuery.contains(QueryOperator.GREATER.getUnicode())) {
+                        //greater
+                        qOperator = QueryOperator.GREATER.getSign();
+
+                    } else if (orQuery.contains(QueryOperator.LESS.getSign()) || orQuery.contains(QueryOperator.LESS.getUnicode())) {
+                        //greater
+                        qOperator = QueryOperator.LESS.getSign();
+                    }
+
+                    String attrName = orQuery.split(qOperator)[0];
+
+                    if (attrName.contains("[")) {
+                        attrName = attrName.substring(0, attrName.indexOf("["));
+                    }
+
+                    if (attrName.contains(".")) {
+                        attrName = attrName.substring(0, attrName.indexOf("."));
+                    }
+
+                    if (attrName.contains("(")) {
+                        attrName = attrName.replace("(", "");
+                    }
+
+                    if (attrName.contains(")")) {
+                        attrName = attrName.replace(")", "");
+                    }
+
+                    queryFieldNames.put(attrName, attrName);
                 }
-
-                String qOperator = null;
-
-                // operator가 EQUAL(==) 경우 처리
-                if (orQuery.contains(DataServiceBrokerCode.QueryOperator.EQUAL.getSign())
-                        || orQuery.contains(DataServiceBrokerCode.QueryOperator.EQUAL.getUnicode())) {
-
-                    qOperator = DataServiceBrokerCode.QueryOperator.EQUAL.getSign();
-
-                } else if (orQuery.contains(DataServiceBrokerCode.QueryOperator.UNEQUAL.getSign())
-                		|| orQuery.contains(DataServiceBrokerCode.QueryOperator.UNEQUAL.getUnicode())) {
-
-                    // operator가 unequal(!=) 일 경우
-                    qOperator = DataServiceBrokerCode.QueryOperator.UNEQUAL.getSign();
-
-                } else if (orQuery.contains(DataServiceBrokerCode.QueryOperator.NOT_PATTERN_OP.getSign())
-                        || orQuery.contains(DataServiceBrokerCode.QueryOperator.NOT_PATTERN_OP.getUnicode())) {
-
-                    qOperator = DataServiceBrokerCode.QueryOperator.NOT_PATTERN_OP.getSign();
-
-                } else if (orQuery.contains(DataServiceBrokerCode.QueryOperator.PATTERN_OP.getSign())
-                        || orQuery.contains(DataServiceBrokerCode.QueryOperator.PATTERN_OP.getUnicode())) {
-
-                    qOperator = DataServiceBrokerCode.QueryOperator.PATTERN_OP.getSign();
-
-                } 
-
-                if (orQuery.contains(DataServiceBrokerCode.QueryOperator.GREATEREQ.getSign())
-                        || orQuery.contains(DataServiceBrokerCode.QueryOperator.GREATEREQ.getUnicode())) {
-                    //greaterEq
-                    qOperator = DataServiceBrokerCode.QueryOperator.GREATEREQ.getSign();
-
-                } else if (orQuery.contains(DataServiceBrokerCode.QueryOperator.LESSEQ.getSign())
-                        || orQuery.contains(DataServiceBrokerCode.QueryOperator.LESSEQ.getUnicode())) {
-                    //lessEq
-                    qOperator = DataServiceBrokerCode.QueryOperator.LESSEQ.getSign();
-
-                } else if (orQuery.contains(DataServiceBrokerCode.QueryOperator.GREATER.getSign()) || orQuery.contains(DataServiceBrokerCode.QueryOperator.GREATER.getUnicode())) {
-                    //greater
-                    qOperator = DataServiceBrokerCode.QueryOperator.GREATER.getSign();
-
-                } else if (orQuery.contains(DataServiceBrokerCode.QueryOperator.LESS.getSign()) || orQuery.contains(DataServiceBrokerCode.QueryOperator.LESS.getUnicode())) {
-                    //greater
-                    qOperator = DataServiceBrokerCode.QueryOperator.LESS.getSign();
-                }
-
-                String attrName = orQuery.split(qOperator)[0];
-
-                if(attrName.contains("[")) {
-                	attrName = attrName.substring(0, attrName.indexOf("["));
-                }
-
-                if(attrName.contains(".")) {
-                    attrName = attrName.substring(0, attrName.indexOf("."));
-                }
-
-                if(attrName.contains("(")) {
-                    attrName = attrName.replace("(", "");
-                }
-
-                if(attrName.contains(")")) {
-                    attrName = attrName.replace(")", "");
-                }
-
-                queryFieldNames.put(attrName, attrName);
             }
-        }
 
-        if(queryFieldNames.size() > 0) {
-        	return new ArrayList<>(queryFieldNames.keySet());
+            if (queryFieldNames.size() > 0) {
+                return new ArrayList<>(queryFieldNames.keySet());
+            }
+        } catch(Exception e) {
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "Invalid q-query. q=" + queryVO.getQ(), e);
         }
         return null;
     }
@@ -213,17 +219,17 @@ public class QueryUtil {
         String resultFragmentQuery = null;
 
         // operator가 EQUAL(==) 경우 처리
-        if (q_query.contains(DataServiceBrokerCode.QueryOperator.EQUAL.getSign())
-                || q_query.contains(DataServiceBrokerCode.QueryOperator.EQUAL.getUnicode())) {
+        if (q_query.contains(QueryOperator.EQUAL.getSign())
+                || q_query.contains(QueryOperator.EQUAL.getUnicode())) {
 
-            qOperator = DataServiceBrokerCode.QueryOperator.EQUAL.getSign();
+            qOperator = QueryOperator.EQUAL.getSign();
             String attrName = q_query.split(qOperator)[0];
             String qValue = q_query.split(qOperator)[1];
 
 //            //CompEqualityValue
 //            qOperator = DataServiceBrokerCode.QueryOperator.EQUAL.getSign();
 
-            if (qValue.contains(DataServiceBrokerCode.QueryOperator.DOTS.getSign())) {
+            if (qValue.contains(QueryOperator.DOTS.getSign())) {
                 //between 형 처리
 
                 String leftValue = qValue.split("\\.\\.")[0];
@@ -245,11 +251,11 @@ public class QueryUtil {
                     resultFragmentQuery = makeBetweenQuery(getColumnName(attrName, dataModelCacheVO), leftValue, rightValue);
                 }
 
-            } else if (!isTimestampValue(qValue) && (qValue.contains(DataServiceBrokerCode.QueryOperator.COMMA.getSign())
-                    || qValue.contains(DataServiceBrokerCode.QueryOperator.COMMA.getUnicode()))) {
+            } else if (!isTimestampValue(qValue) && (qValue.contains(QueryOperator.COMMA.getSign())
+                    || qValue.contains(QueryOperator.COMMA.getUnicode()))) {
 
                 //ValueList (,) 형 처리, time 요청 값에 (,)가 있을 경우 SKIP (2019-06-08T15:00:00,000+09:00)
-                qOperator = DataServiceBrokerCode.QueryOperator.COMMA.getSign();
+                qOperator = QueryOperator.COMMA.getSign();
 
                 List<String> splitedValueList = Arrays.asList(qValue.split(qOperator));
 
@@ -257,7 +263,7 @@ public class QueryUtil {
                 if (isArrayTypeColumn(attrName, dataModelCacheVO)) {
                     List<String> arrayTypeItems = new ArrayList<>();
                     for (String itemValue : splitedValueList) {
-                        String itemQuery =  makeQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), itemValue,DataServiceBrokerCode.QueryOperator.SINGLE_EQUAL.getSign());
+                        String itemQuery =  makeQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), itemValue, QueryOperator.SINGLE_EQUAL.getSign());
                         arrayTypeItems.add(itemQuery);
                     }
                     resultQuery = String.join(" OR ", arrayTypeItems);
@@ -270,7 +276,7 @@ public class QueryUtil {
             } else {
 
                 // 보통 EQUAL형 (==) 처리
-                qOperator = DataServiceBrokerCode.QueryOperator.SINGLE_EQUAL.getSign();
+                qOperator = QueryOperator.SINGLE_EQUAL.getSign();
 
                 //value가 timestamp형 일 경우, ' 을 붙여줌
                 if (isTimestampValue(qValue)) {
@@ -286,11 +292,11 @@ public class QueryUtil {
 
             return resultFragmentQuery;
 
-        } else if (q_query.contains(DataServiceBrokerCode.QueryOperator.UNEQUAL.getSign())
-        		|| q_query.contains(DataServiceBrokerCode.QueryOperator.UNEQUAL.getUnicode())) {
+        } else if (q_query.contains(QueryOperator.UNEQUAL.getSign())
+        		|| q_query.contains(QueryOperator.UNEQUAL.getUnicode())) {
 
             // operator가 unequal(!=) 일 경우
-            qOperator = DataServiceBrokerCode.QueryOperator.UNEQUAL.getSign();
+            qOperator = QueryOperator.UNEQUAL.getSign();
             String attrName = q_query.split(qOperator)[0];
             String qValue = q_query.split(qOperator)[1];
 
@@ -300,8 +306,8 @@ public class QueryUtil {
                 qValue = DateUtil.convertQueryTsToDBTs(qValue);
             }
 
-            if (qValue.contains(DataServiceBrokerCode.QueryOperator.DOTS.getSign())
-                    || qValue.contains(DataServiceBrokerCode.QueryOperator.DOTS.getUnicode())) {
+            if (qValue.contains(QueryOperator.DOTS.getSign())
+                    || qValue.contains(QueryOperator.DOTS.getUnicode())) {
                 //between  형 처리
                 String leftValue = qValue.split("\\.\\.")[0];
                 String rightValue = qValue.split("\\.\\.")[1];
@@ -312,11 +318,11 @@ public class QueryUtil {
                     resultFragmentQuery = makeNotBetweenQuery(getColumnName(attrName, dataModelCacheVO), leftValue, rightValue);
                 }
 
-            } else if (!isTimestampValue(qValue) && (qValue.contains(DataServiceBrokerCode.QueryOperator.COMMA.getSign())
-                    || qValue.contains(DataServiceBrokerCode.QueryOperator.COMMA.getUnicode()))) {
+            } else if (!isTimestampValue(qValue) && (qValue.contains(QueryOperator.COMMA.getSign())
+                    || qValue.contains(QueryOperator.COMMA.getUnicode()))) {
 
                 //ValueList (,) 형 처리, time 요청 값에 (,)가 있을 경우 SKIP (2019-06-08T15:00:00,000+09:00)
-                qOperator = DataServiceBrokerCode.QueryOperator.COMMA.getSign();
+                qOperator = QueryOperator.COMMA.getSign();
 
                 List<String> splitedValueList = Arrays.asList(qValue.split(qOperator));
 
@@ -324,7 +330,7 @@ public class QueryUtil {
                 if (isArrayTypeColumn(attrName, dataModelCacheVO)) {
                     List<String> arrayTypeItems = new ArrayList<>();
                     for (String itemValue : splitedValueList) {
-                        String itemQuery =  makeQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), itemValue, DataServiceBrokerCode.QueryOperator.SINGLE_EQUAL.getSign());
+                        String itemQuery =  makeQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), itemValue, QueryOperator.SINGLE_EQUAL.getSign());
                         arrayTypeItems.add(itemQuery);
                     }
                     resultQuery = String.join(" OR ", arrayTypeItems);
@@ -351,10 +357,10 @@ public class QueryUtil {
 
             return resultFragmentQuery;
 
-        } else if (q_query.contains(DataServiceBrokerCode.QueryOperator.NOT_PATTERN_OP.getSign())
-                || q_query.contains(DataServiceBrokerCode.QueryOperator.NOT_PATTERN_OP.getUnicode())) {
+        } else if (q_query.contains(QueryOperator.NOT_PATTERN_OP.getSign())
+                || q_query.contains(QueryOperator.NOT_PATTERN_OP.getUnicode())) {
 
-            qOperator = DataServiceBrokerCode.QueryOperator.NOT_PATTERN_OP.getSign();
+            qOperator = QueryOperator.NOT_PATTERN_OP.getSign();
             String attrName = q_query.split(qOperator)[0];
             String qValue = q_query.split(qOperator)[1];
 
@@ -364,7 +370,7 @@ public class QueryUtil {
             	throw new NgsiLdBadRequestException(ErrorCode.REQUEST_MESSAGE_PARSING_ERROR, "invalid q-query params. RegExp can only search string.");
         	}
 
-            String dbOperator = DataServiceBrokerCode.QueryOperator.NOT_PATTERN_OP.getDbOperator();
+            String dbOperator = QueryOperator.NOT_PATTERN_OP.getDbOperator();
             
             if (isArrayTypeColumn(attrName, dataModelCacheVO)) {
                 resultFragmentQuery = makeQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), qValue, dbOperator);
@@ -374,10 +380,10 @@ public class QueryUtil {
 
             return resultFragmentQuery;
 
-        } else if (q_query.contains(DataServiceBrokerCode.QueryOperator.PATTERN_OP.getSign())
-                || q_query.contains(DataServiceBrokerCode.QueryOperator.PATTERN_OP.getUnicode())) {
+        } else if (q_query.contains(QueryOperator.PATTERN_OP.getSign())
+                || q_query.contains(QueryOperator.PATTERN_OP.getUnicode())) {
 
-            qOperator = DataServiceBrokerCode.QueryOperator.PATTERN_OP.getSign();
+            qOperator = QueryOperator.PATTERN_OP.getSign();
             String attrName = q_query.split(qOperator)[0];
             String qValue = q_query.split(qOperator)[1];
 
@@ -387,7 +393,7 @@ public class QueryUtil {
             	throw new NgsiLdBadRequestException(ErrorCode.REQUEST_MESSAGE_PARSING_ERROR, "invalid q-query params. RegExp can only search String or ArrayString type.");
         	}
             
-            String dbOperator = DataServiceBrokerCode.QueryOperator.PATTERN_OP.getDbOperator();
+            String dbOperator = QueryOperator.PATTERN_OP.getDbOperator();
             if (isArrayTypeColumn(attrName, dataModelCacheVO)) {
                 resultFragmentQuery = makeQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), qValue, dbOperator);
             } else {
@@ -398,23 +404,23 @@ public class QueryUtil {
 
         } 
 
-        if (q_query.contains(DataServiceBrokerCode.QueryOperator.GREATEREQ.getSign())
-                || q_query.contains(DataServiceBrokerCode.QueryOperator.GREATEREQ.getUnicode())) {
+        if (q_query.contains(QueryOperator.GREATEREQ.getSign())
+                || q_query.contains(QueryOperator.GREATEREQ.getUnicode())) {
             //greaterEq
-            qOperator = DataServiceBrokerCode.QueryOperator.GREATEREQ.getSign();
+            qOperator = QueryOperator.GREATEREQ.getSign();
 
-        } else if (q_query.contains(DataServiceBrokerCode.QueryOperator.LESSEQ.getSign())
-                || q_query.contains(DataServiceBrokerCode.QueryOperator.LESSEQ.getUnicode())) {
+        } else if (q_query.contains(QueryOperator.LESSEQ.getSign())
+                || q_query.contains(QueryOperator.LESSEQ.getUnicode())) {
             //lessEq
-            qOperator = DataServiceBrokerCode.QueryOperator.LESSEQ.getSign();
+            qOperator = QueryOperator.LESSEQ.getSign();
 
-        } else if (q_query.contains(DataServiceBrokerCode.QueryOperator.GREATER.getSign()) || q_query.contains(DataServiceBrokerCode.QueryOperator.GREATER.getUnicode())) {
+        } else if (q_query.contains(QueryOperator.GREATER.getSign()) || q_query.contains(QueryOperator.GREATER.getUnicode())) {
             //greater
-            qOperator = DataServiceBrokerCode.QueryOperator.GREATER.getSign();
+            qOperator = QueryOperator.GREATER.getSign();
 
-        } else if (q_query.contains(DataServiceBrokerCode.QueryOperator.LESS.getSign()) || q_query.contains(DataServiceBrokerCode.QueryOperator.LESS.getUnicode())) {
+        } else if (q_query.contains(QueryOperator.LESS.getSign()) || q_query.contains(QueryOperator.LESS.getUnicode())) {
             //greater
-            qOperator = DataServiceBrokerCode.QueryOperator.LESS.getSign();
+            qOperator = QueryOperator.LESS.getSign();
         }
 
         // 일반형 처리
@@ -631,10 +637,10 @@ public class QueryUtil {
 
         	String rootAttributeId = rootAttribute.getName();
             if (rootAttributeId.equalsIgnoreCase(reqRootAttrName)) {
-                if (rootAttribute.getValueType() == DataServiceBrokerCode.AttributeValueType.ARRAY_DOUBLE
-                        || rootAttribute.getValueType() == DataServiceBrokerCode.AttributeValueType.ARRAY_INTEGER
-                        || rootAttribute.getValueType() == DataServiceBrokerCode.AttributeValueType.ARRAY_STRING
-                        || rootAttribute.getValueType() == DataServiceBrokerCode.AttributeValueType.ARRAY_BOOLEAN)
+                if (rootAttribute.getValueType() == AttributeValueType.ARRAY_DOUBLE
+                        || rootAttribute.getValueType() == AttributeValueType.ARRAY_INTEGER
+                        || rootAttribute.getValueType() == AttributeValueType.ARRAY_STRING
+                        || rootAttribute.getValueType() == AttributeValueType.ARRAY_BOOLEAN)
                     return true;
             }
 
@@ -643,7 +649,7 @@ public class QueryUtil {
                 for (ObjectMember objectMember : objectMembers) {
                     String objectMemberId = objectMember.getName();
                     if (objectMemberId.equalsIgnoreCase(reqObjectMemberName)) {
-                        if (rootAttribute.getValueType() == DataServiceBrokerCode.AttributeValueType.ARRAY_OBJECT)
+                        if (rootAttribute.getValueType() == AttributeValueType.ARRAY_OBJECT)
                             return true;
 
                     }
@@ -828,4 +834,84 @@ public class QueryUtil {
         return true;
     }
 
+    public static String convertGeoQuery(QueryVO queryVO) {
+
+        GeometryType georelType = queryVO.getGeorelType();
+
+        if(georelType == null) {
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid geo-query params. georel=" + queryVO.getGeorel());
+        }
+
+        String query = null;
+        StringBuilder stringBuilder = new StringBuilder();
+
+        if (georelType == GeometryType.NEAR_REL) {
+
+            if (queryVO.getMinDistance() != null) {
+
+                stringBuilder.append(" ST_DWithin(")
+                        .append(queryVO.getLocationCol())
+                        .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')")
+                        .append(", " + queryVO.getMinDistance())
+                        .append(") is false");
+
+
+            } else if (queryVO.getMaxDistance() != null) {
+
+                stringBuilder.append(" ST_DWithin(")
+                        .append(queryVO.getLocationCol())
+                        .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')")
+                        .append(", " + queryVO.getMaxDistance())
+                        .append(")");
+
+
+            }
+
+        } else if (georelType == GeometryType.WITHIN_REL) {
+
+            stringBuilder.append("ST_Within(")
+                    .append(queryVO.getLocationCol())
+                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
+                    .append(")");
+
+        } else if (georelType == GeometryType.CONTAINS_REL) {
+
+            stringBuilder.append("ST_Contains(")
+                    .append(queryVO.getLocationCol())
+                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
+                    .append(")");
+
+        } else if (georelType == GeometryType.OVERLAPS_REL) {
+
+            stringBuilder.append("ST_Overlaps(")
+                    .append(queryVO.getLocationCol())
+                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
+                    .append(")");
+
+        } else if (georelType == GeometryType.INTERSECTS_REL) {
+
+            stringBuilder.append("ST_Intersects(")
+                    .append(queryVO.getLocationCol())
+                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
+                    .append(")");
+
+        } else if (georelType == GeometryType.EQUALS_REL) {
+
+            stringBuilder.append("ST_Equals(")
+                    .append(queryVO.getLocationCol())
+                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
+                    .append(")");
+        } else if (georelType == GeometryType.DISJOINT_REL) {
+
+            stringBuilder.append("ST_Disjoint(")
+                    .append(queryVO.getLocationCol())
+                    .append(", ST_GeogFromText('").append(queryVO.getGeometryValue()).append("')::geometry")
+                    .append(")");
+
+        }
+
+        query = stringBuilder.toString();
+
+        return query;
+    }
 }

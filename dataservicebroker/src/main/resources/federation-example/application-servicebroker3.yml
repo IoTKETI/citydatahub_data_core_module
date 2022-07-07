@@ -33,8 +33,6 @@ data-federation:
     endpoint: http://localhost:28082
     regist-interval-millis: 600000
     entity-infos:
-      - idPattern: 'urn.*'
-        type: 'https://uri.etsi.org/ngsi-ld/primer/Customer'
     location:
   subscription:
     id: urn:ngsi-ld:CsourceRegistrationSubscription:IoT_03
