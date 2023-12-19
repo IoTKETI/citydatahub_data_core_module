@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="datamanager.datasetflow">
+
+    <resultMap id="datasetFlow" type="kr.re.keti.sc.datamanager.datasetflow.vo.DatasetFlowBaseVO">
+        <id property="datasetId" column="DATASET_ID"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="historyStoreType" column="HISTORY_STORE_TYPE" javaType="String" jdbcType="VARCHAR"
+                typeHandler="kr.re.keti.sc.datamanager.common.datamapperhandler.HistoryStoreTypeHandler"/>
+        <result property="enabled" column="ENABLED"/>
+        <result property="createDatetime" column="CREATE_DATE TIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+		<result property="provisioningRequestId" column="PROVISIONING_ID"/>
+        <result property="provisioningEventTime" column="PROVISIONING_DATETIME"/>
+        
+        <collection property="datasetFlowServerDetailVOs" javaType="java.util.ArrayList" resultMap="datasetFlowServerDetail"/>
+    </resultMap>
+
+	<resultMap id="datasetFlowServerDetail" type="kr.re.keti.sc.datamanager.datasetflow.vo.DatasetFlowBaseVO$DatasetFlowServerDetailVO">
+        <result property="datasetId" column="DETAIL_DATASET_ID"/>
+        <result property="provisionServerType" column="PROVISION_SERVER_TYPE" javaType="String" jdbcType="VARCHAR"
+                typeHandler="kr.re.keti.sc.datamanager.common.datamapperhandler.ProvisionServerTypeHandler"/>
+        <result property="bigDataStorageTypes" column="BIG_DATA_STORAGE_TYPES" javaType="String" jdbcType="VARCHAR"
+                typeHandler="kr.re.keti.sc.datamanager.common.datamapperhandler.BigDataStorageTypeHandler"/>
+    </resultMap>
+
+    <insert id="createDatasetFlowBase" parameterType="kr.re.keti.sc.datamanager.datasetflow.vo.DatasetFlowBaseVO">
+
+        INSERT INTO DATA_MANAGER.DATASET_FLOW_BASE
+        (
+	        DATASET_ID
+	        <if test="description != null">
+	            ,DESCRIPTION
+	        </if>
+	        ,HISTORY_STORE_TYPE
+	        ,ENABLED
+	        ,CREATE_DATETIME
+	        <if test="creatorId != null">
+	            ,CREATOR_ID
+	        </if>
+	        ,MODIFY_DATETIME
+	        <if test="modifierId != null">
+	            ,MODIFIER_ID
+	        </if>
+	        <if test="provisioningRequestId != null">
+            	,PROVISIONING_ID
+           	</if>
+           	<if test="provisioningEventTime != null">
+            	,PROVISIONING_DATETIME
+            </if>
+	        )
+	        VALUES (
+	        #{datasetId}
+	        <if test="description != null">
+	            ,#{description}
+	        </if>
+	        ,#{historyStoreType, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.HistoryStoreTypeHandler}::VARCHAR
+	        ,'t'
+	        ,now()
+	        <if test="creatorId != null">
+	            ,#{creatorId}
+	        </if>
+	        ,now()
+	        <if test="modifierId != null">
+	            ,#{modifierId}
+	        </if>
+	        <if test="provisioningRequestId != null">
+	        	,#{provisioningRequestId}
+	        </if>
+	        <if test="provisioningEventTime != null">
+	        	,#{provisioningEventTime}
+	        </if>
+		)
+    </insert>
+
+	<insert id="createDatasetFlowServerDetail" parameterType="kr.re.keti.sc.datamanager.datasetflow.vo.DatasetFlowBaseVO">
+
+        INSERT INTO DATA_MANAGER.DATASET_FLOW_SERVER_DETAIL
+        (
+	        DATASET_ID
+	        ,PROVISION_SERVER_TYPE
+	        <if test="bigDataStorageTypes != null">
+	            ,BIG_DATA_STORAGE_TYPES
+	        </if>
+	        )
+	        VALUES (
+	        #{datasetId}
+	        ,#{provisionServerType, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.ProvisionServerTypeHandler}::VARCHAR
+	        <if test="bigDataStorageTypes != null">
+	            ,#{bigDataStorageTypes, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.BigDataStorageTypeHandler}::VARCHAR[]
+	        </if>
+		)
+    </insert>
+
+    <update id="updateDatasetFlowBase" parameterType="kr.re.keti.sc.datamanager.datasetflow.vo.DatasetFlowBaseVO">
+        UPDATE DATA_MANAGER.DATASET_FLOW_BASE
+        SET
+        	MODIFY_DATETIME = NOW()
+            ,DESCRIPTION = #{description}
+            ,HISTORY_STORE_TYPE = #{historyStoreType, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.HistoryStoreTypeHandler}::VARCHAR
+            ,ENABLED = #{enabled}
+            ,MODIFIER_ID = #{modifierId}
+        <if test="provisioningRequestId != null">
+            ,PROVISIONING_ID = #{provisioningRequestId}
+        </if>
+        <if test="provisioningEventTime != null">
+            ,PROVISIONING_DATETIME = #{provisioningEventTime}
+        </if>
+        WHERE 	DATASET_ID = #{datasetId}
+    </update>
+    
+    <update id="updateDatasetFlowProvisioning" parameterType="kr.re.keti.sc.datamanager.datasetflow.vo.DatasetFlowBaseVO">
+        UPDATE 	 DATA_MANAGER.DATASET_FLOW_BASE
+        SET		 PROVISIONING_ID = #{provisioningRequestId}
+        		,PROVISIONING_DATETIME = #{provisioningEventTime}
+        WHERE 	 DATASET_ID = #{datasetId}
+    </update>
+
+	<update id="deleteDatasetFlowBase" parameterType="kr.re.keti.sc.datamanager.datasetflow.vo.DatasetFlowBaseVO">
+        DELETE
+        FROM DATA_MANAGER.DATASET_FLOW_BASE
+        WHERE 	DATASET_ID = #{datasetId}
+    </update>
+
+	<update id="deleteDatasetFlowServerDetail" parameterType="kr.re.keti.sc.datamanager.datasetflow.vo.DatasetFlowBaseVO">
+        DELETE
+        FROM DATA_MANAGER.DATASET_FLOW_SERVER_DETAIL
+        WHERE 	DATASET_ID = #{datasetId}
+    </update>
+
+    <select id="selectAll" resultMap="datasetFlow">
+    	SELECT 
+				BASE.DATASET_ID,
+				BASE.DESCRIPTION,
+				BASE.HISTORY_STORE_TYPE,
+				BASE.ENABLED,
+				BASE.CREATE_DATETIME,
+				BASE.CREATOR_ID,
+				BASE.MODIFY_DATETIME,
+				BASE.MODIFIER_ID,
+				BASE.PROVISIONING_ID,
+                BASE.PROVISIONING_DATETIME,
+				DETAIL.DATASET_ID AS DETAIL_DATASET_ID,
+				DETAIL.PROVISION_SERVER_TYPE,
+				DETAIL.BIG_DATA_STORAGE_TYPES
+        FROM
+        		DATA_MANAGER.DATASET_FLOW_BASE BASE
+        LEFT OUTER JOIN 
+        		DATA_MANAGER.DATASET_FLOW_SERVER_DETAIL DETAIL
+        ON
+        		BASE.DATASET_ID = DETAIL.DATASET_ID
+    </select>
+
+    <select id="selectById" resultMap="datasetFlow" parameterType="kr.re.keti.sc.datamanager.datasetflow.vo.DatasetFlowBaseVO">
+        SELECT 
+				BASE.DATASET_ID,
+				BASE.DESCRIPTION,
+				BASE.HISTORY_STORE_TYPE,
+				BASE.ENABLED,
+				BASE.CREATE_DATETIME,
+				BASE.CREATOR_ID,
+				BASE.MODIFY_DATETIME,
+				BASE.MODIFIER_ID,
+				BASE.PROVISIONING_ID,
+                BASE.PROVISIONING_DATETIME,
+				DETAIL.DATASET_ID AS DETAIL_DATASET_ID,
+				DETAIL.PROVISION_SERVER_TYPE,
+				DETAIL.BIG_DATA_STORAGE_TYPES
+        FROM
+        		DATA_MANAGER.DATASET_FLOW_BASE BASE
+        LEFT OUTER JOIN 
+        		DATA_MANAGER.DATASET_FLOW_SERVER_DETAIL DETAIL
+        ON
+        		BASE.DATASET_ID = DETAIL.DATASET_ID
+        WHERE
+        		BASE.DATASET_ID = #{datasetId}
+    </select>
+
+
+
+	<select id="selectEnabledDatasetByDatasetId" resultMap="datasetFlow" parameterType="kr.re.keti.sc.datamanager.datasetflow.vo.DatasetFlowBaseVO">
+		SELECT
+			BASE.DATASET_ID,
+			BASE.DESCRIPTION,
+			BASE.HISTORY_STORE_TYPE,
+			BASE.ENABLED,
+			BASE.CREATE_DATETIME,
+			BASE.CREATOR_ID,
+			BASE.MODIFY_DATETIME,
+			BASE.MODIFIER_ID,
+			BASE.PROVISIONING_ID,
+            BASE.PROVISIONING_DATETIME,
+			DETAIL.DATASET_ID AS DETAIL_DATASET_ID,
+			DETAIL.PROVISION_SERVER_TYPE,
+			DETAIL.BIG_DATA_STORAGE_TYPES
+		FROM
+			DATA_MANAGER.DATASET_FLOW_BASE BASE
+				LEFT OUTER JOIN
+			DATA_MANAGER.DATASET_FLOW_SERVER_DETAIL DETAIL
+			ON
+					BASE.DATASET_ID = DETAIL.DATASET_ID
+		WHERE BASE.ENABLED = true
+		AND BASE.DATASET_ID = #{datasetId}
+	</select>
+</mapper>

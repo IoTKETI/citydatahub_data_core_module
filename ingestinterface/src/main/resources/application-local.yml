@@ -1,0 +1,126 @@
+spring:
+  application:
+    name: dh-datacore-ingest-interface
+
+server:
+  port: 8443
+
+  http2:
+    enabled: true
+
+  ssl:
+    key-store: keystore.p12
+    key-alias: keti
+    key-store-password: ketiketi
+    key-store-type: PKCS12
+
+  http:
+    port: 8081
+
+  timezone: Asia/Seoul
+
+# Logging 설정
+logging.config: classpath:logback-spring.xml
+logging.base.dir: logs
+
+# DB연결 정보
+datasource:
+  driverClassName: org.postgresql.Driver
+  url: jdbc:postgresql://localhost:15432/smart_city
+  username: postgres
+  password: postgres
+
+  secondary:
+    use.yn: Y
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:15432/smart_city
+    username: postgres
+    password: postgres
+
+# ingestRequest 데이터 벌크처리 쓰레드 설정
+bulk:
+  processor.thread.count: 10
+  queue.size: 10000
+  interval.millis: 100
+
+# 카프카 설정
+kafka:
+  url: localhost:9092
+  message.version: 1.0
+  security.yn: N
+  security.protocol: SASL_PLAINTEXT
+  sasl.mechanism: PLAIN
+  username: test
+  password: test
+
+  # 카프카 프로듀서 설정
+  ingest.event:
+    producer:
+      client.id: ingestSuccessEventFull
+      acks.config: 1
+
+# HTTP retrieve 설정
+datacore:
+  http:
+    binding:
+      response:
+        log.yn: Y
+      cause:
+        msg:
+          trace:
+            key: x-detail-error-key
+            value: BBBBB
+          level: 3
+
+eureka:
+  instance:
+    prefer-ip-address: true
+
+  client:
+    enabled: false
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://133.186.162.81:8888/eureka, http://133.186.162.82:8888/eureka, http://133.186.162.83:8888/eureka
+
+entity:
+  default.context-uri: https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.5.jsonld
+
+http.pool:
+  max.total: 200
+  defaultMaxPerRoute: 100
+  connection.timeout: 5000
+  connection.request.timeout: 5000
+  read.timeout: 10000
+  validate.after.inactivity: 2000
+
+# 스프링 시큐리티 적용 여부
+# 접근제어
+security:
+  acl:
+    useYn: Y
+
+  external:
+    platform:
+      useYn: N
+
+  publicKey: -----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx4AkUiGyxa7sizeGLFFw\n5lveLj44y1eOSpYqR/EyEtJ4h+3oGlhq/X64lAOxD4Bnca5ONZmHaxF2gUX9yUkD\n9kEMDlF2YHWDNLayN6GDnrDgBYS/q6jsW78+0T8TQ6sjnltpzMlbPATJbHmyup8y\nofhZIBc59wNyRjxGa98I9okvrZERrdF8gh7WDQ15sp6rB0tr+tYVv+klzabtjCgT\nDrAqaT/BNeUDmjSPLtXbt75nbPmVZDzd48rWSNVbUZesE/EETh/lEFZ6ck/VHf7w\nV6GwOhkL8KM6oEE8wW0loXl4HrSAhynEYqBz4QMBaY9sk2Os7DMKnF+P1stoFU7n\nTwIDAQAB\n-----END PUBLIC KEY-----
+
+  headers:
+    admin:
+      key: x-user-role
+      value: ADMIN
+
+# 내장 톰캣 설정
+embedded_tomcat:
+  keep-alive:
+    maxKeepAliveRequests: 200
+    keepAliveTimeout: 60000
+
+# 품질검사 설정
+verification:
+  history.store.enabled: true
+
+cache:
+  jsonld-context:
+    max-age-second: 3600

@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="datacoreui.menu">
+
+    <resultMap id="menu" type="kr.re.keti.sc.datacoreui.api.menu.vo.MenuBaseVO">
+        <result property="id" column="ID"/>
+        <result property="name" column="NAME"/>
+        <result property="url" column="URL"/>
+        <result property="upMenuId" column="UP_MENU_ID"/>
+        <result property="sortOrder" column="SORT_ORDER"/>
+        <result property="enabled" column="ENABLED"/>
+        <result property="level" column="LEVEL"/>
+        <result property="langCd" column="LANG_CD"/>
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+    </resultMap>
+    
+    <resultMap id="menuRole" type="kr.re.keti.sc.datacoreui.api.menu.vo.MenuRoleBaseVO">
+        <result property="id" column="ID"/>
+        <result property="name" column="NAME"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="enabled" column="ENABLED"/>
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+    </resultMap>
+    
+    <resultMap id="menuRoleRelation" type="kr.re.keti.sc.datacoreui.api.menu.vo.MenuRoleRelationBaseVO">
+        <result property="menuId" column="MENU_ID"/>
+        <result property="menuRoleId" column="MENU_ROLE_ID"/>
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+    </resultMap>
+    
+    <insert id="createMenu" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.MenuBaseVO">
+		INSERT INTO datacore_ui.MENU_BASE  (
+			ID
+			,NAME
+			<if test="url != null">
+				,URL
+			</if>
+			<if test="upMenuId != null">
+				,UP_MENU_ID
+			</if>
+			<if test="sortOrder != null">
+				,SORT_ORDER
+			</if>
+			,ENABLED
+			,LEVEL
+			,LANG_CD
+			,CREATE_DATETIME
+			<if test="creatorId != null">
+				,CREATOR_ID
+			</if>
+		) VALUES (
+			#{id}
+			,#{name}
+			<if test="url != null">
+				,#{url}
+			</if>
+			<if test="upMenuId != null">
+				,#{upMenuId}
+			</if>
+			<if test="sortOrder != null">
+				,#{sortOrder}
+			</if>
+			,#{enabled}
+			,#{level}
+			,#{langCd}
+			,now()
+			<if test="creatorId != null">
+				,#{creatorId}
+			</if>
+		)
+	</insert>
+    
+    <update id="updateMenu" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.MenuBaseVO">
+		UPDATE  datacore_ui.MENU_BASE
+		SET MODIFY_DATETIME = now()
+		<if test="name != null">
+			,NAME = #{name}
+		</if>
+		<if test="url != null">
+			,URL = #{url}
+		</if>
+		<if test="upMenuId != null">
+			,UP_MENU_ID = #{upMenuId}
+		</if>
+		<if test="sortOrder != null">
+			,SORT_ORDER = #{sortOrder}
+		</if>
+		<if test="enabled != null">
+			,ENABLED = #{enabled}
+		</if>
+		<if test="level != null">
+			,LEVEL = #{level}
+		</if>
+		<if test="modifierId != null">
+			MODIFIER_ID = #{modifierId}
+		</if>
+		WHERE ID = #{id}
+			AND LANG_CD = #{langCd}
+	</update>
+    
+    <delete id="deleteMenu" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.MenuRetrieveVO">
+    	DELETE FROM datacore_ui.MENU_BASE
+    	WHERE ID = #{id}
+    		AND LANG_CD = #{langCd}
+    </delete>
+    
+    <select id="selectMenu" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.MenuRetrieveVO" resultMap="menu">
+    	SELECT *
+    	FROM datacore_ui.MENU_BASE
+    	WHERE ID = #{id}
+    		AND LANG_CD = #{langCd}
+    </select>
+    
+    <select id="selectMenus" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.MenuRetrieveVO" resultMap="menu">
+    	SELECT *
+    	FROM datacore_ui.MENU_BASE
+    	<where>
+    	<if test="name != null">
+    		NAME = #{name}
+    	</if>
+    	<if test="url != null">
+    		AND URL = #{url}
+    	</if>
+    	<if test="upMenuId != null">
+    		AND UP_MENU_ID = #{upMenuId}
+    	</if>
+    	<if test="sortOrder != null">
+    		AND SORT_ORDER = #{sortOrder}
+    	</if>
+    	<if test="enabled != null">
+    		AND ENABLED = #{enabled}
+    	</if>
+    	<if test="level != null">
+    		AND LEVEL = #{level}
+    	</if>
+    	<if test="langCd != null">
+			AND LANG_CD = #{langCd}
+		</if>
+    	</where>
+    	ORDER BY ID ASC
+    </select>
+    
+    <select id="selectAccessMenus" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.AccessableMenuRetrieveVO" resultMap="menu">
+    	SELECT mb.*
+    	FROM (
+    		SELECT *
+    		FROM datacore_ui.MENU_BASE
+    		WHERE ENABLED = true
+    			AND LANG_CD = #{langCd}
+    	)mb,
+    	(
+    		SELECT MENU_ID
+    		FROM datacore_ui.MENU_ROLE_RELATION_BASE
+    		WHERE MENU_ROLE_ID = #{menuRoleId}
+    	)mrrb
+    	WHERE mb.ID = mrrb.MENU_ID
+    	ORDER BY mb.ID ASC
+    </select>
+    
+    <insert id="createMenuRole" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.MenuRoleBaseVO">
+		INSERT INTO datacore_ui.MENU_ROLE_BASE (
+			ID
+			,NAME
+			<if test="description != null">
+				,DESCRIPTION
+			</if>
+			,ENABLED
+			,CREATE_DATETIME
+			<if test="creatorId != null">
+				,CREATOR_ID
+			</if>
+		) VALUES (
+			#{id}
+			,#{name}
+			<if test="description != null">
+				,#{description}
+			</if>
+			,#{enabled}
+			,now()
+			<if test="creatorId != null">
+				,#{creatorId}
+			</if>
+		)
+	</insert>
+    
+    <update id="updateMenuRole" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.MenuRoleBaseVO">
+		UPDATE  datacore_ui.MENU_ROLE_BASE
+		SET MODIFY_DATETIME = now()
+		<if test="name != null">
+			,NAME = #{name}
+		</if>
+		<if test="description != null">
+			,DESCRIPTION = #{description}
+		</if>
+		<if test="enabled != null">
+			,ENABLED = #{enabled}
+		</if>
+		<if test="modifierId != null">
+			MODIFIER_ID = #{modifierId}
+		</if>
+		WHERE ID = #{id}
+	</update>
+    
+    <delete id="deleteMenuRole" parameterType="String">
+    	DELETE FROM datacore_ui.MENU_ROLE_BASE
+    	WHERE ID = #{id}
+    </delete>
+    
+    <select id="selectMenuRole" parameterType="String" resultMap="menuRole">
+    	SELECT *
+    	FROM datacore_ui.MENU_ROLE_BASE
+    	WHERE ID = #{id}
+    </select>
+    
+    <select id="selectMenuRoles" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.MenuRoleRetrieveVO" resultMap="menuRole">
+    	SELECT *
+    	FROM datacore_ui.MENU_ROLE_BASE
+    	<where>
+    	<if test="name != null">
+    		NAME = #{name}
+    	</if>
+    	<if test="enabled != null">
+    		AND ENABLED = #{enabled}
+    	</if>
+    	</where>
+    </select>
+    
+    <insert id="createMenuRoleRelation" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.MenuRoleRelationBaseVO">
+		INSERT INTO datacore_ui.MENU_ROLE_RELATION_BASE (
+			MENU_ID
+			,MENU_ROLE_ID
+			,CREATE_DATETIME
+			<if test="creatorId != null">
+				,CREATOR_ID
+			</if>
+		) VALUES (
+			#{menuId}
+			,#{menuRoleId}
+			,now()
+			<if test="creatorId != null">
+				,#{creatorId}
+			</if>
+		)
+	</insert>
+    
+    <delete id="deleteMenuRoleRelation" parameterType="kr.re.keti.sc.datacoreui.api.menu.vo.MenuRoleRelationBaseVO">
+    	DELETE FROM datacore_ui.MENU_ROLE_RELATION_BASE
+    	WHERE MENU_ID = #{menuId}
+    	AND MENU_ROLE_ID = #{menuRoleId}
+    </delete>
+    
+    <select id="selectMenuRoleRelations" parameterType="String" resultMap="menuRoleRelation">
+    	SELECT *
+    	FROM datacore_ui.MENU_ROLE_RELATION_BASE
+    	WHERE MENU_ROLE_ID = #{menuRoleId}
+    	ORDER BY MENU_ID ASC
+    </select>
+</mapper>

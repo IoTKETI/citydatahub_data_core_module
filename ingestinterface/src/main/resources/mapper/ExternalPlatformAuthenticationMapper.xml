@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ingestinterface.externalplatformauthentication">
+
+    <resultMap id="externalPlatformAuthentication"
+               type="kr.re.keti.sc.ingestinterface.externalplatformauthentication.vo.ExternalPlatformAuthenticationBaseVO">
+        <id property="id" column="ID"/>
+        <result property="name" column="NAME"/>
+        <result property="description" column="DESCRIPTION"/>
+
+        <result property="receptionIps" column="RECEPTION_IPS" javaType="java.util.ArrayList" jdbcType="ARRAY"
+                typeHandler="kr.re.keti.sc.ingestinterface.common.datamapperhandler.ListTypeHandler"/>
+        <result property="receptionDatasetIds" column="RECEPTION_DATASET_IDS" javaType="java.util.ArrayList"
+                jdbcType="ARRAY"
+                typeHandler="kr.re.keti.sc.ingestinterface.common.datamapperhandler.ListTypeHandler"/>
+
+        <result property="dataInstancePrefix" column="DATA_INSTANCE_PREFIX"/>
+        <result property="receptionClientIds" column="RECEPTION_CLIENT_IDS" javaType="java.util.ArrayList"
+                jdbcType="ARRAY"
+                typeHandler="kr.re.keti.sc.ingestinterface.common.datamapperhandler.ListTypeHandler"/>
+
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+
+    </resultMap>
+    <insert id="insertExternalPlatformAuthenticationBase"
+            parameterType="kr.re.keti.sc.ingestinterface.externalplatformauthentication.vo.ExternalPlatformAuthenticationBaseVO">
+        INSERT INTO INGEST_INTERFACE.EXTERNAL_PLATFORM_AUTHENTICATION_BASE
+        (ID
+        <if test="name != null">
+            ,NAME
+        </if>
+        <if test="description != null">
+            ,DESCRIPTION
+        </if>
+        <if test="receptionIps != null">
+            ,RECEPTION_IPS
+        </if>
+        <if test="receptionDatasetIds != null">
+            ,RECEPTION_DATASET_IDS
+        </if>
+        <if test="dataInstancePrefix != null">
+            ,DATA_INSTANCE_PREFIX
+        </if>
+        <if test="receptionClientIds != null">
+            ,RECEPTION_CLIENT_IDS
+        </if>
+        ,CREATE_DATETIME
+        <if test="creatorId != null">
+            ,CREATOR_ID
+        </if>
+        ,MODIFY_DATETIME
+        <if test="modifierId != null">
+            ,MODIFIER_ID
+        </if>)
+        VALUES
+        (
+        #{id}
+        <if test="name != null">
+            ,#{name}
+        </if>
+        <if test="description != null">
+            ,#{description}
+        </if>
+        <if test="receptionIps != null">
+            ,#{receptionIps, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(512)[]
+        </if>
+        <if test="receptionDatasetIds != null">
+            ,#{receptionDatasetIds, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(512)[]
+        </if>
+        <if test="dataInstancePrefix != null">
+            ,#{dataInstancePrefix}
+        </if>
+        <if test="receptionClientIds != null">
+            ,#{receptionClientIds, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(512)[]
+        </if>
+        ,now()
+        <if test="creatorId != null">
+            ,#{creatorId}
+        </if>
+        ,now()
+        <if test="modifierId != null">
+            ,#{modifierId}
+        </if>
+        )
+    </insert>
+
+    <update id="updateExternalPlatformAuthenticationBase"
+            parameterType="kr.re.keti.sc.ingestinterface.datamodel.vo.DataModelBaseVO">
+        UPDATE INGEST_INTERFACE.EXTERNAL_PLATFORM_AUTHENTICATION_BASE
+        SET MODIFY_DATETIME = now()
+        <if test="name != null">
+            ,NAME = #{name}
+        </if>
+        <if test="description != null">
+            ,DESCRIPTION = #{description}
+        </if>
+        <if test="receptionIps != null">
+            ,RECEPTION_IPS =
+            #{receptionIps, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(512)[]
+        </if>
+        <if test="receptionDatasetIds != null">
+            ,RECEPTION_DATASET_IDS =
+            #{receptionDatasetIds, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(512)[]
+
+        </if>
+        <if test="dataInstancePrefix != null">
+            ,DATA_INSTANCE_PREFIX = #{dataInstancePrefix}
+        </if>
+        <if test="receptionClientIds != null">
+            ,RECEPTION_CLIENT_IDS =
+            #{receptionClientIds, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(512)[]
+
+        </if>
+        <if test="creatorId != null">
+            ,#{creatorId}
+        </if>
+        <if test="modifierId != null">
+            ,#{modifierId}
+        </if>
+        WHERE ID = #{id}
+
+    </update>
+
+
+    <update id="deleteExternalPlatformAuthenticationBase" parameterType="String">
+        DELETE
+        FROM INGEST_INTERFACE.EXTERNAL_PLATFORM_AUTHENTICATION_BASE
+        WHERE ID = #{id}
+    </update>
+
+
+    <select id="selectById" resultMap="externalPlatformAuthentication" parameterType="String">
+
+        SELECT ID,
+               NAME,
+               DESCRIPTION,
+               RECEPTION_IPS,
+               RECEPTION_DATASET_IDS,
+               DATA_INSTANCE_PREFIX,
+               RECEPTION_CLIENT_IDS,
+               CREATE_DATETIME,
+               CREATOR_ID,
+               MODIFY_DATETIME,
+               MODIFIER_ID
+        FROM INGEST_INTERFACE.EXTERNAL_PLATFORM_AUTHENTICATION_BASE
+        WHERE ID = #{id}
+    </select>
+
+
+    <select id="selectByClientId" resultMap="externalPlatformAuthentication" parameterType="String">
+
+        SELECT ID,
+               NAME,
+               DESCRIPTION,
+               RECEPTION_IPS,
+               RECEPTION_DATASET_IDS,
+               DATA_INSTANCE_PREFIX,
+               RECEPTION_CLIENT_IDS,
+               CREATE_DATETIME,
+               CREATOR_ID,
+               MODIFY_DATETIME,
+               MODIFIER_ID
+        FROM INGEST_INTERFACE.EXTERNAL_PLATFORM_AUTHENTICATION_BASE
+        WHERE  #{clientId} = any(RECEPTION_CLIENT_IDS)
+        LIMIT 1
+    </select>
+
+    <select id="selectAll" resultMap="externalPlatformAuthentication" parameterType="kr.re.keti.sc.ingestinterface.common.vo.PageRequest">
+        SELECT ID,
+        NAME,
+        DESCRIPTION,
+        RECEPTION_IPS,
+        RECEPTION_DATASET_IDS,
+        DATA_INSTANCE_PREFIX,
+        RECEPTION_CLIENT_IDS,
+        CREATE_DATETIME,
+        CREATOR_ID,
+        MODIFY_DATETIME,
+        MODIFIER_ID
+        FROM INGEST_INTERFACE.EXTERNAL_PLATFORM_AUTHENTICATION_BASE
+        ORDER BY ID
+        <if test="offset != null">
+            OFFSET #{offset}
+        </if>
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <select id="selectTotalCount" resultType="Integer">
+        SELECT COUNT(*)
+        FROM INGEST_INTERFACE.EXTERNAL_PLATFORM_AUTHENTICATION_BASE
+    </select>
+
+</mapper>

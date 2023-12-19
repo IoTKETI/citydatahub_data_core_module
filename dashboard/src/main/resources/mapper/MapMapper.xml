@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="datacoreusertool.map">
+
+    <resultMap id="mapSearchCondition" type="kr.re.keti.sc.datacoreusertool.api.map.vo.MapSearchConditionBaseResponseVO">
+        <result property="mapSearchConditionId" column="MAP_SEARCH_CONDITION_ID"/>
+        <result property="mapSearchConditionType" column="MAP_SEARCH_CONDITION_TYPE"/>
+		<result property="mapSearchConditionName" column="MAP_SEARCH_CONDITION_NAME"/>
+		<result property="searchCondition" column="SEARCH_CONDITION"/>
+		<result property="subscriptionCondition" column="SUBSCRIPTION_CONDITION"/>
+    </resultMap>
+    
+    <resultMap id="mapSearchConditionId" type="kr.re.keti.sc.datacoreusertool.api.map.vo.MapSearchConditionBaseIdResponseVO">
+        <result property="mapSearchConditionId" column="MAP_SEARCH_CONDITION_ID"/>
+		<result property="mapSearchConditionName" column="MAP_SEARCH_CONDITION_NAME"/>
+    </resultMap>
+    
+    
+    <insert id="createMapSearchCondition" parameterType="kr.re.keti.sc.datacoreusertool.api.map.vo.MapSearchConditionBaseVO">
+		INSERT INTO datacore_usertool.MAP_SEARCH_CONDITION_BASE (
+			MAP_SEARCH_CONDITION_ID
+			, MAP_SEARCH_CONDITION_TYPE
+			, USER_ID
+			, MAP_SEARCH_CONDITION_NAME
+			, SEARCH_CONDITION
+			, SUBSCRIPTION_CONDITION
+			, CREATE_DATETIME
+		) VALUES (
+			#{mapSearchConditionId}
+			, #{mapSearchConditionType}
+			, #{userId}
+			, #{mapSearchConditionName}
+			, #{searchCondition}
+			, #{subscriptionCondition}
+			, now()
+		)
+	</insert>
+    
+    <update id="updateMapSearchCondition" parameterType="kr.re.keti.sc.datacoreusertool.api.map.vo.MapSearchConditionBaseVO">
+		UPDATE datacore_usertool.MAP_SEARCH_CONDITION_BASE
+		SET MODIFY_DATETIME = now()
+		<if test="mapSearchConditionName != null">
+			,MAP_SEARCH_CONDITION_NAME = #{mapSearchConditionName}
+		</if>
+		<if test="searchCondition != null">
+			,SEARCH_CONDITION = #{searchCondition}
+		</if>
+		<if test="subscriptionCondition != null">
+			,SUBSCRIPTION_CONDITION = #{subscriptionCondition}
+		</if>
+		WHERE
+			MAP_SEARCH_CONDITION_ID = #{mapSearchConditionId}
+			AND MAP_SEARCH_CONDITION_TYPE = #{mapSearchConditionType}
+			AND USER_ID = #{userId}
+	</update>
+    
+    <delete id="deleteMapSearchCondition" parameterType="kr.re.keti.sc.datacoreusertool.api.map.vo.MapSearchConditionBaseVO">
+    	DELETE FROM datacore_usertool.MAP_SEARCH_CONDITION_BASE
+    	WHERE
+			MAP_SEARCH_CONDITION_ID = #{mapSearchConditionId}
+			AND USER_ID = #{userId}
+    </delete>
+    
+    <select id="selectMapSearchCondition" parameterType="kr.re.keti.sc.datacoreusertool.api.map.vo.MapSearchConditionBaseVO" resultMap="mapSearchCondition">
+    	SELECT *
+    	FROM datacore_usertool.MAP_SEARCH_CONDITION_BASE
+    	WHERE
+    		MAP_SEARCH_CONDITION_ID = #{mapSearchConditionId}
+			AND USER_ID = #{userId}
+    </select>
+    
+    <select id="selectMapSearchConditions" parameterType="kr.re.keti.sc.datacoreusertool.api.map.vo.MapSearchConditionBaseVO" resultMap="mapSearchConditionId">
+    	SELECT *
+    	FROM datacore_usertool.MAP_SEARCH_CONDITION_BASE
+    	WHERE
+			MAP_SEARCH_CONDITION_TYPE = #{mapSearchConditionType}
+			AND USER_ID = #{userId}
+    </select>
+    
+</mapper>

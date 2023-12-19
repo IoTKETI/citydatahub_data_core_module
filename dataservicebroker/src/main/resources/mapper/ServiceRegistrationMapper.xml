@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dataservicebroker.service.registration">
+
+    <resultMap id="serviceRegistration" type="kr.re.keti.sc.dataservicebroker.service.vo.ServiceRegistrationBaseVO">
+        <id property="id" column="ID"/>
+        <result property="type" column="TYPE"/>
+        <result property="name" column="NAME"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="information" column="INFORMATION"/>
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+    </resultMap>
+
+    <insert id="createService" parameterType="kr.re.keti.sc.dataservicebroker.service.vo.ServiceRegistrationBaseVO">
+
+        INSERT INTO DATA_SERVICE_BROKER.SERVICE_REGISTRATION_BASE (
+        	ID
+        	, TYPE
+	        <if test="name != null">
+	            ,NAME
+	        </if>
+	        <if test="description != null">
+	            ,DESCRIPTION
+	        </if>
+	        , INFORMATION
+            ,CREATE_DATETIME
+        <if test="creatorId != null">
+            ,CREATOR_ID
+        </if>
+            ,MODIFY_DATETIME
+        <if test="modifierId != null">
+            ,MODIFIER_ID
+        </if>
+        ) VALUES (
+        	#{id}
+        	, #{type}
+	        <if test="name != null">
+	            ,#{name}
+	        </if>
+	        <if test="description != null">
+	            ,#{description}
+	        </if>
+	        , #{information}
+	        ,now()
+	        <if test="creatorId != null">
+	            ,#{creatorId}
+	        </if>
+	        ,now()
+	        <if test="modifierId != null">
+	            ,#{modifierId}
+	        </if>
+        )
+    </insert>
+
+
+    <update id="updateService" parameterType="kr.re.keti.sc.dataservicebroker.service.vo.ServiceRegistrationBaseVO">
+        UPDATE DATA_SERVICE_BROKER.SERVICE_REGISTRATION_BASE
+        SET MODIFY_DATETIME = now()
+        	,TYPE = #{type}
+            ,NAME = #{name}
+            ,DESCRIPTION = #{description}
+            ,INFORMATION = #{information}
+            <if test="modifierId != null">
+            ,#{modifierId}
+            </if>
+        WHERE ID = #{id}
+    </update>
+
+    <select id="retrieveServiceList" resultMap="serviceRegistration" parameterType="kr.re.keti.sc.dataservicebroker.service.vo.ServiceRegistrationBaseRetrieveVO">
+        SELECT
+        		ID,
+        		TYPE,
+        		NAME,
+        		DESCRIPTION,
+        		INFORMATION,
+	        	CREATOR_ID,
+	        	CREATE_DATETIME,
+	        	MODIFIER_ID,
+	        	MODIFY_DATETIME
+        FROM 
+        		DATA_SERVICE_BROKER.SERVICE_REGISTRATION_BASE
+        <if test="offset != null">
+            OFFSET #{offset}
+        </if>
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+    
+    <select id="retrieveServiceCount" resultType="Integer" parameterType="kr.re.keti.sc.dataservicebroker.service.vo.ServiceRegistrationBaseRetrieveVO">
+        SELECT	
+        		COUNT(*)
+        FROM 
+        		DATA_SERVICE_BROKER.SERVICE_REGISTRATION_BASE
+    </select>
+
+    <select id="retrieveService" resultMap="serviceRegistration" parameterType="kr.re.keti.sc.dataservicebroker.service.vo.ServiceRegistrationBaseRetrieveVO">
+        SELECT
+        		ID,
+        		TYPE,
+        		NAME,
+        		DESCRIPTION,
+        		INFORMATION,
+	        	CREATOR_ID,
+	        	CREATE_DATETIME,
+	        	MODIFIER_ID,
+	        	MODIFY_DATETIME
+        FROM 
+        		DATA_SERVICE_BROKER.SERVICE_REGISTRATION_BASE
+        WHERE 
+        		ID = #{id}
+    </select>
+
+
+    <update id="deleteService" parameterType="kr.re.keti.sc.dataservicebroker.service.vo.ServiceRegistrationBaseVO">
+        DELETE
+        FROM 
+        		DATA_SERVICE_BROKER.SERVICE_REGISTRATION_BASE
+        WHERE 
+        		ID = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,196 @@
+spring:
+  application:
+    name: dh-datacore-data-service-broker
+
+server:
+  port: 8082
+  timezone: Asia/Seoul
+
+# Logging 설정
+logging.config: classpath:logback-spring.xml
+logging.base.dir: logs
+
+# DB연결 정보
+datasource:
+  driverClassName: org.postgresql.Driver
+  url: jdbc:postgresql://localhost:15432/smart_city
+  username: postgres
+  password: postgres
+
+  secondary:
+    use.yn: Y
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:15432/smart_city
+    username: postgres
+    password: postgres
+
+  hive:
+    use.yn: Y
+    driverClassName: org.apache.hive.jdbc.HiveDriver
+    url: jdbc:hive2://localhost:10000/default
+    username: root
+    password:
+    baseDirPath: /user/hive/warehouse
+
+  hbase:
+    phoenixUrl: jdbc:phoenix:localhost:2189:/hbase
+    xmlPath:
+
+# ingestRequest 데이터 벌크처리 쓰레드 설정
+bulk:
+  processor.thread.count: 10
+  queue.size: 10000
+  interval.millis: 100
+
+# 카프카 설정
+kafka:
+  url: localhost:9092
+  message.version: 1.0
+  security.yn: N
+  security.protocol: SASL_PLAINTEXT
+  sasl.mechanism: PLAIN
+  username: test
+  password: test
+  # success, failure producer thread 설정
+  notification.processor.thread.count: 10
+  notification.queue.size: 100000
+
+  # 카프카 컨슈머 설정
+  ingest.request:
+    topic: STRUCTURED_DATA_INGEST_REQUEST
+    consumer:
+      threadcount: 1
+      group.id: ketiConsumer
+      enable.auto.commit: true
+      auto.offset.reset.config: latest
+      poll.duration.millis: 1000
+
+  notification:
+    topic: NOTIFICATION_REQUEST
+    producer:
+      client.id: notificationRequest
+      acks.config: 1
+      processor.thread.count: 10
+      queue.size: 10000
+
+# HTTP retrieve 설정
+datacore:
+  http:
+    binding:
+      response:
+        log.yn: Y
+      cause:
+        msg:
+          trace:
+            key: x-detail-error-key
+            value: BBBBB
+          level: 3
+
+  # 데이터 라이프 사이클 관리를 위한 스케줄러 (*설정 :  새벽 2시)
+  data:
+    life:
+      cycle:
+        cron: 0 0 2 * * *
+
+eureka:
+  instance:
+    prefer-ip-address: true
+
+  client:
+    enabled: false
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://133.186.162.81:8888/eureka, http://133.186.162.82:8888/eureka, http://133.186.162.83:8888/eureka
+
+entity:
+  # datasetFlow 정보가 없는 경우 Entity 적재/조회 시 기본 저장소 (rdb, hive, hbase)
+  default.storage: rdb
+  # datasetFlow 정보가 없는 경우 Entity 이력 저장 유형 (none, partial, full, all)
+  default.history.store.type: full
+  default.context-uri: https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.5.jsonld
+
+  retrieve:
+    default.limit: 10000
+    include.datasetid: N
+    primary.accept: application/json
+
+  history:
+    # 이력 조회시 full이력 조회 여부, N일 경우 partial이력 조회
+    retrieve.full.yn: N
+    # Entity 삭제 시 이력까지 삭제할 지 여부
+    delete.yn: Y
+
+  validation:
+    # entityId 가 urn 패턴이 맞는 지 유효성 검증 여부
+    id-pattern:
+      enabled: true
+
+# v2 추가 부분
+geometry:
+  default:
+    attribute: location
+    EPSG: 4326
+
+notification:
+  change.event.use.yn: Y
+  time.interval.use.yn: N
+  processor.thread.count: 10
+  queue.size: 10000
+  batch.interval.millis: 10000
+  batch.init.delay: 30000
+
+http.pool:
+  max.total: 200
+  defaultMaxPerRoute: 100
+  connection.timeout: 5000
+  connection.request.timeout: 5000
+  read.timeout: 60000
+  validate.after.inactivity: 2000
+
+databroker:
+  retryDelayMillisecond: 1000
+  retryMaximumThreadPool: 10
+
+# 스프링 시큐리티 적용 여부
+# 접근제어
+security:
+  acl:
+    useYn: Y
+
+  publicKey: -----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx4AkUiGyxa7sizeGLFFw\n5lveLj44y1eOSpYqR/EyEtJ4h+3oGlhq/X64lAOxD4Bnca5ONZmHaxF2gUX9yUkD\n9kEMDlF2YHWDNLayN6GDnrDgBYS/q6jsW78+0T8TQ6sjnltpzMlbPATJbHmyup8y\nofhZIBc59wNyRjxGa98I9okvrZERrdF8gh7WDQ15sp6rB0tr+tYVv+klzabtjCgT\nDrAqaT/BNeUDmjSPLtXbt75nbPmVZDzd48rWSNVbUZesE/EETh/lEFZ6ck/VHf7w\nV6GwOhkL8KM6oEE8wW0loXl4HrSAhynEYqBz4QMBaY9sk2Os7DMKnF+P1stoFU7n\nTwIDAQAB\n-----END PUBLIC KEY-----
+
+  headers:
+    admin:
+      key: x-user-role
+      value: ADMIN
+
+service-execution:
+  executor:
+    thread-count: 10
+    queue-size: 10000
+
+data-federation:
+  standalone: true
+  csource:
+    id: urn:ngsi-ld:ContextSourceRegistration:IoT_01
+    endpoint: http://localhost:8082
+    regist-interval-millis: 600000
+    entity-infos:
+      - type: https://uri.etsi.org/ngsi-ld/primer/ExampleType
+        idPattern: urn:test:example:*
+    location:
+
+  subscription:
+    id: urn:ngsi-ld:CsourceRegistrationSubscription:IoT_01
+    endpoint: http://localhost:8082/CsourceNotifications
+
+  data-registry:
+    base-uri: http://localhost:9000
+    sub-uri:
+      csource: /csourceRegistrations
+      subscription: /csourceSubscriptions
+
+cache:
+  jsonld-context:
+    max-age-second: 3600

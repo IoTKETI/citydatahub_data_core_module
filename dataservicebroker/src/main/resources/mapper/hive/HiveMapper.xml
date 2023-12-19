@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dataservicebroker.hive">
+    <update id="createTable"> ${ddl} </update>
+    <update id="dropTable"> ${ddl} </update>
+    <update id="cacheTable"> ${ddl} </update>
+    <update id="updateTableScheme">
+        <!--ALTER
+        TABLE-->
+    </update>
+    <select id="getTableScheme" resultType="string"> describe ${tableName} </select>
+    <select id="getIndex" resultType="string"> select ${columnName} from ${tableName} where ID =
+        #{id} limit 1 </select>
+    <select id="getCount" resultType="_int"> select count(1) from ${tableName} where ID = #{id} </select>
+    <delete id="deleteEntity"> delete from ${tableName} where dataset_id = #{datasetId} and
+        modified_at is not null and modified_at &lt; #{lifeCycleDate} </delete>
+</mapper>

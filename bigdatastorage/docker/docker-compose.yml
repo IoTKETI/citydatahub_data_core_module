@@ -1,0 +1,99 @@
+services:
+  meta_db:
+    image: keti/sc/bigdatastorage/meta_db:latest
+    build:
+      context: ./postgis
+    restart: always
+    ports:
+      - 54321:5432
+    environment:
+      TZ: Asia/Seoul
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: post123!
+      NEW_DB_USER: hive
+      NEW_DB_PASSWORD: hive123!
+      NEW_DB_DATABASE: hive
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "hive"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  hadoop:
+    image: keti/sc/bigdatastorage/hadoop:latest
+    build:
+      context: ./hadoop
+    restart: always
+    environment:
+      TZ: Asia/Seoul
+      HADOOP_CONF_DIR: "/conf/hadoop"
+    volumes:
+      - ./conf:/conf
+      - hdfs_local_data:/hdfs-data
+
+  thrift:
+    image: keti/sc/bigdatastorage/thrift:latest
+    build:
+      context: ./thrift
+    ports:
+      - 10000:10000 # for thrift-server
+      - 4040:4040 # for spark-dashboard
+    environment:
+      TZ: Asia/Seoul
+      HADOOP_CONF_DIR: "/conf/hadoop"
+    volumes:
+      - ./conf/hadoop/core-site.xml:/usr/local/spark/conf/core-site.xml
+      - ./conf/hadoop/yarn-site.xml:/usr/local/spark/conf/yarn-site.xml
+      - ./conf/hadoop/hdfs-site.xml:/usr/local/spark/conf/hdfs-site.xml
+      - ./conf/hive/hive-site.xml:/usr/local/spark/conf/hive-site.xml
+    depends_on:
+      hadoop:
+        condition: service_started
+      meta_db:
+        condition: service_healthy
+
+  hbase:
+    image: keti/sc/bigdatastorage/hbase:latest
+    build:
+      context: ./hbase
+    restart: always
+    ports:
+      - 16000:16000
+      - 16010:16010
+      - 16020:16020
+      - 16030:16030
+    volumes:
+      - hbase_data:/hbase-data
+      - hbase_zookeeper_data:/zookeeper-data
+    env_file:
+      - ./hbase-standalone.env
+    environment:
+      SERVICE_PRECONDITION: "hadoop:9000"
+    depends_on:
+      thrift:
+        condition: service_started
+      zoo1:
+        condition: service_started
+
+  zoo1:
+    image: zookeeper:3.8.1
+    restart: always
+    ports:
+      - 2189:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zoo1:2888:3888;2181
+
+volumes:
+  postgres_data:
+  hdfs_local_data:
+  hbase_data:
+  hbase_zookeeper_data:
+
+
+networks:
+  default:
+    name: citydatahub-datacore
+    external: true

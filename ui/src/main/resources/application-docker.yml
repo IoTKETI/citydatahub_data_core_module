@@ -1,0 +1,90 @@
+spring:
+  application:
+    name: DH-DATACORE-UI
+
+  thymeleaf:
+    prefix: classpath:/static/
+    cache: false
+
+  security:
+    enabled: false
+
+server:
+  port: 8083
+
+  servlet:
+    context-path: /
+    session.timeout: 60m
+
+  timezone: Asia/Seoul
+
+# Logging
+logging.config: classpath:logback-spring.xml
+logging.base.dir: logs
+
+# Language (en: English, ko: Korean)
+language.code: ko
+
+# DB Connection
+datasource:
+  driverClassName: org.postgresql.Driver
+  url: jdbc:postgresql://postgis:5432/smart_city
+  username: postgres
+  password: postgres
+
+  secondary:
+    use.yn: Y
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://postgis:5432/smart_city
+    username: postgres
+    password: postgres
+
+# HTTP retrieve
+datacore:
+  http:
+    binding:
+      response:
+        log.yn: Y
+      cause:
+        msg:
+          trace:
+            key: x-detail-error-key
+            value: BBBBB
+          level: 3
+
+datamanager:
+  url: http://data-manager:8080
+
+ingestinterface:
+  url: http://ingest-interface:8081
+
+cityhub:
+  client:
+    clientId: security-admin-client-id-value
+    clientSecret: security-admin-client-secret-value
+    userAuthorizationUri: http://security-admin-backend.local:30084/oauth2.0/authorize
+    accessTokenUri: http://security-admin-backend.local:30084/oauth2.0/token
+    publicKeyUri: http://security-admin-backend.local:30084/security/publickey
+    logoutUri: http://security-admin-backend.local:30084/security/logout
+    userInfoUri: http://security-admin-backend.local:30084/security/users
+    redirectUri: http://ui-backend.local:8083/accesstoken
+
+eureka:
+  instance:
+    prefer-ip-address: false
+    hostname: my-external-ip-address-or-name
+
+  client:
+    enabled: false
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka-server-1.local:8888/eureka, http://eureka-server-2.local:8888/eureka, http://eureka-server-3.local:8888/eureka
+
+http.pool:
+  max.total: 200
+  defaultMaxPerRoute: 100
+  connection.timeout: 5000
+  connection.request.timeout: 5000
+  read.timeout: 10000
+  validate.after.inactivity: 2000

@@ -1,0 +1,44 @@
+server:
+  port: 28082
+
+# DB연결 정보
+datasource:
+  driverClassName: org.postgresql.Driver
+  url: jdbc:postgresql://localhost:5432/datacore_v2_servicebroker03
+  username: postgres
+  password: postgres
+
+  secondary:
+    use.yn: N
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/datacore_v2_servicebroker03
+    username: postgres
+    password: postgres
+
+  hive:
+    use.yn: N
+    driverClassName: org.apache.hive.jdbc.HiveDriver
+    url: jdbc:hive2://203.253.128.181:10187/default
+    username: hive
+    password:
+    baseDirPath: /user/hive/warehouse
+
+  hbase:
+    xmlPath: hbase-site.xml
+
+data-federation:
+  standalone: false
+  csource:
+    id: urn:ngsi-ld:ContextSourceRegistration:IoT_03
+    endpoint: http://localhost:28082
+    regist-interval-millis: 600000
+    entity-infos:
+    location:
+  subscription:
+    id: urn:ngsi-ld:CsourceRegistrationSubscription:IoT_03
+    endpoint: http://localhost:28082/csourceNotifications
+  data-registry:
+    base-uri: http://localhost:9000
+    sub-uri:
+      csource: /csourceRegistrations
+      subscription: /csourceSubscriptions

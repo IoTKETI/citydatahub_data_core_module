@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="datamanager.provisionserver">
+
+    <resultMap id="provisionserver" type="kr.re.keti.sc.datamanager.provisionserver.vo.ProvisionServerBaseVO">
+        <id property="id" column="ID"/>
+        <result property="type" column="TYPE" javaType="String" jdbcType="VARCHAR"
+                typeHandler="kr.re.keti.sc.datamanager.common.datamapperhandler.ProvisionServerTypeHandler"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="provisionUri" column="PROVISION_URI"/>
+        <result property="provisionProtocol" column="PROVISION_PROTOCOL" javaType="String" jdbcType="VARCHAR"
+                typeHandler="kr.re.keti.sc.datamanager.common.datamapperhandler.ProvisionProtocolTypeHandler"/>
+        <result property="enabled" column="ENABLED"/>
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+    </resultMap>
+
+
+    <insert id="createProvisionServer" parameterType="kr.re.keti.sc.datamanager.provisionserver.vo.ProvisionServerBaseVO">
+
+        INSERT INTO DATA_MANAGER.PROVISION_SERVER_BASE
+        (
+	        ID
+	        ,TYPE
+	        <if test="description != null">
+	            ,DESCRIPTION
+	        </if>
+	        ,PROVISION_URI
+	        ,PROVISION_PROTOCOL
+	        ,ENABLED
+	        ,CREATE_DATETIME
+	        <if test="creatorId != null">
+	            ,CREATOR_ID
+	        </if>
+	        ,MODIFY_DATETIME
+	        <if test="modifierId != null">
+	            ,MODIFIER_ID
+	        </if>
+	        )
+	        VALUES (
+	        #{id}
+	        ,#{type, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.ProvisionServerTypeHandler}::VARCHAR
+	        <if test="description != null">
+	            ,#{description}
+	        </if>
+	        ,#{provisionUri}
+	        ,#{provisionProtocol, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.ProvisionProtocolTypeHandler}::VARCHAR
+	        ,#{enabled}
+	        ,now()
+	        <if test="creatorId != null">
+	            ,#{creatorId}
+	        </if>
+	        ,now()
+	        <if test="modifierId != null">
+	            ,#{modifierId}
+	        </if>
+		)
+
+
+    </insert>
+
+    <update id="updateProvisionServer" parameterType="kr.re.keti.sc.datamanager.provisionserver.vo.ProvisionServerBaseVO">
+        UPDATE DATA_MANAGER.PROVISION_SERVER_BASE
+        SET
+        	MODIFY_DATETIME = now()
+        <if test="modifierId != null">
+            ,MODIFIER_ID = #{modifierId}
+        </if>
+        <if test="description != null">
+            ,DESCRIPTION = #{description}
+        </if>
+        <if test="provisionUri != null">
+            ,PROVISION_URI = #{provisionUri}
+        </if>
+        <if test="provisionProtocol != null">
+            ,PROVISION_PROTOCOL = #{provisionProtocol, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.ProvisionProtocolTypeHandler}::VARCHAR
+        </if>
+        <if test="enabled != null">
+            ,ENABLED = #{enabled}
+        </if>
+        WHERE ID = #{id}
+    </update>
+
+	<update id="deleteProvisionServer" parameterType="String">
+        DELETE
+        FROM DATA_MANAGER.PROVISION_SERVER_BASE
+        WHERE ID = #{id}
+    </update>
+
+    <select id="selectAll" resultMap="provisionserver" parameterType="kr.re.keti.sc.datamanager.provisionserver.vo.ProvisionServerBaseVO">
+    	SELECT
+		        ID,
+				TYPE,
+				DESCRIPTION,
+				PROVISION_URI,
+				PROVISION_PROTOCOL,
+				ENABLED,
+				PROVISION_ORDER,
+				CREATE_DATETIME,
+				CREATOR_ID,
+				MODIFY_DATETIME,
+				MODIFIER_ID
+        FROM DATA_MANAGER.PROVISION_SERVER_BASE
+        WHERE
+        		1=1
+        <if test="type != null">
+            AND TYPE = #{type, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.ProvisionServerTypeHandler}::VARCHAR
+        </if>
+        <if test="provisionProtocol != null">
+            AND PROVISION_PROTOCOL = #{provisionProtocol, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.ProvisionProtocolTypeHandler}::VARCHAR
+        </if>
+        <if test="enabled != null">
+            AND ENABLED = #{enabled}
+        </if>
+        ORDER BY PROVISION_ORDER ASC
+        <if test="offset != null and offset gt 0">
+            OFFSET #{offset}
+        </if>
+        <if test="limit != null and limit gt 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+	<select id="selectTotalCount" resultType="Integer" parameterType="kr.re.keti.sc.datamanager.provisionserver.vo.ProvisionServerBaseVO">
+        SELECT COUNT(*)
+        FROM DATA_MANAGER.PROVISION_SERVER_BASE
+        WHERE
+        		1=1
+        <if test="type != null">
+            AND TYPE = #{type, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.ProvisionServerTypeHandler}::VARCHAR
+        </if>
+        <if test="provisionProtocol != null">
+            AND PROVISION_PROTOCOL = #{provisionProtocol, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.ProvisionProtocolTypeHandler}::VARCHAR
+        </if>
+        <if test="enabled != null">
+            AND ENABLED = #{enabled}
+        </if>
+    </select>
+
+    <select id="selectById" resultMap="provisionserver" parameterType="String">
+        SELECT 
+				ID,
+				TYPE,
+				DESCRIPTION,
+				PROVISION_URI,
+				PROVISION_PROTOCOL,
+				ENABLED,
+				PROVISION_ORDER,
+				CREATE_DATETIME,
+				CREATOR_ID,
+				MODIFY_DATETIME,
+				MODIFIER_ID
+        FROM DATA_MANAGER.PROVISION_SERVER_BASE
+        WHERE ID = #{id}
+    </select>
+
+	<select id="selectByType" resultMap="provisionserver" parameterType="String">
+        SELECT 
+				ID,
+				TYPE,
+				DESCRIPTION,
+				PROVISION_URI,
+				PROVISION_PROTOCOL,
+				ENABLED,
+				PROVISION_ORDER,
+				CREATE_DATETIME,
+				CREATOR_ID,
+				MODIFY_DATETIME,
+				MODIFIER_ID
+        FROM DATA_MANAGER.PROVISION_SERVER_BASE
+        WHERE TYPE = #{type}
+        AND ENABLED = 'T'
+        ORDER BY PROVISION_ORDER ASC
+    </select>
+</mapper>

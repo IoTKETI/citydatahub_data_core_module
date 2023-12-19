@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: dh-datacore-ui
+
+  thymeleaf:
+    prefix: classpath:/static/
+    cache: false
+
+  security:
+    enabled: false
+
+server:
+  port: 8083
+
+  servlet:
+    context-path: /
+    session.timeout: 60m
+
+  timezone: Asia/Seoul
+
+# Logging
+logging.config: classpath:logback-spring.xml
+logging.base.dir: logs
+
+# Language (en: English, ko: Korean)
+language.code: ko
+
+# DB Connection
+datasource:
+  driverClassName: org.postgresql.Driver
+  url: jdbc:postgresql://localhost:15432/smart_city
+  username: postgres
+  password: postgres
+
+  secondary:
+    use.yn: Y
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:15432/smart_city
+    username: postgres
+    password: postgres
+
+# HTTP retrieve
+datacore:
+  http:
+    binding:
+      response:
+        log.yn: Y
+      cause:
+        msg:
+          trace:
+            key: x-detail-error-key
+            value: BBBBB
+          level: 3
+
+datamanager:
+  url: http://localhost:8080
+
+ingestinterface:
+  url: http://localhost:8081
+
+cityhub:
+  client:
+    clientId: RgOs4cyn4Ep7BXNoT4jc
+    clientSecret: DY7UCo1Wn2DrecJhnky0nlo2mepEBYz7
+    userAuthorizationUri: http://203.253.128.181:30084/oauth2.0/authorize
+    accessTokenUri: http://203.253.128.181:30084/oauth2.0/token
+    publicKeyUri: http://203.253.128.181:30084/security/publickey
+    logoutUri: http://203.253.128.181:30084/security/logout
+    userInfoUri: http://203.253.128.181:30084/security/users
+    redirectUri: http://119.192.118.100:8083/accesstoken
+
+eureka:
+  instance:
+    prefer-ip-address: true
+
+  client:
+    enabled: false
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://133.186.162.81:8888/eureka, http://133.186.162.82:8888/eureka, http://133.186.162.83:8888/eureka
+
+http.pool:
+  max.total: 200
+  defaultMaxPerRoute: 100
+  connection.timeout: 5000
+  connection.request.timeout: 5000
+  read.timeout: 10000
+  validate.after.inactivity: 2000

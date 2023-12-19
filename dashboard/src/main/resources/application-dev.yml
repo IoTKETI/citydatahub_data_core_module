@@ -1,0 +1,85 @@
+spring:
+  application:
+    name: dh-datacore-usertool
+
+  thymeleaf:
+    prefix: classpath:/static/
+    cache: false
+
+  security:
+    enabled: false
+    
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  # only dev
+  devtools:
+    livereload:
+      enabled: true
+
+server:
+  port: 8084
+  timezone: Asia/Seoul
+
+  servlet:
+    context-path: /
+    session.timeout: 60m
+    
+# Logging 설정
+logging.config: classpath:logback-spring.xml
+logging.base.dir: logs
+
+# Language (en: English, ko: Korean)
+language.code: ko
+  
+# DB연결 정보
+datasource:
+  driverClassName: org.postgresql.Driver
+  url: jdbc:postgresql://10.12.0.11:5432/datacore
+  username: keti_datacore
+  password: keti123
+
+  secondary:
+    use.yn: Y
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://10.12.0.11:5432/datacore
+    username: keti_datacore
+    password: keti123
+  
+datacoreusertool:
+  url: http://10.0.0.15:8080/notification
+  widget.url: http://10.0.0.15:8080/widgetnotification
+  
+dataservicebroker:
+  url: http://10.0.0.252:8080
+datamanager:
+  url: http://10.0.0.36:8080
+
+cityhub:
+  client:
+    clientId: dsBacidUKUkkh58SfkNJ
+    clientSecret: 4AjkFtHYQR5nivX3bZIHUv6mTr2Ks26O
+    userAuthorizationUri: http://203.253.128.181:30084/oauth2.0/authorize
+    accessTokenUri: http://10.7.0.22:30000/oauth2.0/token
+    publicKeyUri: http://10.7.0.22:30000/security/publickey
+    logoutUri: http://10.7.0.22:30000/security/logout
+    userInfoUri: http://10.7.0.22:30000/security/users
+    redirectUri: http://203.253.128.181:17508/accesstoken
+
+http.pool: 
+  max.total: 200
+  defaultMaxPerRoute: 100
+  connection.timeout: 5000
+  connection.request.timeout: 5000 
+  read.timeout: 10000 
+  validate.after.inactivity: 2000
+  
+entity.history:
+  limit: 1000
+  days: 3
+  
+chart.time.format: yyyy-MM-dd HH:mm:ss
+  
+google.api.key: 

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ingestinterface.acl.rule">
+    <resultMap id="aclrule" type="kr.re.keti.sc.ingestinterface.acl.rule.vo.AclRuleVO">
+        <id property="id" column="ID"/>
+        <id property="userId" column="USER_ID"/>
+        <id property="clientId" column="CLIENT_ID"/>
+        <result property="resourceId" column="RESOURCE_ID"/>
+        <result property="resourceType" column="RESOURCE_TYPE" javaType="String" jdbcType="VARCHAR"
+                typeHandler="kr.re.keti.sc.ingestinterface.common.datamapperhandler.AclRuleResourceTypeHandler"/>
+        <result property="condition" column="CONDITION" javaType="String" jdbcType="VARCHAR"
+                typeHandler="kr.re.keti.sc.ingestinterface.common.datamapperhandler.AclRuleConditionTypeHandler"/>
+        <result property="operation" column="OPERATION" javaType="String" jdbcType="VARCHAR"
+                typeHandler="kr.re.keti.sc.ingestinterface.common.datamapperhandler.AclRuleOperationTypeHandler"/>
+
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+
+        <result property="provisioningRequestId" column="PROVISIONING_ID"/>
+        <result property="provisioningEventTime" column="PROVISIONING_DATETIME"/>
+    </resultMap>
+
+
+    <insert id="createAclRule" parameterType="kr.re.keti.sc.ingestinterface.acl.rule.vo.AclRuleVO">
+        INSERT INTO INGEST_INTERFACE.ACL_RULE
+        (
+        ID
+        <if test="userId != null">
+            ,USER_ID
+        </if>
+        <if test="clientId != null">
+            ,CLIENT_ID
+        </if>
+        ,RESOURCE_ID
+        ,RESOURCE_TYPE
+        <if test="condition != null">
+            ,CONDITION
+        </if>
+        ,OPERATION
+        ,CREATE_DATETIME
+        <if test="creatorId != null">
+            ,CREATOR_ID
+        </if>
+        ,MODIFY_DATETIME
+        <if test="modifierId != null">
+            ,MODIFIER_ID
+        </if>
+        <if test="provisioningRequestId != null">
+            ,PROVISIONING_ID
+        </if>
+        <if test="provisioningEventTime != null">
+            ,PROVISIONING_DATETIME
+        </if>
+        )
+        VALUES (
+        #{id}
+        <if test="userId != null">
+            ,#{userId}
+        </if>
+        <if test="clientId != null">
+            ,#{clientId}
+        </if>
+        ,#{resourceId}
+        ,#{resourceType, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.AclRuleResourceTypeHandler}::VARCHAR
+        <if test="condition != null">
+            ,#{condition, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.AclRuleConditionTypeHandler}::VARCHAR
+        </if>
+        ,#{operation, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.AclRuleOperationTypeHandler}::VARCHAR[]
+        ,now()
+        <if test="creatorId != null">
+            ,#{creatorId}
+        </if>
+        ,now()
+        <if test="modifierId != null">
+            ,#{modifierId}
+        </if>
+        <if test="provisioningRequestId != null">
+            ,#{provisioningRequestId}
+        </if>
+        <if test="provisioningEventTime != null">
+            ,#{provisioningEventTime}
+        </if>
+        )
+    </insert>
+
+    <update id="updateAclRule" parameterType="kr.re.keti.sc.ingestinterface.acl.rule.vo.AclRuleVO">
+        UPDATE INGEST_INTERFACE.ACL_RULE
+        SET
+        MODIFY_DATETIME = now()
+        <if test="modifierId != null">
+            ,MODIFIER_ID = #{modifierId}
+        </if>
+        <if test="userId != null">
+            ,USER_ID  =#{userId}
+        </if>
+        <if test="clientId != null">
+            ,CLIENT_ID = #{clientId}
+        </if>
+        <if test="resourceId != null">
+            ,RESOURCE_ID = #{resourceId}
+        </if>
+        <if test="resourceType != null">
+            ,RESOURCE_TYPE =
+            #{resourceType, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.AclRuleResourceTypeHandler}::VARCHAR
+        </if>
+        <if test="condition != null">
+            ,CONDITION =
+            #{condition, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.AclRuleConditionTypeHandler}::VARCHAR
+        </if>
+        <if test="operation != null">
+            ,OPERATION =
+            #{operation, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.AclRuleOperationTypeHandler}::VARCHAR[]
+        </if>
+        <if test="provisioningRequestId != null">
+            ,PROVISIONING_ID = #{provisioningRequestId}
+        </if>
+        <if test="provisioningEventTime != null">
+            ,PROVISIONING_DATETIME = #{provisioningEventTime}
+        </if>
+        WHERE ID = #{id}
+    </update>
+
+    <update id="deleteAclRule" parameterType="string">
+        DELETE
+        FROM INGEST_INTERFACE.ACL_RULE
+        WHERE ID = #{id}
+    </update>
+
+    <select id="selectAll" resultMap="aclrule" parameterType="kr.re.keti.sc.ingestinterface.acl.rule.vo.AclRuleVO">
+        SELECT  *
+        FROM    INGEST_INTERFACE.ACL_RULE
+        WHERE   1=1
+        <if test="userId != null">
+            AND USER_ID = #{userId}
+        </if>
+        <if test="clientId != null">
+            AND CLIENT_ID = #{clientId}
+        </if>
+        <if test="resourceType != null">
+            AND RESOURCE_TYPE = #{resourceType}
+        </if>
+        <if test="resourceId != null">
+            AND RESOURCE_ID = #{resourceId}
+        </if>
+        <if test="offset != null and offset gt 0">
+            OFFSET #{offset}
+        </if>
+        <if test="limit != null and limit gt 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <select id="selectTotalCount" resultType="Integer"
+            parameterType="kr.re.keti.sc.ingestinterface.acl.rule.vo.AclRuleVO">
+        SELECT  count(*)
+        FROM    INGEST_INTERFACE.ACL_RULE
+        WHERE   1=1
+        <if test="userId != null">
+            AND USER_ID = #{userId}
+        </if>
+        <if test="clientId != null">
+            AND CLIENT_ID = #{clientId}
+        </if>
+        <if test="resourceType != null">
+            AND RESOURCE_TYPE = #{resourceType}
+        </if>
+        <if test="resourceId != null">
+            AND RESOURCE_ID = #{resourceId}
+        </if>
+    </select>
+
+    <select id="selectById" resultMap="aclrule"
+            parameterType="string">
+        SELECT *
+        FROM INGEST_INTERFACE.ACL_RULE
+        WHERE ID = #{id}
+    </select>
+</mapper>

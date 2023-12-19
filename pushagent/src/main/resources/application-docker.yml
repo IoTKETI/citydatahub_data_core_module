@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: DH-DATACORE-PUSH-AGENT
+
+  main:
+    web-application-type: none
+
+server:
+  timezone: Asia/Seoul
+
+# Logging 설정
+logging.config: classpath:logback-spring.xml
+logging.base.dir: logs
+
+# 카프카 설정
+kafka:
+  url: broker:29092
+  message.version: 1.0
+  security.yn: N
+  security.protocol: SASL_PLAINTEXT
+  sasl.mechanism: PLAIN
+  username: test
+  password: test
+
+  notification:
+    topic: NOTIFICATION_REQUEST
+    consumer:
+      threadcount: 1
+      group.id: ketiConsumer
+      enable.auto.commit: true
+      auto.offset.reset.config: latest
+      poll.duration.millis: 1000
+
+notification:
+  processor.thread.count: 100
+  queue.size: 10000
+
+http.pool:
+  max.total: 200
+  defaultMaxPerRoute: 100
+  connection.timeout: 5000
+  connection.request.timeout: 5000
+  read.timeout: 10000
+  validate.after.inactivity: 2000
+

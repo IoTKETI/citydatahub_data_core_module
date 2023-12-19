@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="datamanager.datamodel">
+
+    <resultMap id="dataModel" type="kr.re.keti.sc.datamanager.datamodel.vo.DataModelBaseVO">
+        <id property="id" column="ID"/>
+        <result property="type" column="TYPE"/>
+        <result property="typeUri" column="TYPE_URI"/>
+        <result property="name" column="NAME"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="dataModel" column="DATA_MODEL"/>
+        <result property="enabled" column="ENABLED"/>
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+        
+        <result property="provisioningRequestId" column="PROVISIONING_ID"/>
+        <result property="provisioningEventTime" column="PROVISIONING_DATETIME"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="dataModel" parameterType="kr.re.keti.sc.datamanager.datamodel.vo.DataModelBaseVO">
+        SELECT ID
+             , TYPE
+             , TYPE_URI
+             , NAME
+             , DESCRIPTION
+             , DATA_MODEL
+             , ENABLED
+             , CREATE_DATETIME
+             , CREATOR_ID
+             , MODIFY_DATETIME
+             , MODIFIER_ID
+             , PROVISIONING_ID
+        	 , PROVISIONING_DATETIME
+        FROM DATA_MANAGER.DATA_MODEL_BASE
+        WHERE 1=1
+        <if test="id != null">
+            AND ID = #{id}
+        </if>
+        <if test="type != null">
+            AND TYPE = #{type}
+        </if>
+        <if test="typeUri != null">
+            AND TYPE_URI = #{typeUri}
+        </if>
+        <if test="name != null">
+            AND NAME = #{name}
+        </if>
+        ORDER BY ID
+        <if test="offset != null">
+            OFFSET #{offset}
+        </if>
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <select id="selectTotalCount" resultType="Integer" parameterType="kr.re.keti.sc.datamanager.datamodel.vo.DataModelBaseVO">
+        SELECT COUNT(*)
+        FROM DATA_MANAGER.DATA_MODEL_BASE
+        WHERE 1=1
+        <if test="id != null">
+            AND ID = #{id}
+        </if>
+        <if test="type != null">
+            AND TYPE = #{type}
+        </if>
+        <if test="typeUri != null">
+            AND TYPE_URI = #{typeUri}
+        </if>
+        <if test="name != null">
+            AND NAME = #{name}
+        </if>
+    </select>
+
+
+    <select id="selectById" resultMap="dataModel"
+            parameterType="kr.re.keti.sc.datamanager.datamodel.vo.DataModelBaseVO">
+        SELECT ID
+             , TYPE
+             , TYPE_URI
+             , NAME
+             , DESCRIPTION
+             , DATA_MODEL
+             , ENABLED
+             , CREATE_DATETIME
+             , CREATOR_ID
+             , MODIFY_DATETIME
+             , MODIFIER_ID
+             , PROVISIONING_ID
+        	 , PROVISIONING_DATETIME
+        FROM DATA_MANAGER.DATA_MODEL_BASE
+        WHERE ID = #{id}
+        ORDER BY ID
+    </select>
+
+    <insert id="createDataModelBase" parameterType="kr.re.keti.sc.datamanager.datamodel.vo.DataModelBaseVO">
+        INSERT INTO DATA_MANAGER.DATA_MODEL_BASE (
+        ID
+        , TYPE
+        , TYPE_URI
+        <if test="name != null">
+            ,NAME
+        </if>
+        <if test="description != null">
+            ,DESCRIPTION
+        </if>
+        ,DATA_MODEL
+        ,ENABLED
+        ,CREATE_DATETIME
+        <if test="creatorId != null">
+            ,CREATOR_ID
+        </if>
+        <if test="provisioningRequestId != null">
+           	,PROVISIONING_ID
+        </if>
+        <if test="provisioningEventTime != null">
+          	,PROVISIONING_DATETIME
+        </if>
+        ) VALUES (
+        #{id}
+        ,#{type}
+        ,#{typeUri}
+        <if test="name != null">
+            ,#{name}
+        </if>
+        <if test="description != null">
+            ,#{description}
+        </if>
+        ,#{dataModel}
+        ,#{enabled}
+        ,now()
+        <if test="creatorId != null">
+            ,#{creatorId}
+        </if>
+        <if test="provisioningRequestId != null">
+        	,#{provisioningRequestId}
+        </if>
+        <if test="provisioningEventTime != null">
+        	,#{provisioningEventTime}
+        </if>
+        )
+    </insert>
+
+    <update id="updateDataModelBase" parameterType="kr.re.keti.sc.datamanager.datamodel.vo.DataModelBaseVO">
+
+        UPDATE DATA_MANAGER.DATA_MODEL_BASE
+        SET MODIFY_DATETIME = now()
+            ,NAME = #{name}
+            ,DESCRIPTION = #{description}
+            ,DATA_MODEL = #{dataModel}
+            ,ENABLED = #{enabled}
+            ,MODIFIER_ID = #{modifierId}
+        <if test="provisioningRequestId != null">
+            ,PROVISIONING_ID = #{provisioningRequestId}
+        </if>
+        <if test="provisioningEventTime != null">
+            ,PROVISIONING_DATETIME = #{provisioningEventTime}
+        </if>
+        WHERE ID = #{id}
+    </update>
+
+	<update id="updateDataModelProvisioning" parameterType="kr.re.keti.sc.datamanager.datamodel.vo.DataModelBaseVO">
+        UPDATE DATA_MANAGER.DATA_MODEL_BASE
+        SET  PROVISIONING_ID = #{provisioningRequestId}
+        	,PROVISIONING_DATETIME = #{provisioningEventTime}
+        WHERE ID = #{id}
+    </update>
+
+    <update id="deleteDataModelBase" parameterType="kr.re.keti.sc.datamanager.datamodel.vo.DataModelBaseVO">
+        DELETE
+        FROM DATA_MANAGER.DATA_MODEL_BASE
+        WHERE ID = #{id}
+    </update>
+
+
+
+    <select id="selectDeduplicatedDataModelNamespaces" resultType="String" parameterType="kr.re.keti.sc.datamanager.datamodel.vo.DataModelBaseVO">
+        SELECT NAMESPACE
+        FROM DATA_MANAGER.DATA_MODEL_BASE
+        group by NAMESPACE
+    </select>
+
+
+    <select id="selectDeduplicatedDataModelType" resultType="String" parameterType="kr.re.keti.sc.datamanager.datamodel.vo.DataModelBaseVO">
+        SELECT TYPE
+        FROM DATA_MANAGER.DATA_MODEL_BASE
+        WHERE NAMESPACE = #{namespace}
+        group by TYPE
+    </select>
+
+
+    <select id="selectDeduplicatedDataModelVersion" resultType="String" parameterType="kr.re.keti.sc.datamanager.datamodel.vo.DataModelBaseVO">
+        SELECT VERSION
+        FROM DATA_MANAGER.DATA_MODEL_BASE
+        WHERE NAMESPACE = #{namespace}
+        AND TYPE = #{type}
+        group by VERSION
+    </select>
+
+</mapper>

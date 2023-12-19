@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dataservicebroker.service.execution">
+
+    <resultMap id="serviceExecutionBase" type="kr.re.keti.sc.dataservicebroker.service.vo.ServiceExecutionBaseVO">
+        <id property="id" column="BASE_ID"/>
+        <result property="serviceId" column="BASE_SERVICE_ID"/>
+        <result property="type" column="BASE_TYPE"/>
+        <result property="createDatetime" column="BASE_CREATE_DATETIME"/>
+        <result property="creatorId" column="BASE_CREATOR_ID"/>
+        <result property="modifyDatetime" column="BASE_MODIFY_DATETIME"/>
+        <result property="modifierId" column="BASE_MODIFIER_ID"/>
+        
+        <collection property="serviceExecutionDetailVOs" javaType="java.util.ArrayList" resultMap="serviceExecutionDetail"/>
+    </resultMap>
+    
+    <resultMap id="serviceExecutionDetail" type="kr.re.keti.sc.dataservicebroker.service.vo.ServiceExecutionDetailVO">
+        <id property="id" column="DETAIL_ID"/>
+        <id property="serviceId" column="DETAIL_SERVICE_ID"/>
+        <id property="executionId" column="DETAIL_EXECUTION_ID"/>
+        <result property="name" column="DETAIL_NAME"/>
+        <result property="type" column="DETAIL_TYPE"/>
+        <result property="entityId" column="DETAIL_ENTITY_ID"/>
+        <result property="entityType" column="DETAIL_ENTITY_TYPE"/>
+        <result property="input" column="DETAIL_INPUT"/>
+        <result property="status" column="DETAIL_STATUS" javaType="String" jdbcType="VARCHAR" typeHandler="kr.re.keti.sc.dataservicebroker.common.datamapperhandler.ServiceExecutionStatusTypeHandler"/>
+        <result property="createDatetime" column="BASE_CREATE_DATETIME"/>
+        <result property="creatorId" column="BASE_CREATOR_ID"/>
+        <result property="modifyDatetime" column="BASE_MODIFY_DATETIME"/>
+        <result property="modifierId" column="BASE_MODIFIER_ID"/>
+    </resultMap>
+
+    <insert id="createServiceExecutionBase" parameterType="kr.re.keti.sc.dataservicebroker.service.vo.ServiceExecutionBaseVO">
+
+        INSERT INTO DATA_SERVICE_BROKER.SERVICE_EXECUTION_BASE (
+        	ID
+        	, SERVICE_ID
+        	, TYPE
+            ,CREATE_DATETIME
+        <if test="creatorId != null">
+            ,CREATOR_ID
+        </if>
+            ,MODIFY_DATETIME
+        <if test="modifierId != null">
+            ,MODIFIER_ID
+        </if>
+        ) VALUES (
+        	#{id}
+        	, #{serviceId}
+        	, #{type}
+	        ,now()
+	        <if test="creatorId != null">
+	            ,#{creatorId}
+	        </if>
+	        ,now()
+	        <if test="modifierId != null">
+	            ,#{modifierId}
+	        </if>
+        )
+    </insert>
+
+	<insert id="createServiceExecutionDetail" parameterType="kr.re.keti.sc.dataservicebroker.service.vo.ServiceExecutionDetailVO">
+
+        INSERT INTO DATA_SERVICE_BROKER.SERVICE_EXECUTION_DETAIL (
+        	ID
+        	, SERVICE_ID
+        	, EXECUTION_ID
+        	, NAME
+        	, TYPE
+        	, ENTITY_ID
+        	, ENTITY_TYPE
+        	, INPUT
+        	, STATUS
+            ,CREATE_DATETIME
+        <if test="creatorId != null">
+            ,CREATOR_ID
+        </if>
+            ,MODIFY_DATETIME
+        <if test="modifierId != null">
+            ,MODIFIER_ID
+        </if>
+        ) VALUES (
+        	#{id}
+        	, #{serviceId}
+        	, #{executionId}
+        	, #{name}
+        	, #{type}
+        	, #{entityId}
+        	, #{entityType}
+        	, #{input}
+        	, #{status, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.ServiceExecutionStatusTypeHandler}::VARCHAR
+	        ,now()
+	        <if test="creatorId != null">
+	            ,#{creatorId}
+	        </if>
+	        ,now()
+	        <if test="modifierId != null">
+	            ,#{modifierId}
+	        </if>
+        )
+    </insert>
+
+    <update id="updateServiceExecutionDetail" parameterType="kr.re.keti.sc.dataservicebroker.service.vo.ServiceExecutionDetailVO">
+        UPDATE DATA_SERVICE_BROKER.SERVICE_EXECUTION_DETAIL
+        SET MODIFY_DATETIME = now()
+        	,STATUS = #{status, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.ServiceExecutionStatusTypeHandler}::VARCHAR
+            <if test="modifierId != null">
+            ,#{modifierId}
+            </if>
+        WHERE 	ID = #{id}
+        AND		SERVICE_ID = #{serviceId}
+        AND		EXECUTION_ID = #{executionId}
+    </update>
+
+    <select id="retrieveServiceExecution" resultMap="serviceExecutionBase" parameterType="kr.re.keti.sc.dataservicebroker.service.vo.ServiceExecutionRetrieveVO">
+        SELECT
+        		BASE.ID AS BASE_ID,
+        		BASE.SERVICE_ID AS BASE_SERVICE_ID,
+        		BASE.TYPE AS BASE_TYPE,
+	        	BASE.CREATOR_ID AS BASE_CREATOR_ID,
+	        	BASE.CREATE_DATETIME AS BASE_CREATE_DATETIME,
+	        	BASE.MODIFIER_ID AS BASE_MODIFIER_ID,
+	        	BASE.MODIFY_DATETIME AS BASE_MODIFY_DATETIME,
+	        	DETAIL.ID AS DETAIL_ID,
+        		DETAIL.SERVICE_ID AS DETAIL_SERVICE_ID,
+        		DETAIL.EXECUTION_ID AS DETAIL_EXECUTION_ID,
+        		DETAIL.NAME AS DETAIL_NAME,
+        		DETAIL.TYPE AS DETAIL_TYPE,
+        		DETAIL.ENTITY_ID AS DETAIL_ENTITY_ID,
+        		DETAIL.ENTITY_TYPE AS DETAIL_ENTITY_TYPE,
+        		DETAIL.INPUT AS DETAIL_INPUT,
+        		DETAIL.STATUS AS DETAIL_STATUS,
+        		DETAIL.CREATOR_ID AS DETAILCREATOR_ID,
+	        	DETAIL.CREATE_DATETIME AS DETAILCREATE_DATETIME,
+	        	DETAIL.MODIFIER_ID AS DETAILMODIFIER_ID,
+	        	DETAIL.MODIFY_DATETIME AS DETAILMODIFY_DATETIME
+        FROM 
+        		DATA_SERVICE_BROKER.SERVICE_EXECUTION_BASE BASE
+        LEFT OUTER JOIN 
+        		DATA_SERVICE_BROKER.SERVICE_EXECUTION_DETAIL DETAIL
+        ON
+        		BASE.ID = DETAIL.ID
+        AND
+        		BASE.SERVICE_ID = DETAIL.SERVICE_ID
+        WHERE
+        		BASE.ID = #{id}
+    </select>
+    
+</mapper>

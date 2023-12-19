@@ -1,0 +1,594 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="datacore.dataset">
+
+    <resultMap id="dataset" type="kr.re.keti.sc.datamanager.dataset.vo.DatasetBaseVO">
+        <id property="id" column="ID"/>
+        <result property="name" column="NAME"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="updateInterval" column="UPDATE_INTERVAL"/>
+        <result property="category" column="CATEGORY"/>
+        <result property="providerOrganization" column="PROVIDER_ORGANIZATION"/>
+        <result property="providerSystem" column="PROVIDER_SYSTEM"/>
+        <result property="isProcessed" column="IS_PROCESSED"/>
+        <result property="ownership" column="OWNERSHIP"/>
+        <result property="keyword" column="KEYWORD" javaType="java.util.ArrayList" jdbcType="ARRAY"
+                typeHandler="kr.re.keti.sc.datamanager.common.datamapperhandler.ListTypeHandler"/>
+        <result property="license" column="LICENSE"/>
+        <result property="providingApiUri" column="PROVIDING_API_URI"/>
+        <result property="restrictions" column="RESTRICTIONS"/>
+        <result property="datasetExtension" column="DATASET_EXTENSION"/>
+        <result property="datasetItems" column="DATASET_ITEMS"/>
+        <result property="targetRegions" column="TARGET_REGIONS"/>
+        <result property="sourceDatasetIds" column="SOURCE_DATASET_IDS" javaType="java.util.ArrayList" jdbcType="ARRAY"
+                typeHandler="kr.re.keti.sc.datamanager.common.datamapperhandler.ListTypeHandler"/>
+        <result property="dataStoreUri" column="DATA_STORE_URI" javaType="java.util.ArrayList" jdbcType="ARRAY"
+                typeHandler="kr.re.keti.sc.datamanager.common.datamapperhandler.ListTypeHandler"/>
+        <result property="qualityCheckEnabled" column="QUALITY_CHECK_ENABLED"/>
+        <result property="dataIdentifierType" column="DATA_IDENTIFIER_TYPE"/>
+        <result property="dataModelId" column="DATAMODEL_ID"/>
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+        <result property="storageRetention" column="STORAGE_RETENTION"/>
+        <result property="topicRetention" column="TOPIC_RETENTION"/>
+        <result property="provisioningRequestId" column="PROVISIONING_ID"/>
+        <result property="provisioningEventTime" column="PROVISIONING_DATETIME"/>
+    </resultMap>
+
+
+    <insert id="createDatasetBaseVO" parameterType="kr.re.keti.sc.datamanager.dataset.vo.DatasetBaseVO">
+
+        INSERT INTO DATA_MANAGER.DATASET_BASE(
+        ID
+        <if test="name != null">
+            ,NAME
+        </if>
+        <if test="description != null">
+            ,DESCRIPTION
+        </if>
+        <if test="updateInterval != null">
+            ,UPDATE_INTERVAL
+        </if>
+        <if test="category != null">
+            ,CATEGORY
+        </if>
+        <if test="providerOrganization != null">
+            ,PROVIDER_ORGANIZATION
+        </if>
+        <if test="providerSystem != null">
+            ,PROVIDER_SYSTEM
+        </if>
+        <if test="isProcessed != null">
+            ,IS_PROCESSED
+        </if>
+        <if test="ownership != null">
+            ,OWNERSHIP
+        </if>
+        <if test="keyword != null and keyword.size!=0">
+            ,KEYWORD
+        </if>
+        <if test="license != null">
+            ,LICENSE
+        </if>
+        <if test="providingApiUri != null">
+            ,PROVIDING_API_URI
+        </if>
+        <if test="restrictions != null">
+            ,RESTRICTIONS
+        </if>
+        <if test="datasetExtension != null">
+            ,DATASET_EXTENSION
+        </if>
+        <if test="datasetItems != null">
+            ,DATASET_ITEMS
+        </if>
+        <if test="targetRegions != null">
+            ,TARGET_REGIONS
+        </if>
+        <if test="sourceDatasetIds != null and sourceDatasetIds.size!=0">
+            ,SOURCE_DATASET_IDS
+        </if>
+        <if test="dataStoreUri != null and dataStoreUri.size!=0 ">
+            ,DATA_STORE_URI
+        </if>
+        <if test="qualityCheckEnabled != null">
+            ,QUALITY_CHECK_ENABLED
+        </if>
+        <if test="dataIdentifierType != null">
+            ,DATA_IDENTIFIER_TYPE
+        </if>
+        <if test="dataModelId != null">
+            ,DATAMODEL_ID
+        </if>
+        <if test="enabled != null">
+            ,ENABLED
+        </if>
+        ,CREATE_DATETIME
+        <if test="creatorId != null">
+            ,CREATOR_ID
+        </if>
+        ,MODIFY_DATETIME
+        <if test="modifierId != null">
+            ,MODIFIER_ID
+        </if>
+        <if test="storageRetention != null">
+            ,STORAGE_RETENTION
+        </if>
+        <if test="topicRetention != null">
+            ,TOPIC_RETENTION
+        </if>
+        <if test="provisioningRequestId != null">
+           	,PROVISIONING_ID
+        </if>
+        <if test="provisioningEventTime != null">
+          	,PROVISIONING_DATETIME
+        </if>
+        )
+        VALUES (
+        #{id}
+        <if test="name != null">
+            ,#{name}
+        </if>
+        <if test="description != null">
+            ,#{description}
+        </if>
+        <if test="updateInterval != null">
+            ,#{updateInterval}
+        </if>
+        <if test="category != null">
+            ,#{category}
+        </if>
+        <if test="providerOrganization != null">
+            ,#{providerOrganization}
+        </if>
+        <if test="providerSystem != null">
+            ,#{providerSystem}
+        </if>
+        <if test="isProcessed != null">
+            ,#{isProcessed}
+        </if>
+        <if test="ownership != null">
+            ,#{ownership}
+        </if>
+        <if test="keyword != null and keyword.size!=0 ">
+            ,#{keyword, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(4)[]
+        </if>
+        <if test="license != null">
+            ,#{license}
+        </if>
+        <if test="providingApiUri != null">
+            ,#{providingApiUri}
+        </if>
+        <if test="restrictions != null">
+            ,#{restrictions}
+        </if>
+        <if test="datasetExtension != null">
+            ,#{datasetExtension}
+        </if>
+        <if test="datasetItems != null">
+            ,#{datasetItems}
+        </if>
+        <if test="targetRegions != null">
+            ,#{targetRegions}
+        </if>
+        <if test="sourceDatasetIds != null and sourceDatasetIds.size!=0 ">
+            ,#{sourceDatasetIds, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(512)[]
+        </if>
+        <if test="dataStoreUri != null and dataStoreUri.size!=0 ">
+            ,#{dataStoreUri, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(512)[]
+        </if>
+        <if test="qualityCheckEnabled != null">
+            ,#{qualityCheckEnabled}
+        </if>
+        <if test="dataIdentifierType != null">
+            ,#{dataIdentifierType}
+        </if>
+        <if test="dataModelId != null">
+            ,#{dataModelId}
+        </if>
+        <if test="enabled != null">
+            ,#{enabled}
+        </if>
+        ,now()
+        <if test="creatorId != null">
+            ,#{creatorId}
+        </if>
+        ,now()
+        <if test="modifierId != null">
+            ,#{modifierId}
+        </if>
+        <if test="storageRetention != null">
+            ,#{storageRetention}
+        </if>
+        <if test="topicRetention != null">
+            ,#{topicRetention}
+        </if>
+		<if test="provisioningRequestId != null">
+        	,#{provisioningRequestId}
+        </if>
+        <if test="provisioningEventTime != null">
+        	,#{provisioningEventTime}
+        </if>
+        )
+
+
+    </insert>
+
+
+    <update id="updateDatasetBaseVO" parameterType="kr.re.keti.sc.datamanager.dataset.vo.DatasetBaseVO">
+        UPDATE DATA_MANAGER.DATASET_BASE
+        SET  MODIFY_DATETIME = now()
+          	,NAME = #{name}
+            ,DESCRIPTION = #{description}
+            ,UPDATE_INTERVAL = #{updateInterval}
+            ,CATEGORY = #{category}
+            ,PROVIDER_ORGANIZATION = #{providerOrganization}
+            ,PROVIDER_SYSTEM = #{providerSystem}
+            ,IS_PROCESSED = #{isProcessed}
+            ,OWNERSHIP = #{ownership}
+            ,KEYWORD = #{keyword, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(4)[]
+            ,LICENSE = #{license}
+            ,PROVIDING_API_URI = #{providingApiUri}
+            ,RESTRICTIONS = #{restrictions}
+            ,DATASET_EXTENSION = #{datasetExtension}
+            ,DATASET_ITEMS = #{datasetItems}
+            ,TARGET_REGIONS = #{targetRegions}
+            ,SOURCE_DATASET_IDS = #{sourceDatasetIds, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(4)[]
+            ,DATA_STORE_URI =
+            #{dataStoreUri, typeHandler=kr.re.keti.sc.datamanager.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(4)[]
+            ,QUALITY_CHECK_ENABLED = #{qualityCheckEnabled}
+            ,DATA_IDENTIFIER_TYPE = #{dataIdentifierType}
+            ,DATAMODEL_ID = #{dataModelId}
+            ,ENABLED = #{enabled}
+            ,CREATOR_ID = #{creatorId}
+            ,MODIFIER_ID = #{modifierId}
+            ,STORAGE_RETENTION = #{storageRetention}
+            ,TOPIC_RETENTION = #{topicRetention}
+        <if test="provisioningRequestId != null">
+            ,PROVISIONING_ID = #{provisioningRequestId}
+        </if>
+        <if test="provisioningEventTime != null">
+            ,PROVISIONING_DATETIME = #{provisioningEventTime}
+        </if>
+        WHERE ID = #{id}
+    </update>
+
+	<update id="updateDatasetProvisioning" parameterType="kr.re.keti.sc.datamanager.dataset.vo.DatasetBaseVO">
+        UPDATE DATA_MANAGER.DATASET_BASE
+        SET 	PROVISIONING_ID = #{provisioningRequestId}
+        	   ,PROVISIONING_DATETIME = #{provisioningEventTime}
+        WHERE ID = #{id}
+    </update>
+
+    <select id="selectAll" resultMap="dataset"  parameterType="kr.re.keti.sc.datamanager.dataset.vo.DatasetBaseVO">
+        SELECT
+        ID,
+        NAME,
+        DESCRIPTION,
+        UPDATE_INTERVAL,
+        CATEGORY,
+        PROVIDER_ORGANIZATION,
+        PROVIDER_SYSTEM,
+        IS_PROCESSED,
+        OWNERSHIP,
+        KEYWORD,
+        LICENSE,
+        PROVIDING_API_URI,
+        RESTRICTIONS,
+        DATASET_EXTENSION,
+        DATASET_ITEMS,
+        TARGET_REGIONS,
+        SOURCE_DATASET_IDS,
+        DATA_STORE_URI,
+        QUALITY_CHECK_ENABLED,
+        DATA_IDENTIFIER_TYPE,
+        DATAMODEL_ID,
+        CREATOR_ID,
+        CREATE_DATETIME,
+        MODIFIER_ID,
+        MODIFY_DATETIME,
+        STORAGE_RETENTION,
+        TOPIC_RETENTION,
+        PROVISIONING_ID,
+        PROVISIONING_DATETIME
+        FROM DATA_MANAGER.DATASET_BASE
+        WHERE 1=1
+        <if test="name != null">
+            AND NAME = #{name}
+        </if>
+        <if test="updateInterval != null">
+            AND UPDATE_INTERVAL = #{updateInterval}
+        </if>
+        <if test="category != null">
+            AND CATEGORY = #{category}
+        </if>
+        <if test="providerOrganization != null">
+            AND PROVIDER_ORGANIZATION = #{providerOrganization}
+        </if>
+        <if test="providerSystem != null">
+            AND PROVIDER_SYSTEM = #{providerSystem}
+        </if>
+        <if test="isProcessed != null">
+            AND IS_PROCESSED = #{isProcessed}
+        </if>
+        <if test="ownership != null">
+            AND OWNERSHIP = #{ownership}
+        </if>
+        <if test="license != null">
+            AND LICENSE = #{license}
+        </if>
+        <if test="datasetItems != null">
+            AND DATASET_ITEMS = #{datasetItems}
+        </if>
+        <if test="targetRegions != null">
+            AND TARGET_REGIONS = #{targetRegions}
+        </if>
+        <if test="dataStoreUri != null and dataStoreUri.size!=0 ">
+            <foreach item="item" index="index" collection="dataStoreUri">
+                AND #{item} = any(DATA_STORE_URI)
+            </foreach>
+        </if>
+        <if test="qualityCheckEnabled != null">
+            AND QUALITY_CHECK_ENABLED = #{qualityCheckEnabled}
+        </if>
+        <if test="dataModelId != null">
+            AND DATAMODEL_ID = #{dataModelId}
+        </if>
+        <if test="storageRetention != null">
+            AND STORAGE_RETENTION = #{storageRetention}
+        </if>
+        <if test="topicRetention != null">
+            AND TOPIC_RETENTION = #{topicRetention}
+        </if>
+        <if test="!isAdminUser">
+            <choose>
+                <when test="aclDatasetIds != null and aclDatasetIds.size != 0">
+                    and ID in
+                    <foreach collection="aclDatasetIds" item="item" index="index" separator="," open="(" close=")">
+                        #{item}
+                    </foreach>
+                </when>
+            </choose>
+        </if>
+        ORDER BY ID
+        <if test="offset != null">
+            OFFSET #{offset}
+        </if>
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <select id="selectTotalCount" resultType="Integer"  parameterType="kr.re.keti.sc.datamanager.dataset.vo.DatasetBaseVO">
+        SELECT COUNT(*)
+        FROM DATA_MANAGER.DATASET_BASE
+        WHERE 1=1
+        <if test="name != null">
+            AND NAME = #{name}
+        </if>
+        <if test="updateInterval != null">
+            AND UPDATE_INTERVAL = #{updateInterval}
+        </if>
+        <if test="category != null">
+            AND CATEGORY = #{category}
+        </if>
+        <if test="providerOrganization != null">
+            AND PROVIDER_ORGANIZATION = #{providerOrganization}
+        </if>
+        <if test="providerSystem != null">
+            AND PROVIDER_SYSTEM = #{providerSystem}
+        </if>
+        <if test="isProcessed != null">
+            AND IS_PROCESSED = #{isProcessed}
+        </if>
+        <if test="ownership != null">
+            AND OWNERSHIP = #{ownership}
+        </if>
+        <if test="license != null">
+            AND LICENSE = #{license}
+        </if>
+        <if test="datasetItems != null">
+            AND DATASET_ITEMS = #{datasetItems}
+        </if>
+        <if test="targetRegions != null">
+            AND TARGET_REGIONS = #{targetRegions}
+        </if>
+        <if test="dataStoreUri != null and dataStoreUri.size!=0 ">
+            <foreach item="item" index="index" collection="dataStoreUri">
+                AND #{item} = any(DATA_STORE_URI)
+            </foreach>
+        </if>
+        <if test="qualityCheckEnabled != null">
+            AND QUALITY_CHECK_ENABLED = #{qualityCheckEnabled}
+        </if>
+        <if test="dataModelId != null">
+            AND DATAMODEL_ID = #{dataModelId}
+        </if>
+        <if test="storageRetention != null">
+            AND STORAGE_RETENTION = #{storageRetention}
+        </if>
+        <if test="topicRetention != null">
+            AND TOPIC_RETENTION = #{topicRetention}
+        </if>
+        <if test="!isAdminUser">
+            <choose>
+                <when test="aclDatasetIds != null and aclDatasetIds.size != 0">
+                    and ID in
+                    <foreach collection="aclDatasetIds" item="item" index="index" separator="," open="(" close=")">
+                        #{item}
+                    </foreach>
+                </when>
+            </choose>
+        </if>
+    </select>
+
+
+    <select id="selectById" resultMap="dataset"
+            parameterType="String">
+        SELECT ID,
+               NAME,
+               DESCRIPTION,
+               UPDATE_INTERVAL,
+               CATEGORY,
+               PROVIDER_ORGANIZATION,
+               PROVIDER_SYSTEM,
+               IS_PROCESSED,
+               OWNERSHIP,
+               KEYWORD,
+               LICENSE,
+               PROVIDING_API_URI,
+               RESTRICTIONS,
+               DATASET_EXTENSION,
+               DATASET_ITEMS,
+               TARGET_REGIONS,
+               SOURCE_DATASET_IDS,
+               DATA_STORE_URI,
+               QUALITY_CHECK_ENABLED,
+               DATA_IDENTIFIER_TYPE,
+               DATAMODEL_ID,
+               CREATOR_ID,
+               CREATE_DATETIME,
+               MODIFIER_ID,
+               MODIFY_DATETIME,
+               STORAGE_RETENTION,
+               TOPIC_RETENTION,
+               PROVISIONING_ID,
+        	   PROVISIONING_DATETIME
+        FROM DATA_MANAGER.DATASET_BASE
+        WHERE ID = #{id}
+    </select>
+
+    <!-- DataModelBaseVO로 dataset 조회   -->
+    <select id="selectEnabledDatasetByDataModelBaseVO" resultMap="dataset"
+            parameterType="kr.re.keti.sc.datamanager.datamodel.vo.DataModelBaseVO">
+        SELECT ID,
+               NAME,
+               DESCRIPTION,
+               UPDATE_INTERVAL,
+               CATEGORY,
+               PROVIDER_ORGANIZATION,
+               PROVIDER_SYSTEM,
+               IS_PROCESSED,
+               OWNERSHIP,
+               KEYWORD,
+               LICENSE,
+               PROVIDING_API_URI,
+               RESTRICTIONS,
+               DATASET_EXTENSION,
+               DATASET_ITEMS,
+               TARGET_REGIONS,
+               SOURCE_DATASET_IDS,
+               DATA_STORE_URI,
+               QUALITY_CHECK_ENABLED,
+               DATA_IDENTIFIER_TYPE,
+               DATAMODEL_ID,
+               CREATOR_ID,
+               CREATE_DATETIME,
+               MODIFIER_ID,
+               MODIFY_DATETIME,
+               STORAGE_RETENTION,
+               TOPIC_RETENTION,
+               PROVISIONING_ID,
+        	   PROVISIONING_DATETIME
+        FROM DATA_MANAGER.DATASET_BASE
+        WHERE ENABLED = true
+        AND DATAMODEL_ID = #{dataModelId}
+        LIMIT 1
+    </select>
+
+
+    <update id="deleteDatasetBaseVO" parameterType="String">
+        DELETE
+        FROM DATA_MANAGER.DATASET_BASE
+        WHERE ID = #{id}
+    </update>
+
+
+
+
+    <select id="selectAllForUI" resultMap="dataset"  parameterType="kr.re.keti.sc.datamanager.dataset.vo.DatasetBaseVO">
+        SELECT
+        ID,
+        NAME,
+        DESCRIPTION,
+        UPDATE_INTERVAL,
+        CATEGORY,
+        PROVIDER_ORGANIZATION,
+        PROVIDER_SYSTEM,
+        IS_PROCESSED,
+        OWNERSHIP,
+        KEYWORD,
+        LICENSE,
+        PROVIDING_API_URI,
+        RESTRICTIONS,
+        DATASET_EXTENSION,
+        DATASET_ITEMS,
+        TARGET_REGIONS,
+        SOURCE_DATASET_IDS,
+        DATA_STORE_URI,
+        QUALITY_CHECK_ENABLED,
+        DATA_IDENTIFIER_TYPE,
+        DATAMODEL_ID,
+        CREATOR_ID,
+        CREATE_DATETIME,
+        MODIFIER_ID,
+        MODIFY_DATETIME,
+        STORAGE_RETENTION,
+        TOPIC_RETENTION
+        FROM DATA_MANAGER.DATASET_BASE
+        WHERE 1=1
+        <if test="searchValue != null">
+            AND
+            (
+            ID LIKE '%' || #{searchValue} || '%'
+            OR  NAME LIKE '%' || #{searchValue} || '%'
+            )
+        </if>
+        <if test="!isAdminUser">
+            <choose>
+                <when test="aclDatasetIds != null and aclDatasetIds.size != 0">
+                    and ID in
+                    <foreach collection="aclDatasetIds" item="item" index="index" separator="," open="(" close=")">
+                        #{item}
+                    </foreach>
+                </when>
+            </choose>
+        </if>
+        ORDER BY ID
+        <if test="offset != null">
+            OFFSET #{offset}
+        </if>
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <select id="selectTotalCountForUI" resultType="Integer"  parameterType="kr.re.keti.sc.datamanager.dataset.vo.DatasetBaseVO">
+        SELECT COUNT(*)
+        FROM DATA_MANAGER.DATASET_BASE
+        WHERE 1=1
+        <if test="searchValue != null">
+            AND
+            (
+            ID LIKE '%' || #{searchValue} || '%'
+            OR  NAME LIKE '%' || #{searchValue} || '%'
+            )
+        </if>
+        <if test="!isAdminUser">
+            <choose>
+                <when test="aclDatasetIds != null and aclDatasetIds.size != 0">
+                    and ID in
+                    <foreach collection="aclDatasetIds" item="item" index="index" separator="," open="(" close=")">
+                        #{item}
+                    </foreach>
+                </when>
+            </choose>
+        </if>
+    </select>
+
+
+</mapper>

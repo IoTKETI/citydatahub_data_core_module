@@ -1,0 +1,238 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:6.0.0
+    tmpfs: /tmp
+    restart: always
+    ports:
+      - 2181:2181
+    environment:
+      TZ: Asia/Seoul
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  broker:
+    image: confluentinc/cp-kafka:6.0.0
+    ports:
+      - 29092:29092
+      - 9092:9092
+      # - 9101:9101
+    restart: always
+    environment:
+      TZ: Asia/Seoul
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # KAFKA_JMX_PORT: 9101
+      # KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+      JVM_OPTS: -Xmx2048m -Xms2048m
+    depends_on:
+      zookeeper:
+        condition: service_started
+
+  rest-proxy:
+    image: confluentinc/cp-kafka-rest:6.0.0
+    ports:
+      - 18082:8082
+    environment:
+      TZ: Asia/Seoul
+      KAFKA_REST_HOST_NAME: rest-proxy
+      KAFKA_REST_BOOTSTRAP_SERVERS: broker:29092
+      KAFKA_REST_LISTENERS: http://0.0.0.0:8082
+    depends_on:
+      broker:
+        condition: service_started
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+      - 1883:1883
+    volumes:
+      - ./plugins.erl:/etc/rabbitmq/enabled_plugins
+    environment:
+      TZ: Asia/Seoul
+      RABBITMQ_ERLANG_COOKIE: RabbitMQ-My-Cookies
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+
+  postgis:
+    image: kartoza/postgis:11.0-2.5
+    restart: always
+    ports:
+      - 15432:5432
+    volumes:
+      - citydatahub_datacore_db:/var/lib/postgresql/11
+      - ./setup-db.sql:/docker-entrypoint-initdb.d/0_setup-db.sql
+    environment:
+      TZ: Asia/Seoul
+      POSTGRES_PASS: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DBNAME: smart_city
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "smart_city"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  data-manager:
+    image: keti/sc/data-manager
+    restart: always
+    ports:
+      - 8080:8080
+    volumes:
+      - ./logs/data-manager:/logs
+    environment:
+      TZ: Asia/Seoul
+      KAFKA_SECURITY_YN: "N"
+      EUREKA_CLIENT_ENABLED: false
+      EUREKA_INSTANCE_HOSTNAME: 172.31.30.143
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://172.31.28.41:8888/eureka
+      REST_PROXY_URL: http://rest-proxy:8082
+      SECURITY_ACL_USEYN: "N"
+      JVM_OPTS: -Xmx2048m -Xms2048m
+    depends_on:
+      broker:
+        condition: service_started
+      rest-proxy:
+        condition: service_started
+      postgis:
+        condition: service_healthy
+
+  ingest-interface:
+    image: keti/sc/ingest-interface
+    restart: always
+    ports:
+      - 8081:8081
+      - 443:443
+    volumes:
+      - ./logs/ingest-interface:/logs
+    environment:
+      TZ: Asia/Seoul
+      KAFKA_SECURITY_YN: "N"
+      EUREKA_CLIENT_ENABLED: false
+      EUREKA_INSTANCE_HOSTNAME: 172.31.30.143
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://172.31.28.41:8888/eureka
+      SECURITY_ACL_USEYN: "N"
+      JVM_OPTS: -Xmx2048m -Xms2048m
+    depends_on:
+      broker:
+        condition: service_started
+      rest-proxy:
+        condition: service_started
+      postgis:
+        condition: service_healthy
+
+  data-service-broker:
+    image: keti/sc/data-service-broker
+    restart: always
+    ports:
+      - 8082:8082
+    volumes:
+      - ./logs/data-service-broker:/logs
+    environment:
+      TZ: Asia/Seoul
+      SERVER_TIMEZONE: "UTC"
+      KAFKA_SECURITY_YN: "N"
+      EUREKA_CLIENT_ENABLED: false
+      EUREKA_INSTANCE_HOSTNAME: 172.31.30.143
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://172.31.28.41:8888/eureka
+      SPRING_SECURITY_ENABLED: false
+      SECURITY_ACL_USEYN: "N"
+      JVM_OPTS: -Xmx2048m -Xms2048m
+    depends_on:
+      broker:
+        condition: service_started
+      rest-proxy:
+        condition: service_started
+      postgis:
+        condition: service_healthy
+
+  datacore-ui:
+    image: keti/sc/datacore-ui
+    restart: always
+    ports:
+      - 8083:8083
+    volumes:
+      - ./logs/datacore-ui:/logs
+    environment:
+      TZ: Asia/Seoul
+      SPRING_SECURITY_ENABLED: false
+      CITYHUB_CLIENT_CLIENTID: EP1CzfDHnWuzeaaZJqf9
+      CITYHUB_CLIENT_CLIENTSECRET: THm8J8VgD9lzbmUW4ZWniMfMPDRNQnIs
+      CITYHUB_CLIENT_REDIRECTURI: http://172.20.0.120:8083/accesstoken
+      CITYHUB_CLIENT_USERAUTHORIZATIONURI: http://172.20.0.164:30000/oauth2.0/authorize
+      CITYHUB_CLIENT_ACCESSTOKENURI: http://10.0.0.145:30000/oauth2.0/token
+      CITYHUB_CLIENT_PUBLICKEYURI: http://10.0.0.145:30000/security/publickey
+      CITYHUB_CLIENT_LOGOUTURI: http://10.0.0.145:30000/security/logout
+      CITYHUB_CLIENT_USERINFOURI: http://10.0.0.145:30000/security/users
+      EUREKA_CLIENT_ENABLED: false
+      EUREKA_INSTANCE_HOSTNAME: 172.31.30.143
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://172.31.28.41:8888/eureka
+      JVM_OPTS: -Xmx2048m -Xms2048m
+    depends_on:
+      broker:
+        condition: service_started
+      rest-proxy:
+        condition: service_started
+      postgis:
+        condition: service_healthy
+
+  datacore-usertool:
+    image: keti/sc/datacore-usertool
+    restart: always
+    ports:
+      - 8084:8084
+    volumes:
+      - ./logs/datacore-usertool:/logs
+    environment:
+      TZ: Asia/Seoul
+      CITYHUB_CLIENT_CLIENTID: eTqXOEY5CgIWETk37hNY
+      CITYHUB_CLIENT_CLIENTSECRET: DnUjgfZxDfuysw9qbLtHD2GQLKY45To8
+      CITYHUB_CLIENT_REDIRECTURI: http://172.20.0.120:8084/accesstoken
+      CITYHUB_CLIENT_USERAUTHORIZATIONURI: http://172.20.0.164:30000/oauth2.0/authorize
+      CITYHUB_CLIENT_ACCESSTOKENURI: http://10.0.0.145:30000/oauth2.0/token
+      CITYHUB_CLIENT_PUBLICKEYURI: http://10.0.0.145:30000/security/publickey
+      CITYHUB_CLIENT_LOGOUTURI: http://10.0.0.145:30000/security/logout
+      CITYHUB_CLIENT_USERINFOURI: http://10.0.0.145:30000/security/users
+      GOOGLE_API_KEY: XXXXXXXXXXXXXXXXXXX-XXX_XXXXXXXXXXXXXXX
+      JVM_OPTS: -Xmx2048m -Xms2048m
+    depends_on:
+      broker:
+        condition: service_started
+      rest-proxy:
+        condition: service_started
+      postgis:
+        condition: service_healthy
+
+  push-agent:
+    image: keti/sc/push-agent
+    restart: always
+    volumes:
+      - ./logs/push-agent:/logs
+    environment:
+      TZ: Asia/Seoul
+      KAFKA_SECURITY_YN: "N"
+      JVM_OPTS: -Xmx2048m -Xms2048m
+    depends_on:
+      broker:
+        condition: service_started
+      rest-proxy:
+        condition: service_started
+      postgis:
+        condition: service_healthy
+
+volumes:
+  citydatahub_datacore_db:
+
+networks:
+  default:
+    name: citydatahub-datacore
+    external: true

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="datacoreusertool.widgetdashboard">
+
+    <resultMap id="widget" type="kr.re.keti.sc.datacoreusertool.api.widgetdashboard.vo.WidgetDashboardVO">
+        <result property="widgetId" column="WIDGET_ID"/>
+		<result property="userId" column="USER_ID"/>
+		<result property="dashboardId" column="DASHBOARD_ID"/>
+		<result property="chartType" column="CHART_TYPE"/>
+		<result property="chartOrder" column="CHART_ORDER"/>
+		<result property="chartSize" column="CHART_SIZE"/>
+		<result property="dataType" column="DATA_TYPE"/>
+		<result property="chartTitle" column="CHART_TITLE"/>
+		<result property="chartXName" column="CHART_X_NAME"/>
+		<result property="chartYName" column="CHART_Y_NAME"/>
+		<result property="yAxisRange" column="Y_AXIS_RANGE"/>
+		<result property="updateInterval" column="UPDATE_INTERVAL"/>
+		<result property="realtimeUpdateEnabled" column="REALTIME_UPDATE_ENABLED"/>
+		<result property="chartAttribute" column="CHART_ATTRIBUTE"/>
+		<result property="searchCondition" column="SEARCH_CONDITION"/>
+		<result property="mapSearchConditionId" column="MAP_SEARCH_CONDITION_ID"/>
+		<result property="file" column="FILE"/>
+		<result property="extention1" column="EXTENTION1"/>
+		<result property="extention2" column="EXTENTION2"/>
+		<result property="createDatetime" column="CREATE_DATETIME"/>
+		<result property="modifyDatetime" column="MODIFY_DATETIME"/>
+    </resultMap>
+    
+    <resultMap id="dashboard" type="kr.re.keti.sc.datacoreusertool.api.widgetdashboard.vo.WidgetDashboardBaseVO">
+        <result property="dashboardId" column="DASHBOARD_ID"/>
+		<result property="userId" column="USER_ID"/>
+		<result property="dashboardName" column="DASHBOARD_NAME"/>
+		<result property="createDatetime" column="CREATE_DATETIME"/>
+		<result property="modifyDatetime" column="MODIFY_DATETIME"/>
+    </resultMap>
+    
+    
+    <insert id="createWidget" parameterType="kr.re.keti.sc.datacoreusertool.api.widgetdashboard.vo.WidgetDashboardVO">
+		INSERT INTO datacore_usertool.WIDGET_CHART_BASE (
+			WIDGET_ID
+			, USER_ID
+			, DASHBOARD_ID
+			, CHART_TYPE
+			, CHART_ORDER
+			, CHART_SIZE
+			, DATA_TYPE
+			, CHART_TITLE
+			, CHART_X_NAME
+			, CHART_Y_NAME
+			, Y_AXIS_RANGE
+			, UPDATE_INTERVAL
+			, REALTIME_UPDATE_ENABLED
+			, CHART_ATTRIBUTE
+			, SEARCH_CONDITION
+			, MAP_SEARCH_CONDITION_ID
+			, FILE
+			, EXTENTION1
+			, EXTENTION2
+			, CREATE_DATETIME
+		) VALUES (
+			#{widgetId}
+			, #{userId}
+			, #{dashboardId}
+			, #{chartType}
+			, #{chartOrder}
+			, #{chartSize}
+			, #{dataType}
+			, #{chartTitle}
+			, #{chartXName}
+			, #{chartYName}
+			, #{yAxisRange}
+			, #{updateInterval}
+			, #{realtimeUpdateEnabled}
+			, #{chartAttribute}
+			, #{searchCondition}
+			, #{mapSearchConditionId}
+			, #{file}
+			, #{extention1}
+			, #{extention2}
+			, now()
+		)
+	</insert>
+    
+    <update id="updateWidget" parameterType="kr.re.keti.sc.datacoreusertool.api.widgetdashboard.vo.WidgetDashboardVO">
+		UPDATE datacore_usertool.WIDGET_CHART_BASE
+		SET MODIFY_DATETIME = now()
+		<if test="chartType != null">
+			,CHART_TYPE = #{chartType}
+		</if>
+		<if test="chartOrder != null">
+			,CHART_ORDER = #{chartOrder}
+		</if>
+		<if test="chartSize != null">
+			,CHART_SIZE = #{chartSize}
+		</if>
+		<if test="dataType != null">
+			,DATA_TYPE = #{dataType}
+		</if>
+		<if test="chartTitle != null">
+			,CHART_TITLE = #{chartTitle}
+		</if>
+		<if test="chartXName != null">
+			,CHART_X_NAME = #{chartXName}
+		</if>
+		<if test="chartYName != null">
+			,CHART_Y_NAME = #{chartYName}
+		</if>
+		<if test="yAxisRange != null">
+			,Y_AXIS_RANGE = #{yAxisRange}
+		</if>
+		<if test="updateInterval != null">
+			,UPDATE_INTERVAL = #{updateInterval}
+		</if>
+		<if test="realtimeUpdateEnabled != null">
+			,REALTIME_UPDATE_ENABLED = #{realtimeUpdateEnabled}
+		</if>
+		<if test="chartAttribute != null">
+			,CHART_ATTRIBUTE = #{chartAttribute}
+		</if>
+		<if test="searchCondition != null">
+			,SEARCH_CONDITION = #{searchCondition}
+		</if>
+		<if test="mapSearchConditionId != null">
+			,MAP_SEARCH_CONDITION_ID = #{mapSearchConditionId}
+		</if>
+		<if test="file != null">
+			,FILE = #{file}
+		</if>
+			,EXTENTION1 = #{extention1}
+			,EXTENTION2 = #{extention2}
+		WHERE
+			WIDGET_ID = #{widgetId}
+			AND USER_ID = #{userId}
+			AND DASHBOARD_ID = #{dashboardId}
+	</update>
+	
+	<update id="updateWidgetLayout" parameterType="kr.re.keti.sc.datacoreusertool.api.widgetdashboard.vo.WidgetDashboardVO">
+		UPDATE datacore_usertool.WIDGET_CHART_BASE
+		SET MODIFY_DATETIME = now()
+		<if test="chartOrder != null">
+			,CHART_ORDER = #{chartOrder}
+		</if>
+		<if test="chartSize != null">
+			,CHART_SIZE = #{chartSize}
+		</if>
+		WHERE
+			WIDGET_ID = #{widgetId}
+			AND USER_ID = #{userId}
+			AND DASHBOARD_ID = #{dashboardId}
+	</update>
+    
+    <delete id="deleteWidget" parameterType="kr.re.keti.sc.datacoreusertool.api.widgetdashboard.vo.WidgetDashboardVO">
+    	DELETE FROM datacore_usertool.WIDGET_CHART_BASE
+    	WHERE
+			WIDGET_ID = #{widgetId}
+			AND USER_ID = #{userId}
+			AND DASHBOARD_ID = #{dashboardId}
+    </delete>
+    
+    <select id="selectAllWidget" parameterType="kr.re.keti.sc.datacoreusertool.api.widgetdashboard.vo.WidgetDashboardVO" resultMap="widget">
+    	SELECT *
+    	FROM datacore_usertool.WIDGET_CHART_BASE
+    	WHERE 
+    		USER_ID = #{userId}
+    		AND DASHBOARD_ID = #{dashboardId}
+    </select>
+    
+    <select id="selectWidget" parameterType="kr.re.keti.sc.datacoreusertool.api.widgetdashboard.vo.WidgetDashboardVO" resultMap="widget">
+    	SELECT *
+    	FROM datacore_usertool.WIDGET_CHART_BASE
+    	WHERE
+    		WIDGET_ID = #{widgetId}
+			AND USER_ID = #{userId}
+			AND DASHBOARD_ID = #{dashboardId}
+    </select>
+    
+    <insert id="createDashboard" parameterType="kr.re.keti.sc.datacoreusertool.api.widgetdashboard.vo.WidgetDashboardBaseVO">
+		INSERT INTO datacore_usertool.DASHBOARD_BASE (
+			DASHBOARD_ID
+			, USER_ID
+			, DASHBOARD_NAME
+			, CREATE_DATETIME
+		) VALUES (
+			#{dashboardId}
+			, #{userId}
+			, #{dashboardName}
+			, now()
+		)
+	</insert>
+	
+	<update id="updateDashboard" parameterType="kr.re.keti.sc.datacoreusertool.api.widgetdashboard.vo.WidgetDashboardBaseVO">
+		UPDATE datacore_usertool.DASHBOARD_BASE
+		SET MODIFY_DATETIME = now()
+		<if test="dashboardName != null">
+			,DASHBOARD_NAME = #{dashboardName}
+		</if>
+		WHERE
+			DASHBOARD_ID = #{dashboardId}
+			AND USER_ID = #{userId}
+	</update>
+	
+	<delete id="deleteDashboard" parameterType="kr.re.keti.sc.datacoreusertool.api.widgetdashboard.vo.WidgetDashboardBaseVO">
+    	DELETE FROM datacore_usertool.DASHBOARD_BASE
+    	WHERE
+			DASHBOARD_ID = #{dashboardId}
+			AND USER_ID = #{userId}
+    </delete>
+    
+    <select id="selectDashboards" parameterType="String" resultMap="dashboard">
+    	SELECT *
+    	FROM datacore_usertool.DASHBOARD_BASE
+    	WHERE USER_ID = #{userId}
+    </select>
+</mapper>

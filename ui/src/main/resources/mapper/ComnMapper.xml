@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="common">
+    <!-- [paging] Header  -->
+    <sql id="pagingHeaderSql">
+  			SELECT (CASE 
+                      	WHEN (TOTAL_COUNT%#{pageSize}) = 0 THEN TOTAL_COUNT/#{pageSize}
+                       	ELSE TOTAL_COUNT/#{pageSize} + 1
+                     	END) MAX_VIEW_PAGE
+   			       ,#{pageSize} PAGE_SIZE 
+   			       ,#{currentPage} CURRENT_PAGE  
+   			       ,Y.*
+      			  FROM (             
+             			SELECT (CASE 
+                       			WHEN (#{pageSize} * (#{currentPage} - 1) + 1) &gt; TOTAL_COUNT THEN 1
+                       			ELSE (#{pageSize} * (#{currentPage} - 1) + 1) 
+                     			END) START_NUM                
+                    		   ,(CASE
+                       			WHEN (#{currentPage} * #{pageSize}) &gt; TOTAL_COUNT THEN TOTAL_COUNT
+                       			ELSE (#{currentPage} * #{pageSize})
+                     			END) END_NUMBER            
+                    		   , X.*
+             			  FROM (SELECT COUNT (*) OVER () TOTAL_COUNT, Z.*
+                    			  FROM (
+    </sql>
+    
+    <!-- [paging] Footer  -->
+    <sql id="pagingFooterSql">
+ 		                      		    ) Z
+ 		                      		    LIMIT #{pageSize}
+               	   						OFFSET (#{currentPage} - 1) * #{pageSize}
+                   		   ) X    
+               	   ) Y
+    </sql>
+    
+</mapper>

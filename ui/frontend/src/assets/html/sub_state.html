@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>타이틀 | Smart City Hub 관리자 페이지</title>
+  <link rel="stylesheet" href="../css/jquery-ui.css">
+  <link rel="stylesheet" href="../css/sub.css">
+</head>
+<body>
+  <!-- wrap -->
+  <div class="wrap">
+    <!-- aside -->
+    <div class="aside">
+      <div class="aside__header">
+        <h1 class="aside__logo"><a href="#none"><span class="hidden">Smart City Hub</span></a></h1>
+      </div>
+      <div class="aside__content">
+        <h2 class="hidden">주메뉴</h2>
+        <div class="aside__user">
+          <p class="aside__user-message"><strong class="aside__user-message--strong">이경종님</strong> 진심으로 환영합니다.</p>
+        </div>
+        <!-- nav -->
+        <nav class="nav"> 
+          <ul>
+            <li class="nav__depth1 material-icons"><a class="nav__link" href="#none">메뉴관리</a></li>
+            <li class="nav__depth1 material-icons"><a class="nav__link" href="#none">권한관리</a></li>
+            <li class="nav__depth1 material-icons"><a class="nav__link" href="#none">코드관리</a></li>
+            <li class="nav__depth1 material-icons">
+              <button class="nav__link nav__button" type="button">사용자관리</button>
+              <ul class="nav__depth2">
+                <li class="nav__item"><a class="nav__link" href="#none">일반사용자</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">관리자</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">운영자</a></li>
+              </ul>
+            </li>
+            <li class="nav__depth1 material-icons"><a class="nav__link" href="#none">업체관리</a></li>
+            <li class="nav__depth1 material-icons">
+              <button class="nav__link nav__button" type="button">게시판관리</button>
+              <ul class="nav__depth2">
+                <li class="nav__item"><a class="nav__link" href="#none">게시판 관리</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">게시글 관리</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">공지사항 관리</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">Q&A 관리</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">AQ 관리</a></li>
+              </ul>
+            </li>
+            <li class="nav__depth1 material-icons"><a class="nav__link" href="#none">카테고리관리</a></li>
+            <li class="nav__depth1 material-icons"><a class="nav__link" href="#none">프로그램관리</a></li>
+            <li class="nav__depth1 material-icons">
+              <button class="nav__link nav__button" type="button">현황관리</button>
+              <ul class="nav__depth2">
+                <li class="nav__item"><a class="nav__link" href="#none">데이터 활용 현황</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">데이터 적재 현황</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">카테고리별 데이터 활용 현황</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">제공자별 데이터 활용 현황</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">데이터 허브 방문 현황</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">데이터 제공 성공 현황</a></li>
+              </ul>
+            </li>
+            <li class="nav__depth1 material-icons">
+              <button class="nav__link nav__button" type="button">데이터관리</button>
+              <ul class="nav__depth2">
+                <li class="nav__item"><a class="nav__link" href="#none">품질관리</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">승인관리</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">데이터관리</a></li>
+              </ul>
+            </li>
+            <li class="nav__depth1 material-icons">
+              <button class="nav__link nav__button" type="button">로그관리</button>
+              <ul class="nav__depth2">
+                <li class="nav__item"><a class="nav__link" href="#none">Thread 상태 모니터링</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">Event Topic 모니터링</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">에러 로그 모니터링</a></li>
+              </ul>
+            </li>
+            <li class="nav__depth1 material-icons">
+              <button class="nav__link nav__button" type="button">Plug-in 관리</button>
+              <ul class="nav__depth2">
+                <li class="nav__item"><a class="nav__link" href="#none">마켓 기능</a></li>
+                <li class="nav__item"><a class="nav__link" href="#none">결제 기능</a></li>
+              </ul>
+            </li>
+          </ul>
+        </nav>
+        <!-- //nav -->
+      </div>
+    </div>
+    <!-- //aside -->
+    <hr>
+    <!-- main -->
+    <main class="main">
+      <h2 class="hidden">본문</h2>
+      <header class="header">
+        <div class="header__util">
+          <button class="button__nav--toggle" type="button"><i class="nav__icon"><span class="hidden">주메뉴 확장/축소 하기</span></i></button>
+          <span class="header__user">이경종님</span>
+        </div>
+        <div class="breadcrumb">
+          <a class="breadcrumb__list--home" href="#none"><span class="hidden">Home</span></a><span class="breadcrumb__list">뎁스 1</span><span class="breadcrumb__list--current">뎁스 2</span>
+        </div>
+      </header>
+      <div class="content">
+        <h3 class="content__title">타이틀</h3>
+
+        <form>
+          <fieldset>
+            <legend>필드셋 제목</legend>
+            <section class="section">
+              <div class="section__header">
+                <h4 class="section__title">서브 타이틀</h4>
+              </div>
+              <div class="section__content">
+                <table class="table--row">
+                  <caption>테이블 제목</caption>
+                  <colgroup>
+                    <col style="width:150px">
+                    <col style="width:auto">
+                    <col style="width:150px">
+                    <col style="width:auto">
+                  </colgroup>
+                  <tbody>
+                    <tr>
+                      <th>제목</th>
+                      <td colspan="3">
+                        <input class="input__text" type="text" placeholder="검색어를 입력하세요.">
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>제목</th>
+                      <td>
+                        <select class="select">
+                          <option value="">제목</option>
+                        </select><input class="input__text" type="text" placeholder="검색어를 입력하세요.">
+                      </td>
+                      <th>기간</th>
+                      <td>
+                        <div class="picker__group">
+                          <label class="label__picker"><input class="input__picker" id="datepicker1" type="text"></label><span class="picker__period">~</span><label class="label__picker"><input class="input__picker" id="datepicker2" type="text"></label>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>제목</th>
+                      <td colspan="3">
+                        <select class="select select--full">
+                          <option value="">선택</option>
+                        </select>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="button__group">
+                <button class="button__primary" type="button">검색</button>
+              </div>
+            </section>
+          </fieldset>
+        </form>
+
+        <section class="section">
+          <div class="section__header">
+            <h4 class="section__title">서브 타이틀</h4>
+          </div>
+          <div class="section__content" style="text-align:center;padding:10px">
+            <img src="../img/dummy/dummy_chart.png" alt="더미 차트">
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section__header">
+            <h4 class="section__title">서브 타이틀</h4>
+          </div>
+          <div class="section__content">
+            <table class="table--column">
+              <caption></caption>
+              <colgroup>
+                <col style="width:auto">
+                <col style="width:auto">
+                <col style="width:auto">
+                <col style="width:60px">
+                <col style="width:60px">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>제목</th>
+                  <th>제목</th>
+                  <th>제목</th>
+                  <th>제목</th>
+                  <th>제목</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>내용</td>
+                  <td>내용</td>
+                  <td>내용</td>
+                  <td>O</td>
+                  <td><i class="icon__file"><span class="hidden">첨부 파일</span></i></td>
+                </tr>
+                <tr>
+                  <td>내용</td>
+                  <td>내용</td>
+                  <td>내용</td>
+                  <td>X</td>
+                  <td><i class="icon__file"><span class="hidden">첨부 파일</span></i></td>
+                </tr>
+                <tr>
+                  <td>내용</td>
+                  <td>내용</td>
+                  <td>내용</td>
+                  <td>X</td>
+                  <td><i class="icon__file"><span class="hidden">첨부 파일</span></i></td>
+                </tr>
+                <tr>
+                  <td>내용</td>
+                  <td>내용</td>
+                  <td>내용</td>
+                  <td>X</td>
+                  <td><i class="icon__file"><span class="hidden">첨부 파일</span></i></td>
+                </tr>
+                <tr>
+                  <td>내용</td>
+                  <td>내용</td>
+                  <td>내용</td>
+                  <td>X</td>
+                  <td><i class="icon__file"><span class="hidden">첨부 파일</span></i></td>
+                </tr>
+              </tbody>
+            </table>
+            <nav class="pagination">
+              <ul class="pagination__list">
+                <li class="pagination__item"><a class="pagination__link pagination__link--first" href="#none"><span class="hidden">처음으로</span></a></li>
+                <li class="pagination__item"><a class="pagination__link pagination__link--prev" href="#none"><span class="hidden">이전</span></a></li>
+                <li class="pagination__item"><a class="pagination__link pagination__link--active" href="#none">1</a></li>
+                <li class="pagination__item"><a class="pagination__link" href="#none">2</a></li>
+                <li class="pagination__item"><a class="pagination__link" href="#none">3</a></li>
+                <li class="pagination__item"><a class="pagination__link" href="#none">4</a></li>
+                <li class="pagination__item"><a class="pagination__link" href="#none">5</a></li>
+                <li class="pagination__item"><a class="pagination__link pagination__link--next" href="#none"><span class="hidden">다음</span></a></li>
+                <li class="pagination__item"><a class="pagination__link pagination__link--last" href="#none"><span class="hidden">마지막으로</span></a></li>
+              </ul>
+            </nav>
+            <p class="text__total">총 21건</p>
+          </div>
+        </section>
+        <div class="button__group">
+          <button class="button__primary" type="button">등록</button>
+        </div>
+        
+        <footer class="footer"><span class="footer__copyright">Copyright © 2019 N2M co.,Ltd All right reserved</span></footer>
+      </div>
+    </main>
+    <!-- //main -->
+  </div>
+  <!-- //wrap -->
+  <hr>
+  <!-- modal -->
+  <div id="modal_1" class="modal">
+    <div class="modal__wrap">
+      <div class="modal__content w-1000">
+        <div class="modal__header">
+          <h4 class="modal__title">모달 타이틀</h4>
+          <button class="button__modal--close" type="button"><span class="hidden">모달 닫기</span></button>
+        </div>
+        <div class="modal__body">
+          <div class="section">
+            <div class="section__content">
+              <table class="table--column table--view">
+                <caption>테이블 제목</caption>
+                <colgroup>
+                  <col style="width:auto">
+                  <col style="width:auto">
+                  <col style="width:auto">
+                  <col style="width:auto">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>제목</th>
+                    <th>제목</th>
+                    <th>제목</th>
+                    <th>제목</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1.1.6.5</td>
+                    <td>공지사항관리</td>
+                    <td>OPR002</td>
+                    <td>boardmessage/list.do</td>
+                  </tr>
+                  <tr>
+                    <td>1.1.6.5</td>
+                    <td>공지사항관리</td>
+                    <td>OPR002</td>
+                    <td>boardmessage/list.do</td>
+                  </tr>
+                  <tr>
+                    <td>1.1.6.5</td>
+                    <td>공지사항관리</td>
+                    <td>OPR002</td>
+                    <td>boardmessage/list.do</td>
+                  </tr>
+                  <tr>
+                    <td>1.1.6.5</td>
+                    <td>공지사항관리</td>
+                    <td>OPR002</td>
+                    <td>boardmessage/list.do</td>
+                  </tr>
+                  <tr>
+                    <td>1.1.6.5</td>
+                    <td>공지사항관리</td>
+                    <td>OPR002</td>
+                    <td>boardmessage/list.do</td>
+                  </tr>
+                  <tr>
+                    <td>1.1.6.5</td>
+                    <td>공지사항관리</td>
+                    <td>OPR002</td>
+                    <td>boardmessage/list.do</td>
+                  </tr>                                              
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="modal__footer">
+          <button class="button__primary" type="button">검색</button><button class="button__secondary" type="button">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="modal_2" class="modal">
+    <div class="modal__wrap">
+      <div class="modal__content">
+        <div class="modal__header">
+          <h4 class="modal__title">모달 타이틀</h4>
+          <button class="button__modal--close" type="button"><span class="hidden">모달 닫기</span></button>
+        </div>
+        <div class="modal__body">
+          <div class="section">
+            <div class="section__content">
+              <table class="table--column table--view">
+                <caption>테이블 제목</caption>
+                <colgroup>
+                  <col style="width:auto">
+                  <col style="width:auto">
+                  <col style="width:auto">
+                  <col style="width:auto">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>제목</th>
+                    <th>제목</th>
+                    <th>제목</th>
+                    <th>제목</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1.1.6.5</td>
+                    <td>공지사항관리</td>
+                    <td>OPR002</td>
+                    <td>boardmessage/list.do</td>
+                  </tr>
+                  <tr>
+                    <td>1.1.6.5</td>
+                    <td>공지사항관리</td>
+                    <td>OPR002</td>
+                    <td>boardmessage/list.do</td>
+                  </tr>
+                  <tr>
+                    <td>1.1.6.5</td>
+                    <td>공지사항관리</td>
+                    <td>OPR002</td>
+                    <td>boardmessage/list.do</td>
+                  </tr>
+                  <tr>
+                    <td>1.1.6.5</td>
+                    <td>공지사항관리</td>
+                    <td>OPR002</td>
+                    <td>boardmessage/list.do</td>
+                  </tr>
+                  <tr>
+                    <td>1.1.6.5</td>
+                    <td>공지사항관리</td>
+                    <td>OPR002</td>
+                    <td>boardmessage/list.do</td>
+                  </tr>
+                  <tr>
+                    <td>1.1.6.5</td>
+                    <td>공지사항관리</td>
+                    <td>OPR002</td>
+                    <td>boardmessage/list.do</td>
+                  </tr>                                              
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="modal__footer">
+          <button class="button__primary" type="button">검색</button><button class="button__secondary" type="button">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- //modal -->
+
+  <!-- script -->
+  <script src="../js/jquery-3.4.1.min.js"></script>
+  <script src="../js/jquery-ui.min.js"></script>
+  <script src="../js/common-ui.js"></script>
+  <script>
+    (function(){
+      // common-ui
+      showModal();
+      showNav();
+      showMenu();
+      uploadFile(); 
+      setInputNumber();
+
+      // datepicker
+      $("#datepicker1, #datepicker2, #datepicker3, #datepicker4, #datepicker5, #datepicker6").datepicker();
+    })();
+  </script>
+  <!-- //script -->
+</body>
+</html>

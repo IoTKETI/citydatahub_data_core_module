@@ -1,0 +1,80 @@
+spring:
+  application:
+    name: DH-DATACORE-USERTOOL
+
+  thymeleaf:
+    prefix: classpath:/static/
+    cache: false
+
+  security:
+    enabled: false
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: 8084
+  servlet:
+    context-path: /
+    session.timeout: 60m
+  timezone: Asia/Seoul
+
+## Logging 설정
+logging.config: classpath:logback-spring.xml
+logging.base.dir: logs
+
+# Language (en: English, ko: Korean)
+language.code: ko
+
+# DB연결 정보
+datasource:
+  driverClassName: org.postgresql.Driver
+  url: jdbc:postgresql://postgis:5432/smart_city
+  username: postgres
+  password: postgres
+
+  secondary:
+    use.yn: Y
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://postgis:5432/smart_city
+    username: postgres
+    password: postgres
+
+datacoreusertool:
+  url: http://localhost:8084/notification
+  widget.url: http://localhost:8084/widgetnotification
+
+dataservicebroker:
+  url: http://data-service-broker:8082
+
+datamanager:
+  url: http://data-manager:8080
+
+cityhub:
+  client:
+    clientId: security-user-client-id-value
+    clientSecret: security-user-secret-value
+    accessTokenUri: http://security-user-backend.local:30084/oauth2.0/token
+    userAuthorizationUri: http://security-user-backend.local:30084/oauth2.0/authorize
+    publicKeyUri: http://security-user-backend.local:30084/security/publickey
+    logoutUri: http://security-user-backend.local:30084/security/logout
+    userInfoUri: http://security-user-backend.local:30084/security/users
+    redirectUri: http://usertool-backend.local:8084/accesstoken
+
+http.pool:
+  max.total: 200
+  defaultMaxPerRoute: 100
+  connection.timeout: 5000
+  connection.request.timeout: 5000
+  read.timeout: 10000
+  validate.after.inactivity: 2000
+
+entity.history:
+  limit: 1000
+  days: 3
+
+chart.time.format: yyyy-MM-dd HH:mm:ss
+
+google.api.key:

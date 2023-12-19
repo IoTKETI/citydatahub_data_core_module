@@ -1,0 +1,103 @@
+spring:
+  application:
+    name: DH-DATACORE-DATA-MANAGER
+
+server:
+  port: 8080
+  timezone: Asia/Seoul
+
+# Logging 설정
+logging.config: classpath:logback-spring.xml
+logging.base.dir: logs
+
+# DB연결 정보
+datasource:
+  driverClassName: org.postgresql.Driver
+  url: jdbc:postgresql://postgis:5432/smart_city
+  username: postgres
+  password: postgres
+
+  secondary:
+    use.yn: Y
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://postgis:5432/smart_city
+    username: postgres
+    password: postgres
+
+# 카프카 설정
+kafka:
+  url: broker:29092
+  message.version: 1.0
+  security.yn: N
+  security.protocol: SASL_PLAINTEXT
+  sasl.mechanism: PLAIN
+  username: test
+  password: test
+
+  # 카프카 프로듀서 설정
+  producer:
+    threadcount: 1
+    client.id: ingestSuccessEventFull
+    acks.config: 1
+
+  topic:
+    change.event:
+      datamodel: CHANGE_EVENT_DATA_MODEL
+      dataset: CHANGE_EVENT_DATA_SET
+      acl-rule: CHANGE_EVENT_ACL_RULE
+
+# HTTP retrieve 설정
+datacore:
+  http:
+    binding:
+      response:
+        log.yn: Y
+      cause:
+        msg:
+          trace:
+            key: x-detail-error-key
+            value: BBBBB
+          level: 3
+
+# 유레카 설정
+eureka:
+  instance:
+    prefer-ip-address: false
+    hostname: my-external-ip-address-or-name
+
+
+  client:
+    enabled: false
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka-server-1.local:8888/eureka, http://eureka-server-2.local:8888/eureka, http://eureka-server-3.local:8888/eureka
+
+http.pool:
+  max.total: 200
+  defaultMaxPerRoute: 100
+  connection.timeout: 5000
+  connection.request.timeout: 5000
+  read.timeout: 10000
+  validate.after.inactivity: 2000
+
+rest:
+  proxy:
+    url: http://rest-proxy:8082
+    partitions:
+      count: 1
+    replication:
+      factor: 1
+
+# 스프링 시큐리티 적용 여부
+# 접근제어
+security:
+  acl:
+    useYn: Y
+
+  publicKey: -----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx4AkUiGyxa7sizeGLFFw\n5lveLj44y1eOSpYqR/EyEtJ4h+3oGlhq/X64lAOxD4Bnca5ONZmHaxF2gUX9yUkD\n9kEMDlF2YHWDNLayN6GDnrDgBYS/q6jsW78+0T8TQ6sjnltpzMlbPATJbHmyup8y\nofhZIBc59wNyRjxGa98I9okvrZERrdF8gh7WDQ15sp6rB0tr+tYVv+klzabtjCgT\nDrAqaT/BNeUDmjSPLtXbt75nbPmVZDzd48rWSNVbUZesE/EETh/lEFZ6ck/VHf7w\nV6GwOhkL8KM6oEE8wW0loXl4HrSAhynEYqBz4QMBaY9sk2Os7DMKnF+P1stoFU7n\nTwIDAQAB\n-----END PUBLIC KEY-----
+
+  headers:
+    admin:
+      key: x-user-role
+      value: ADMIN

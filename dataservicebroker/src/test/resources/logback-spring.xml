@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds">
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+
+    <springProfile name="default | test">
+        <property resource="application-test.yml" />
+    </springProfile>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %p [%t] %logger{39} : %m%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logging.base.dir}/data-service-broker.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %p [%t] %logger{39} : %m%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logging.base.dir}/data-service-broker.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>200MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>50GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+    <appender name="ERROR_FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logging.base.dir}/error/data-service-broker_error.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %p [%t] %logger{39} : %m%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logging.base.dir}/error/data-service-broker_error.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>200MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>50GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="ASYNC_FILE_APPENDER" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="FILE_APPENDER" />
+    </appender>
+    <appender name="ASYNC_ERROR_FILE_APPENDER" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="ERROR_FILE_APPENDER" />
+    </appender>
+
+    <springProfile name="default | test">
+        <logger name="com.re.keti.sc" level="DEBUG" />
+        <logger name="kafkaRequestErrorLogger" level="INFO">
+            <appender-ref ref="ASYNC_ERROR_FILE_APPENDER" />
+        </logger>
+        <root level="INFO">
+            <appender-ref ref="ASYNC_FILE_APPENDER" />
+            <appender-ref ref="CONSOLE" />
+        </root>
+    </springProfile>
+
+</configuration>

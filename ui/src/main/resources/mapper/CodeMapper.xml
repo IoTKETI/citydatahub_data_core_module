@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="datacoreui.code">
+
+    <resultMap id="codeGroup" type="kr.re.keti.sc.datacoreui.api.code.vo.CodeGroupBaseVO">
+        <result property="codeGroupId" column="CODE_GROUP_ID"/>
+        <result property="codeGroupName" column="CODE_GROUP_NAME"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="enabled" column="ENABLED"/>
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+    </resultMap>
+    
+    <resultMap id="codeGroupList" type="kr.re.keti.sc.datacoreui.api.code.vo.CodeGroupVO">
+    	<result property="totalCnt" column="TOTAL_COUNT"/>
+        <result property="codeGroupId" column="CODE_GROUP_ID"/>
+        <result property="codeGroupName" column="CODE_GROUP_NAME"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="enabled" column="ENABLED"/>
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+    </resultMap>
+    
+    <resultMap id="code" type="kr.re.keti.sc.datacoreui.api.code.vo.CodeBaseVO">
+        <result property="codeGroupId" column="CODE_GROUP_ID"/>
+        <result property="codeId" column="CODE_ID"/>
+        <result property="langCd" column="LANG_CD"/>
+        <result property="codeName" column="CODE_NAME"/>
+        <result property="sortOrder" column="SORT_ORDER"/>
+        <result property="enabled" column="ENABLED"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+    </resultMap>
+    
+    <resultMap id="codeList" type="kr.re.keti.sc.datacoreui.api.code.vo.CodeVO">
+    	<result property="totalCnt" column="TOTAL_COUNT"/>
+        <result property="codeGroupId" column="CODE_GROUP_ID"/>
+        <result property="codeId" column="CODE_ID"/>
+        <result property="langCd" column="LANG_CD"/>
+        <result property="codeName" column="CODE_NAME"/>
+        <result property="sortOrder" column="SORT_ORDER"/>
+        <result property="enabled" column="ENABLED"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+    </resultMap>
+    
+    
+    <insert id="createCodeGroup" parameterType="kr.re.keti.sc.datacoreui.api.code.vo.CodeGroupBaseVO">
+		INSERT INTO datacore_ui.CODE_GROUP_BASE  (
+			CODE_GROUP_ID
+			,CODE_GROUP_NAME
+			<if test="description != null">
+				,DESCRIPTION
+			</if>
+			,ENABLED
+			,CREATE_DATETIME
+			<if test="creatorId != null">
+				,CREATOR_ID
+			</if>
+		) VALUES (
+			#{codeGroupId}
+			,#{codeGroupName}
+			<if test="description != null">
+				,#{description}
+			</if>
+			,#{enabled}
+			,now()
+			<if test="creatorId != null">
+				,#{creatorId}
+			</if>
+		)
+	</insert>
+    
+    <update id="updateCodeGroup" parameterType="kr.re.keti.sc.datacoreui.api.code.vo.CodeGroupBaseVO">
+		UPDATE  datacore_ui.CODE_GROUP_BASE
+		SET MODIFY_DATETIME = now()
+		<if test="codeGroupName != null">
+			,CODE_GROUP_NAME = #{codeGroupName}
+		</if>
+		<if test="description != null">
+			,DESCRIPTION = #{description}
+		</if>
+		<if test="enabled != null">
+			,ENABLED = #{enabled}
+		</if>
+		<if test="modifierId != null">
+			MODIFIER_ID = #{modifierId}
+		</if>
+		WHERE 	CODE_GROUP_ID = #{codeGroupId}
+	</update>
+    
+    <delete id="deleteCodeGroup" parameterType="String">
+    	DELETE FROM datacore_ui.CODE_GROUP_BASE
+    	WHERE CODE_GROUP_ID = #{codeGroupId}
+    </delete>
+    
+    <select id="selectCodeGroup" parameterType="String" resultMap="codeGroup">
+    	SELECT *
+    	FROM datacore_ui.CODE_GROUP_BASE
+    	WHERE CODE_GROUP_ID = #{codeGroupId}
+    </select>
+    
+    <select id="selectCodeGroups" parameterType="kr.re.keti.sc.datacoreui.api.code.vo.CodeGroupRequestVO" resultMap="codeGroupList">
+    	<include refid="common.pagingHeaderSql"/>
+    	SELECT *
+    	FROM datacore_ui.CODE_GROUP_BASE
+    	<where>
+    	<if test="searchValue != null">
+    		CODE_GROUP_ID LIKE '%' || #{searchValue} || '%'
+    		OR CODE_GROUP_NAME LIKE '%' || #{searchValue} || '%'
+    	</if>
+    	</where>
+    	<include refid="common.pagingFooterSql"/>
+    </select>
+    
+    <insert id="createCode" parameterType="kr.re.keti.sc.datacoreui.api.code.vo.CodeBaseVO">
+		INSERT INTO datacore_ui.CODE_BASE  (
+			CODE_GROUP_ID
+			,CODE_ID
+			,LANG_CD
+			,CODE_NAME
+			,SORT_ORDER
+			,ENABLED
+			<if test="description != null">
+				,DESCRIPTION
+			</if>
+			,CREATE_DATETIME
+			<if test="creatorId != null">
+				,CREATOR_ID
+			</if>
+		) VALUES (
+			#{codeGroupId}
+			,#{codeId}
+			,#{langCd}
+			,#{codeName}
+			,#{sortOrder}
+			,#{enabled}
+			<if test="description != null">
+				,#{description}
+			</if>
+			,now()
+			<if test="creatorId != null">
+				,#{creatorId}
+			</if>
+		)
+	</insert>
+    
+    <update id="updateCode" parameterType="kr.re.keti.sc.datacoreui.api.code.vo.CodeBaseVO">
+		UPDATE  datacore_ui.CODE_BASE
+		SET MODIFY_DATETIME = now()
+		<if test="codeName != null">
+			,CODE_NAME = #{codeName}
+		</if>
+		<if test="sortOrder != null">
+			,SORT_ORDER = #{sortOrder}
+		</if>
+		<if test="enabled != null">
+			,ENABLED = #{enabled}
+		</if>
+		<if test="description != null">
+			,DESCRIPTION = #{description}
+		</if>
+		<if test="modifierId != null">
+			MODIFIER_ID = #{modifierId}
+		</if>
+		WHERE CODE_GROUP_ID = #{codeGroupId}
+		AND CODE_ID = #{codeId}
+		AND LANG_CD = #{langCd}
+	</update>
+    
+    <delete id="deleteCode" parameterType="kr.re.keti.sc.datacoreui.api.code.vo.CodeBaseVO">
+    	DELETE FROM datacore_ui.CODE_BASE
+    	WHERE CODE_GROUP_ID = #{codeGroupId}
+    	AND CODE_ID = #{codeId}
+    	AND LANG_CD = #{langCd}
+    </delete>
+    
+    <select id="selectCode" parameterType="kr.re.keti.sc.datacoreui.api.code.vo.CodeBaseVO" resultMap="code">
+    	SELECT *
+    	FROM datacore_ui.CODE_BASE
+    	WHERE CODE_GROUP_ID = #{codeGroupId}
+    	AND CODE_ID = #{codeId}
+    	AND LANG_CD = #{langCd}
+    </select>
+    
+    <select id="selectCodes" parameterType="kr.re.keti.sc.datacoreui.api.code.vo.CodeRequestVO" resultMap="codeList">
+    	<include refid="common.pagingHeaderSql"/>
+    	SELECT *
+    	FROM datacore_ui.CODE_BASE
+    	<where>
+    		1=1
+    	<if test="codeGroupId != null">
+    		AND CODE_GROUP_ID = #{codeGroupId}
+    	</if>
+    	<if test="langCd != null">
+    		AND LANG_CD = #{langCd}
+    	</if>
+    	<if test="searchValue != null">
+    		AND (CODE_GROUP_ID LIKE '%' || #{searchValue} || '%'
+    		OR CODE_ID LIKE '%' || #{searchValue} || '%'
+    		OR CODE_NAME LIKE '%' || #{searchValue} || '%')
+    	</if>
+    	</where>
+		ORDER BY CODE_GROUP_ID,SORT_ORDER
+    	<include refid="common.pagingFooterSql"/>
+    </select>
+</mapper>

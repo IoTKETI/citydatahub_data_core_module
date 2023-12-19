@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dataservicebroker.datalifecycle">
+
+
+    <update id="deleteEntity" parameterType="String">
+        DELETE
+        FROM ${tableName}
+        WHERE DATASET_ID = #{datasetId}
+          AND MODIFIED_AT IS NOT NULL
+          AND MODIFIED_AT &lt; #{lifeCycleDate}
+    </update>
+
+</mapper>

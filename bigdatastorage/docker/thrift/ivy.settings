@@ -1,0 +1,18 @@
+<ivysettings>
+<settings defaultBranch="${ivy.deliver.branch}" defaultResolver="default-chain" />
+<property name ="osgeo"  value="https://repo.osgeo.org/repository/release/"/>
+<property name ="jboss" value="https://repository.jboss.org/nexus/congent/repositories/thirdparty-releases/"/>
+<property name="nexus-dtonic" value="https://nexus.dtonic.io/repository/maven-public"/>
+<resolvers>
+<ibiblio name="nexus" m2compatible="true" root="${nexus=dtonioc}"/>
+</resolvers>
+<resolvers>
+<ibiblio name="central" m2compatible="true"/>
+<ibiblio name="nexus" m2compatible="true" root="${nexus-dtonic}"/>
+<ibiblio name="jboss" m2compatible="true" root="${jboss}"/>
+<ibiblio name="os-geo" m2compatible="true" root="${osgeo}"/>
+<chain name="default-chain">
+<resolver ref="nexus" />
+</chain>
+</resolvers>
+</ivysettings>

@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dataservicebroker.subscription">
+    <resultMap id="subscriptionEntities" type="kr.re.keti.sc.dataservicebroker.subscription.vo.SubscriptionEntitiesDaoVO">
+        <result property="subscriptionId" column="SUBSCRIPTION_ID"/>
+        <result property="id" column="ENTITIES_ID"/>
+        <result property="idPattern" column="ID_PATTERN"/>
+        <result property="type" column="ENTITY_TYPE"/>
+        <result property="typeUri" column="ENTITY_TYPE_URI"/>
+    </resultMap>
+
+    <resultMap id="subscriptionBase" type="kr.re.keti.sc.dataservicebroker.subscription.vo.SubscriptionBaseDaoVO">
+        <id property="id" column="ID"/>
+       <result property="context" column="CONTEXT"  javaType="java.util.ArrayList"
+                jdbcType="ARRAY" typeHandler="kr.re.keti.sc.dataservicebroker.common.datamapperhandler.ListTypeHandler"/>
+        <result property="name" column="NAME"/>
+        <result property="type" column="TYPE"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="datasetIds" column="DATASET_IDS"  javaType="java.util.ArrayList"
+                jdbcType="ARRAY" typeHandler="kr.re.keti.sc.dataservicebroker.common.datamapperhandler.ListTypeHandler"/>
+        <result property="watchedAttributes" column="WATCHED_ATTRIBUTES" javaType="java.util.ArrayList"
+                jdbcType="ARRAY" typeHandler="kr.re.keti.sc.dataservicebroker.common.datamapperhandler.ListTypeHandler"/>
+        <result property="timeInterval" column="TIME_INTERVAL"/>
+        <result property="q" column="Q"/>
+        <result property="geoQ" column="GEO_Q"/>
+        <result property="csf" column="CSF"/>
+        <result property="isActive" column="IS_ACTIVE"/>
+        <result property="notificationAttributes" column="NOTIFICATION_ATTRIBUTES" javaType="java.util.ArrayList"
+                jdbcType="ARRAY" typeHandler="kr.re.keti.sc.dataservicebroker.common.datamapperhandler.ListTypeHandler"/>
+        <result property="notificationFormat" column="NOTIFICATION_FORMAT"/>
+        <result property="notificationEndpointUri" column="NOTIFICATION_ENDPOINT_URI"/>
+        <result property="notificationEndpointAccept" column="NOTIFICATION_ENDPOINT_ACCEPT"/>
+        <result property="notificationEndpointNotifierInfo" column="NOTIFICATION_ENDPOINT_NOTIFIER_INFO"/>
+        <result property="notificationEndpointReceiverInfo" column="NOTIFICATION_ENDPOINT_RECEIVER_INFO"/>
+        <result property="notificationStatus" column="NOTIFICATION_STATUS"/>
+        <result property="notificationTimeSent" column="NOTIFICATION_TIME_SENT"/>
+        <result property="notificationLastNotification" column="NOTIFICATION_LAST_NOTIFICATION"/>
+        <result property="notificationLastFailure" column="NOTIFICATION_LAST_FAILURE"/>
+        <result property="notificationLastSuccess" column="NOTIFICATION_LAST_SUCCESS"/>
+        <result property="expire" column="EXPIRE"/>
+        <result property="throttling" column="THROTTLING"/>
+        <result property="temporalQTimerel" column="TEMPORAL_Q_TIMEREL"/>
+        <result property="temporalQTime" column="TEMPORAL_Q_TIME"/>
+        <result property="temporalQEndTime" column="TEMPORAL_Q_END_TIME"/>
+        <result property="temporalQTimeProperty" column="TEMPORAL_Q_TIME_PROPERTY"/>
+        <result property="status" column="STATUS"/>
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="creatorId" column="CREATOR_ID"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+        <result property="modifierId" column="MODIFIER_ID"/>
+        <collection property="subscriptionEntitiesDaoVOs" javaType="java.util.ArrayList" resultMap="subscriptionEntities"/>
+
+    </resultMap>
+
+    <select id="selectSubscriptionCount" resultType="integer" parameterType="hashmap">
+        SELECT
+        		COUNT(*)
+        FROM 
+        		DATA_SERVICE_BROKER.SUBSCRIPTION_BASE AS BASE
+        LEFT OUTER JOIN
+        		DATA_SERVICE_BROKER.SUBSCRIPTION_ENTITIES AS ENTITIES
+        ON
+        		BASE.ID = ENTITIES.SUBSCRIPTION_ID
+        <if test="type != null">
+            AND BASE.TYPE = #{type}
+        </if>
+        <if test="subscriptionId != null">
+            AND BASE.ID = #{subscriptionId}
+        </if>
+    </select>
+
+    <select id="selectSubscription" resultMap="subscriptionBase" parameterType="hashmap">
+        SELECT 	BASE.*, 
+        		ENTITIES.SUBSCRIPTION_ID, 
+        		ENTITIES.TYPE AS ENTITY_TYPE, 
+        		ENTITIES.ID_PATTERN,  
+        		ENTITIES.ID AS ENTITIES_ID, 
+        		ENTITIES.TYPE_URI AS ENTITY_TYPE_URI
+        FROM
+        		DATA_SERVICE_BROKER.SUBSCRIPTION_BASE AS BASE
+		LEFT OUTER JOIN
+				DATA_SERVICE_BROKER.SUBSCRIPTION_ENTITIES AS ENTITIES
+		ON
+				BASE.ID = ENTITIES.SUBSCRIPTION_ID
+		WHERE 1=1
+		<if test="type != null">
+            AND BASE.TYPE = #{type}
+        </if>
+		<if test="subscriptionId != null">
+            AND BASE.ID = #{subscriptionId}
+        </if>
+		ORDER BY BASE.ID
+        <if test="offset != null">
+            OFFSET #{offset}
+        </if>
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <select id="selectSubscriptionEntities" resultMap="subscriptionBase" parameterType="string">
+        SELECT
+        		ID, SUBSCRIPTION_ID, ID_PATTERN, TYPE
+        FROM
+        		DATA_SERVICE_BROKER.SUBSCRIPTION_ENTITIES
+        WHERE
+        		 SUBSCRIPTION_ID IN (#{subscriptionId})
+    </select>
+
+    <update id="createSubscriptionBase" parameterType="kr.re.keti.sc.dataservicebroker.subscription.vo.SubscriptionBaseDaoVO">
+        INSERT INTO DATA_SERVICE_BROKER.SUBSCRIPTION_BASE
+        (
+        ID, TYPE
+        <if test="context != null">
+            ,CONTEXT
+        </if>
+        <if test="name != null">
+            ,NAME
+        </if>
+        <if test="description != null">
+            ,DESCRIPTION
+        </if>
+        <if test="datasetIds != null">
+            ,DATASET_IDS
+        </if>
+        <if test="watchedAttributes != null and !watchedAttributes.isEmpty()">
+            ,WATCHED_ATTRIBUTES
+        </if>
+        <if test="timeInterval != null">
+            ,TIME_INTERVAL
+        </if>
+        <if test="q != null">
+            ,Q
+        </if>
+        <if test="geoQ != null">
+            ,GEO_Q
+        </if>
+        <if test="csf != null">
+            ,CSF
+        </if>
+        ,IS_ACTIVE
+        <if test="notificationAttributes != null">
+            ,NOTIFICATION_ATTRIBUTES
+        </if>
+        <if test="notificationFormat != null">
+            ,NOTIFICATION_FORMAT
+        </if>
+        <if test="notificationEndpointUri != null">
+            ,NOTIFICATION_ENDPOINT_URI
+        </if>
+        <if test="notificationEndpointAccept != null">
+            ,NOTIFICATION_ENDPOINT_ACCEPT
+        </if>
+        <if test="notificationEndpointNotifierInfo != null">
+            ,NOTIFICATION_ENDPOINT_NOTIFIER_INFO
+        </if>
+        <if test="notificationEndpointReceiverInfo != null">
+            ,NOTIFICATION_ENDPOINT_RECEIVER_INFO
+        </if>
+        <if test="notificationStatus != null">
+            ,NOTIFICATION_STATUS
+        </if>
+        <if test="notificationTimeSent != null">
+            ,NOTIFICATION_TIME_SENT
+        </if>
+        <if test="notificationLastNotification != null">
+            ,NOTIFICATION_LAST_NOTIFICATION
+        </if>
+        <if test="notificationLastFailure != null">
+            ,NOTIFICATION_LAST_FAILURE
+        </if>
+        <if test="notificationLastSuccess != null">
+            ,NOTIFICATION_LAST_SUCCESS
+        </if>
+        <if test="expire != null">
+            ,EXPIRE
+        </if>
+        <if test="throttling != null">
+            ,THROTTLING
+        </if>
+        <if test="temporalQTimerel != null">
+            ,TEMPORAL_Q_TIMEREL
+        </if>
+        <if test="temporalQTime != null">
+            ,TEMPORAL_Q_TIME
+        </if>
+        <if test="temporalQEndTime != null">
+            ,TEMPORAL_Q_END_TIME
+        </if>
+        <if test="temporalQTimeProperty != null">
+            ,TEMPORAL_Q_TIME_PROPERTY
+        </if>
+        <if test="status != null">
+            ,STATUS
+        </if>
+        <if test="createDatetime != null">
+            ,CREATE_DATETIME
+        </if>
+        <if test="creatorId != null">
+            ,CREATOR_ID
+        </if>
+        <if test="modifyDatetime != null">
+            ,MODIFY_DATETIME
+        </if>
+        <if test="modifierId != null">
+            ,MODIFIER_ID
+        </if>
+        )
+        VALUES (#{id}, #{type}
+        <if test="context != null">
+            ,#{context, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(4000)[]
+        </if>
+        <if test="name != null">
+            ,#{name}
+        </if>
+        <if test="description != null">
+            ,#{description}
+        </if>
+        <if test="datasetIds != null">
+            ,#{datasetIds, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(512)[]
+        </if>
+        <if test="watchedAttributes != null">
+            ,#{watchedAttributes, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(256)[]
+        </if>
+        <if test="timeInterval != null">
+            ,#{timeInterval}
+        </if>
+        <if test="q != null">
+            ,#{q}
+        </if>
+        <if test="geoQ != null">
+            ,#{geoQ}
+        </if>
+        <if test="csf != null">
+            ,#{csf}
+        </if>
+        ,#{isActive}
+        <if test="notificationAttributes != null">
+            ,#{notificationAttributes, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(256)[]
+        </if>
+        <if test="notificationFormat != null">
+            ,#{notificationFormat}
+        </if>
+        <if test="notificationEndpointUri != null">
+            ,#{notificationEndpointUri}
+        </if>
+        <if test="notificationEndpointAccept != null">
+            ,#{notificationEndpointAccept}
+        </if>
+        <if test="notificationEndpointNotifierInfo != null">
+            ,#{notificationEndpointNotifierInfo}
+        </if>
+        <if test="notificationEndpointReceiverInfo != null">
+            ,#{notificationEndpointReceiverInfo}
+        </if>
+        <if test="notificationStatus != null">
+            ,#{notificationStatus}
+        </if>
+        <if test="notificationTimeSent != null">
+            ,#{notificationTimeSent}
+        </if>
+        <if test="notificationLastNotification != null">
+            ,#{notificationLastNotification}
+        </if>
+        <if test="notificationLastFailure != null">
+            ,#{notificationLastFailure}
+        </if>
+        <if test="notificationLastSuccess != null">
+            ,#{notificationLastSuccess}
+        </if>
+        <if test="expire != null">
+            ,#{expire}
+        </if>
+        <if test="throttling != null">
+            ,#{throttling}
+        </if>
+        <if test="temporalQTimerel != null">
+            ,#{temporalQTimerel}
+        </if>
+        <if test="temporalQTime != null">
+            ,#{temporalQTime}
+        </if>
+        <if test="temporalQEndTime != null">
+            ,#{temporalQEndTime}
+        </if>
+        <if test="temporalQTimeProperty != null">
+            ,#{temporalQTimeProperty}
+        </if>
+        <if test="status != null">
+            ,#{status}
+        </if>
+        <if test="createDatetime != null">
+            ,#{createDatetime}
+        </if>
+        <if test="creatorId != null">
+            ,#{creatorId}
+        </if>
+        <if test="modifyDatetime != null">
+            ,#{modifyDatetime}
+        </if>
+        <if test="modifierId != null">
+            ,#{modifierId}
+        </if>
+        )
+    </update>
+
+
+    <update id="createSubscriptionEntities"
+            parameterType="kr.re.keti.sc.dataservicebroker.subscription.vo.SubscriptionEntitiesDaoVO">
+        INSERT INTO DATA_SERVICE_BROKER.SUBSCRIPTION_ENTITIES
+        (
+        	ID,
+         	SUBSCRIPTION_ID,
+         	ID_PATTERN,
+         	TYPE,
+         	TYPE_URI
+        )
+        VALUES 
+        (
+        	#{id},
+            #{subscriptionId},
+            #{idPattern},
+            #{type},
+            #{typeUri}
+        )
+    </update>
+
+    <delete id="deleteSubscriptionEntities">
+        DELETE
+        FROM DATA_SERVICE_BROKER.SUBSCRIPTION_ENTITIES
+        WHERE SUBSCRIPTION_ID = #{SUBSCRIPTION_ID}
+    </delete>
+    <delete id="deleteSubscriptionBase">
+        DELETE
+        FROM DATA_SERVICE_BROKER.SUBSCRIPTION_BASE
+        WHERE ID = #{SUBSCRIPTION_ID}
+    </delete>
+
+    <update id="updateSubscriptionBase" parameterType="kr.re.keti.sc.dataservicebroker.subscription.vo.SubscriptionBaseDaoVO">
+        UPDATE DATA_SERVICE_BROKER.SUBSCRIPTION_BASE
+        <set>
+            <if test="id != null">
+                ID = #{id},
+            </if>
+            <if test="context != null">
+                CONTEXT = #{context, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(4000)[],
+            </if>
+            <if test="name != null">
+                NAME = #{name},
+            </if>
+            <if test="description != null">
+                DESCRIPTION = #{description},
+            </if>
+            <if test="datasetIds != null">
+                DATASET_IDS = #{datasetIds, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(512)[],
+            </if>
+            <if test="watchedAttributes != null">
+                <if test="timeInterval == null">
+                    WATCHED_ATTRIBUTES = #{watchedAttributes, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(256)[],
+                    TIME_INTERVAL = null,
+                </if>
+            </if>
+            <if test="timeInterval != null">
+                <if test="watchedAttributes == null">
+                    TIME_INTERVAL = #{timeInterval},
+                    WATCHED_ATTRIBUTES = null,
+                </if>
+            </if>
+            <if test="q != null">
+                Q = #{q},
+            </if>
+            <if test="geoQ != null">
+                GEO_Q = #{geoQ},
+            </if>
+            <if test="csf != null">
+                CSF = #{csf},
+            </if>
+            IS_ACTIVE= #{isActive},
+            <if test="notificationAttributes != null">
+                NOTIFICATION_ATTRIBUTES = #{notificationAttributes, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(256)[],
+            </if>
+            <if test="notificationFormat != null">
+                NOTIFICATION_FORMAT =#{notificationFormat},
+            </if>
+            <if test="notificationEndpointUri != null">
+                NOTIFICATION_ENDPOINT_URI = #{notificationEndpointUri},
+            </if>
+            <if test="notificationEndpointAccept != null">
+                NOTIFICATION_ENDPOINT_ACCEPT = #{notificationEndpointAccept},
+            </if>
+            <if test="notificationEndpointNotifierInfo != null">
+                NOTIFICATION_ENDPOINT_NOTIFIER_INFO = #{notificationEndpointNotifierInfo},
+            </if>
+            <if test="notificationEndpointReceiverInfo != null">
+                NOTIFICATION_ENDPOINT_RECEIVER_INFO = #{notificationEndpointReceiverInfo},
+            </if>
+            <if test="notificationStatus != null">
+                NOTIFICATION_STATUS =#{notificationStatus},
+            </if>
+            <if test="notificationTimeSent != null">
+                NOTIFICATION_TIME_SENT= #{notificationTimeSent},
+            </if>
+            <if test="notificationLastNotification != null">
+                NOTIFICATION_LAST_NOTIFICATION = #{notificationLastNotification},
+            </if>
+            <if test="notificationLastFailure != null">
+                NOTIFICATION_LAST_FAILURE= #{notificationLastFailure},
+            </if>
+            <if test="notificationLastSuccess != null">
+                NOTIFICATION_LAST_SUCCESS= #{notificationLastSuccess},
+            </if>
+            <if test="expire != null">
+                EXPIRE = #{expire},
+            </if>
+            <if test="throttling != null">
+                THROTTLING = #{throttling},
+            </if>
+            <if test="temporalQTimerel != null">
+                TEMPORAL_Q_TIMEREL = #{temporalQTimerel},
+            </if>
+            <if test="temporalQTime != null">
+                TEMPORAL_Q_TIME = #{temporalQTime},
+            </if>
+            <if test="temporalQEndTime != null">
+                TEMPORAL_Q_END_TIME = #{temporalQEndTime},
+            </if>
+            <if test="temporalQTimeProperty != null">
+                TEMPORAL_Q_TIME_PROPERTY = #{temporalQTimeProperty},
+            </if>
+            <if test="status != null">
+                STATUS = #{status},
+            </if>
+            <if test="createDatetime != null">
+                CREATE_DATETIME = #{createDatetime},
+            </if>
+            <if test="creatorId != null">
+                CREATOR_ID = #{creatorId},
+            </if>
+            <if test="modifyDatetime != null">
+                MODIFY_DATETIME= #{modifyDatetime},
+            </if>
+            <if test="modifierId != null">
+                MODIFIER_ID = #{modifierId},
+            </if>
+        </set>
+        WHERE ID = #{subscriptionId}
+    </update>
+
+    <update id="insertSubscriptionEntities" parameterType="kr.re.keti.sc.dataservicebroker.subscription.vo.SubscriptionEntitiesDaoVO">
+        INSERT INTO DATA_SERVICE_BROKER.SUBSCRIPTION_ENTITIES (
+        	ID,
+        	SUBSCRIPTION_ID,
+        	ID_PATTERN,
+        	TYPE,
+        	TYPE_URI
+        )
+        VALUES
+        (
+              #{id}
+        	, #{subscriptionId}
+        	, #{idPattern}
+        	, #{type}
+        	, #{typeUri}
+        )
+    </update>
+
+	<select id="selectSubscriptionsByEntity" resultMap="subscriptionBase" parameterType="kr.re.keti.sc.dataservicebroker.subscription.vo.SubscriptionRetrieveVO">
+        SELECT	
+        		BASE.*
+        FROM
+        		DATA_SERVICE_BROKER.SUBSCRIPTION_BASE AS BASE
+        LEFT OUTER JOIN
+        		DATA_SERVICE_BROKER.SUBSCRIPTION_ENTITIES ENTITIES
+        ON        
+                BASE.ID = ENTITIES.SUBSCRIPTION_ID
+        WHERE
+                BASE.TIME_INTERVAL IS NULL
+        AND
+        		( BASE.EXPIRE IS NULL OR BASE.EXPIRE &gt; CURRENT_TIMESTAMP )
+		AND
+				(	<!-- ENTITIES.TYPE IS NULL은 subscription.entities가 없다는 것을 의미(datasetIds 만으로 구독조회) -->
+					ENTITIES.TYPE IS NULL
+					OR
+					<!-- 1) subscription.entityId 가 있는 경우 id 검색
+	        	 		 2) subscription.entityId가 null이고 id_pattern만 있는 경우 패턴 검색,  
+	        	 		 3) subscription.entityId가 null와 id_pattern이 null인 경우 -->
+				 	( 		ENTITIES.TYPE = #{entityType}
+	        			AND	ENTITIES.TYPE_URI = #{entityTypeUri}
+	        			AND (	
+			       		 		ENTITIES.ID = #{entityId} 
+			        				OR
+			        		  	( ENTITIES.ID IS NULL AND #{entityId} ~ ENTITIES.ID_PATTERN )
+			        		  		OR
+			        		  	ENTITIES.ID IS NULL
+			       		 	)
+			       	)
+			    )
+		<if test="datasetId != null">
+		AND ( BASE.DATASET_IDS IS NULL OR #{datasetId} = ANY(BASE.DATASET_IDS) )
+		</if>
+        <if test="isActive != null">
+            <if test="isActive == true">
+                AND ( BASE.IS_ACTIVE = 'true' OR BASE.IS_ACTIVE IS NULL )
+            </if>
+            <if test="isActive == false">
+                AND BASE.IS_ACTIVE = 'false'
+            </if>
+        </if>
+        <if test="type != null">
+        AND BASE.TYPE = #{type}
+        </if>
+    </select>
+
+	<select id="selectTimeIntervalSubscription" resultMap="subscriptionBase" >
+        SELECT     
+        		BASE.*,
+        		ENTITIES.ID AS ENTITIES_ID,
+        		ENTITIES.ID_PATTERN AS ID_PATTERN,
+        		ENTITIES.TYPE AS TYPE,
+        		ENTITIES.TYPE_URI AS TYPE_URI
+        FROM
+        DATA_SERVICE_BROKER.SUBSCRIPTION_BASE AS BASE
+        LEFT OUTER JOIN
+        DATA_SERVICE_BROKER.SUBSCRIPTION_ENTITIES ENTITIES
+        ON
+                BASE.ID = ENTITIES.SUBSCRIPTION_ID
+        WHERE
+                BASE.TIME_INTERVAL IS NOT NULL
+        AND		<!-- 마지막 발송 시간이 전송 주기 시간 이상 지난 정보만 검색 -->
+        		( BASE.NOTIFICATION_LAST_NOTIFICATION &lt; CURRENT_TIMESTAMP - (BASE.TIME_INTERVAL || ' second')::INTERVAL
+					OR 
+				  BASE.NOTIFICATION_LAST_NOTIFICATION IS NULL )
+		AND		<!-- expire 여부 체크 -->
+				( BASE.EXPIRE IS NULL
+					OR
+				  BASE.EXPIRE &gt; CURRENT_TIMESTAMP )
+        AND
+                (BASE.IS_ACTIVE = 'true' OR BASE.IS_ACTIVE IS NULL)
+        AND
+        		BASE.TYPE = 'Subscription'
+
+    </select>
+
+	<update id="updateNotificationResult" parameterType="kr.re.keti.sc.dataservicebroker.subscription.vo.SubscriptionBaseDaoVO">
+        UPDATE
+        DATA_SERVICE_BROKER.SUBSCRIPTION_BASE
+        SET
+        		NOTIFICATION_TIME_SENT = CASE WHEN NOTIFICATION_TIME_SENT IS NULL 
+            	THEN 1 ELSE NOTIFICATION_TIME_SENT + 1 END
+			    ,NOTIFICATION_STATUS = #{notificationStatus}
+                ,NOTIFICATION_LAST_NOTIFICATION = #{notificationLastNotification}
+            <if test="notificationLastFailure != null">
+                ,NOTIFICATION_LAST_FAILURE = #{notificationLastFailure}
+            </if>
+            <if test="notificationLastSuccess != null">
+                ,NOTIFICATION_LAST_SUCCESS = #{notificationLastSuccess}
+            </if>
+
+        WHERE ID = #{id}
+
+    </update>
+</mapper>

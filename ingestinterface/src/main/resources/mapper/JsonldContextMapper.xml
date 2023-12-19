@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ingestinterface.jsonldcontext">
+
+    <resultMap id="jsonldContext" type="kr.re.keti.sc.ingestinterface.jsonldcontext.vo.JsonldContextBaseVO">
+        <id property="url" column="URL"/>
+        <result property="payload" column="PAYLOAD"/>
+        <result property="refinedPayload" column="REFINED_PAYLOAD"/>
+        <result property="kind" column="KIND"  javaType="String" jdbcType="VARCHAR" typeHandler="kr.re.keti.sc.ingestinterface.common.datamapperhandler.JsonldContextKindTypeHandler"/>
+        <result property="expireDatetime" column="EXPIRE_DATETIME"/>
+        <result property="createDatetime" column="CREATE_DATETIME"/>
+        <result property="modifyDatetime" column="MODIFY_DATETIME"/>
+    </resultMap>
+
+
+    <update id="upsertJsonldContext" parameterType="kr.re.keti.sc.ingestinterface.jsonldcontext.vo.JsonldContextBaseVO">
+        INSERT INTO INGEST_INTERFACE.JSONLD_CONTEXT_BASE
+        VALUES (#{url},
+                #{payload},
+                #{refinedPayload},
+                #{kind, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.JsonldContextKindTypeHandler}::VARCHAR,
+                #{expireDatetime},
+                now(),
+                now())
+        ON CONFLICT (URL)
+        DO UPDATE
+        SET MODIFY_DATETIME = now(),
+            PAYLOAD = #{payload},
+            REFINED_PAYLOAD = #{refinedPayload},
+            KIND = #{kind, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.JsonldContextKindTypeHandler}::VARCHAR,
+            EXPIRE_DATETIME = #{expireDatetime}
+    </update>
+
+
+    <select id="selectAll" resultMap="jsonldContext" parameterType="kr.re.keti.sc.ingestinterface.jsonldcontext.vo.JsonldContextBaseVO">
+        SELECT
+               URL,
+               PAYLOAD,
+               REFINED_PAYLOAD,
+               KIND,
+               EXPIRE_DATETIME,
+               CREATE_DATETIME,
+               MODIFY_DATETIME
+        FROM INGEST_INTERFACE.JSONLD_CONTEXT_BASE
+        <where>
+        <if test="expireDatetime != null">
+            AND EXPIRE_DATETIME > #{expireDatetime}
+        </if>
+        <if test="kind != null">
+            AND KIND = #{kind, typeHandler=kr.re.keti.sc.ingestinterface.common.datamapperhandler.JsonldContextKindTypeHandler}::VARCHAR
+        </if>
+        </where>
+    </select>
+
+    <select id="selectById" resultMap="jsonldContext" parameterType="kr.re.keti.sc.ingestinterface.jsonldcontext.vo.JsonldContextBaseVO">
+        SELECT
+            URL,
+            PAYLOAD,
+            REFINED_PAYLOAD,
+            KIND,
+            EXPIRE_DATETIME,
+            CREATE_DATETIME,
+            MODIFY_DATETIME
+        FROM INGEST_INTERFACE.JSONLD_CONTEXT_BASE
+        WHERE URL = #{url}
+        <if test="expireDatetime != null">
+            AND EXPIRE_DATETIME > #{expireDatetime}
+        </if>
+    </select>
+
+
+</mapper>

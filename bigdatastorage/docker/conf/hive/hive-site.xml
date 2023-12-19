@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration>
+    <property>
+        <name>hive.metastore.warehouse.dir</name>
+        <value>/user/hive/warehouse/</value>
+    </property>
+    <property>
+        <name>hive.cli.print.header</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>hive.metastore.schema.verification</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionUserName</name>
+        <value>hive</value>
+        <description>Username to use against metastore database</description>
+    </property>
+
+    <property>
+        <name>javax.jdo.option.ConnectionPassword</name>
+        <value>hive123!</value>
+        <description>password to use against metastore database</description>
+    </property>
+
+    <property>
+        <name>javax.jdo.option.ConnectionDriverName</name>
+        <value>org.postgresql.Driver</value>
+        <description>선정한 MetaDB의 JDBC Driver 이름</description>
+    </property>
+
+    <property>
+        <name>javax.jdo.option.ConnectionURL</name>
+        <value>jdbc:postgresql://meta_db:5432/hive</value>
+        <description>
+            JDBC connect string for a JDBC metastore.
+            To use SSL to encrypt/authenticate the connection, provide database-specific SSL flag in the connection URL.
+            For example, jdbc:postgresql://myhost/db?ssl=true for postgres database.
+        </description>
+    </property>
+</configuration>

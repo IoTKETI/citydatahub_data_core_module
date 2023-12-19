@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>로그인 | Smart City Hub 관리자 페이지</title>
+  <link rel="stylesheet" href="../css/login.css">
+</head>
+<body>
+  <div class="login__wrap">
+    <main class="login">
+      <h1 class="login__title"><span class="hidden">Smart Hub Data City Login</span></h1>
+      <div class="login__form">
+        <form>
+          <fieldset>
+            <legend>로그인 정보 입력</legend>
+            <div class="login__row">
+              <label for="loginId" class="login__label">ID</label>
+              <input type="text" id="loginId" class="input__login" autocapitalize="off" autocomplete="off" autofocus required placeholder="아이디">
+            </div>
+            <div class="login__row">
+              <label for="loginPw" class="login__label">PASSWORD</label>
+              <input type="password" id="loginPw" class="input__login" autocapitalize="off" autocomplete="off" required placeholder="비밀번호">
+            </div>
+            <div class="login__row">
+              <button type="submit" class="button__primary button__login">Login</button>
+              <p class="login__text">회원가입은 시스템 운영처에 문의하세요.</p>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

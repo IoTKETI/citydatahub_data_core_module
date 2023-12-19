@@ -1,0 +1,467 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dataservicebroker.csource.registration">
+    
+    <resultMap id="csourceRegistrationEntities" type="kr.re.keti.sc.dataservicebroker.csource.vo.CsourceRegistrationEntityDaoVO">
+        <result property="csourceRegistrationInfoId" column="CSOURCE_REGISTRATION_INFO_ID"/>
+        <result property="entityId" column="ENTITY_ID"/>
+        <result property="entityIdPattern" column="ENTITY_ID_PATTERN"/>
+        <result property="entityType" column="ENTITY_TYPE"/>
+    </resultMap>
+
+    <resultMap id="csourceRegistrationInfos" type="kr.re.keti.sc.dataservicebroker.csource.vo.CsourceRegistrationInfoDaoVO">
+        <id property="csourceRegistrationBaseId" column="CSOURCE_REGISTRATION_BASE_ID"/>
+        <id property="csourceRegistrationInfoId" column="CSOURCE_REGISTRATION_INFO_ID"/>
+        <result property="properties" column="PROPERTIES" javaType="java.util.ArrayList" jdbcType="ARRAY"
+                typeHandler="kr.re.keti.sc.dataservicebroker.common.datamapperhandler.ListTypeHandler"/>
+        <result property="relationships" column="RELATIONSHIPS" javaType="java.util.ArrayList" jdbcType="ARRAY"
+                typeHandler="kr.re.keti.sc.dataservicebroker.common.datamapperhandler.ListTypeHandler"/>
+        <collection property="entities" javaType="java.util.ArrayList" resultMap="csourceRegistrationEntities"/>
+    </resultMap>
+
+    <resultMap id="csourceregistrationBase" type="kr.re.keti.sc.dataservicebroker.csource.vo.CsourceRegistrationBaseDaoVO">
+        <id property="id" column="ID"/>
+        <result property="type" column="TYPE"/>
+        <result property="name" column="NAME"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="observationIntervalStart" column="OBSERVATION_INTERVAL_START"/>
+        <result property="observationIntervalEnd" column="OBSERVATION_INTERVAL_END"/>
+        <result property="managementIntervalStart" column="MANAGEMENT_INTERVAL_START"/>
+        <result property="managementIntervalEnd" column="MANAGEMENT_INTERVAL_END"/>
+        <result property="location" column="LOCATION"/>
+        <result property="observationSpace" column="OBSERVATION_SPACE"/>
+        <result property="operationSpace" column="OPERATION_SPACE"/>
+        <result property="expires" column="EXPIRES"/>
+        <result property="endpoint" column="ENDPOINT"/>
+        <result property="context" column="CONTEXT" javaType="java.util.ArrayList" jdbcType="ARRAY"
+                typeHandler="kr.re.keti.sc.dataservicebroker.common.datamapperhandler.ListTypeHandler"/>
+        <result property="supportedAggregationMethod" column="SUPPORTED_AGGREGATION_METHOD" javaType="java.util.ArrayList" jdbcType="ARRAY"
+                typeHandler="kr.re.keti.sc.dataservicebroker.common.datamapperhandler.ListTypeHandler"/>
+        <result property="scope" column="SCOPE" javaType="java.util.ArrayList" jdbcType="ARRAY"
+                typeHandler="kr.re.keti.sc.dataservicebroker.common.datamapperhandler.ListTypeHandler"/>
+        <result property="scopeDataType" column="SCOPE_DATA_TYPE" javaType="String" jdbcType="VARCHAR"
+                typeHandler="kr.re.keti.sc.dataservicebroker.common.datamapperhandler.AttributeValueTypeHandler"/>
+
+        <collection property="information" javaType="java.util.ArrayList" resultMap="csourceRegistrationInfos"/>
+    </resultMap>
+
+    <update id="createCsourceRegistrationBase" parameterType="kr.re.keti.sc.dataservicebroker.csource.vo.CsourceRegistrationBaseDaoVO">
+
+        INSERT INTO DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_BASE
+        (
+        ID
+        <if test="type != null">
+            ,TYPE
+        </if>
+        <if test="name != null">
+            ,NAME
+        </if>
+        <if test="description != null">
+            ,DESCRIPTION
+        </if>
+        <if test="observationIntervalStart != null">
+            ,OBSERVATION_INTERVAL_START
+        </if>
+        <if test="observationIntervalEnd != null">
+            ,OBSERVATION_INTERVAL_END
+        </if>
+        <if test="managementIntervalStart != null">
+            ,MANAGEMENT_INTERVAL_START
+        </if>
+        <if test="managementIntervalEnd != null">
+            ,MANAGEMENT_INTERVAL_END
+        </if>
+        <if test="location != null">
+            ,LOCATION
+        </if>
+        <if test="observationSpace != null">
+            ,OBSERVATION_SPACE
+        </if>
+        <if test="expires != null">
+            ,EXPIRES
+        </if>
+        <if test="endpoint != null">
+            ,ENDPOINT
+        </if>
+        <if test="context != null">
+            ,CONTEXT
+        </if>
+        <if test="operationSpace != null">
+            ,OPERATION_SPACE
+        </if>
+        <if test="supportedAggregationMethod != null">
+            ,SUPPORTED_AGGREGATION_METHOD
+        </if>
+        <if test="scope != null">
+            ,SCOPE
+        </if>
+        <if test="scopeDataType != null">
+            ,SCOPE_DATA_TYPE
+        </if>
+        )
+        VALUES (
+        #{id}
+        <if test="type != null">
+            ,#{type}
+        </if>
+        <if test="name != null">
+            ,#{name}
+        </if>
+        <if test="description != null">
+            ,#{description}
+        </if>
+        <if test="observationIntervalStart != null">
+            ,#{observationIntervalStart}
+        </if>
+        <if test="observationIntervalEnd != null">
+            ,#{observationIntervalEnd}
+        </if>
+        <if test="managementIntervalStart != null">
+            ,#{managementIntervalStart}
+        </if>
+        <if test="managementIntervalEnd != null">
+            ,#{managementIntervalEnd}
+        </if>
+        <if test="location != null">
+            ,ST_SetSRID(ST_GeomFromGeoJSON(#{location}), 4326)
+        </if>
+        <if test="observationSpace != null">
+            ,ST_SetSRID(ST_GeomFromGeoJSON(#{observationSpace}), 4326)
+        </if>
+        <if test="expires != null">
+            ,#{expires}
+        </if>
+        <if test="endpoint != null">
+            ,#{endpoint}
+        </if>
+        <if test="context != null">
+            ,#{context, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(256)[]
+        </if>
+        <if test="operationSpace != null">
+            ,ST_SetSRID(ST_GeomFromGeoJSON(#{operationSpace}), 4326)
+        </if>
+        <if test="supportedAggregationMethod != null">
+            ,#{supportedAggregationMethod, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(50)[]
+        </if>
+        <if test="scope != null">
+            ,#{scope, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(50)[]
+        </if>
+        <if test="scopeDataType != null">
+            ,#{scopeDataType, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.AttributeValueTypeHandler}::VARCHAR(20)
+        </if>
+        )
+
+    </update>
+
+
+    <update id="createCsourceRegistrationInfo" parameterType="java.util.Map">
+        INSERT INTO DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_INFO
+        (
+        CSOURCE_REGISTRATION_INFO_ID,
+        CSOURCE_REGISTRATION_BASE_ID,
+        PROPERTIES,
+        RELATIONSHIPS,
+        MODIFIED_AT
+        ) VALUES
+        <foreach collection="list" item="item" separator=" , ">
+            (
+            #{item.csourceRegistrationInfoId}
+            , #{item.csourceRegistrationBaseId}
+            ,
+            #{item.properties, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(50)[]
+            ,
+            #{item.relationships, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(50)[]
+            , now()
+            )
+        </foreach>
+    </update>
+
+
+    <update id="createCsourceRegistrationEntity" parameterType="java.util.Map">
+        INSERT INTO DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_ENTITY
+        (
+        CSOURCE_REGISTRATION_BASE_ID,
+        CSOURCE_REGISTRATION_INFO_ID,
+        ENTITY_ID,
+        ENTITY_ID_PATTERN,
+        ENTITY_TYPE
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=" , ">
+            (
+            #{item.csourceRegistrationBaseId}
+            , #{item.csourceRegistrationInfoId}
+            , #{item.entityId}
+            , #{item.entityIdPattern}
+            , #{item.entityType}
+            )
+        </foreach>
+    </update>
+
+
+    <select id="selectCsourceRegistration" resultMap="csourceregistrationBase" parameterType="kr.re.keti.sc.dataservicebroker.common.vo.DbConditionVO">
+
+        SELECT  MERGED.*,
+                ENTITY.ENTITY_ID,
+                ENTITY.ENTITY_ID_PATTERN,
+                ENTITY.ENTITY_TYPE
+        FROM (
+                SELECT  BASE.*,
+                        INFO.CSOURCE_REGISTRATION_INFO_ID,
+                        INFO.PROPERTIES,
+                        INFO.RELATIONSHIPS
+                FROM (
+                        SELECT *
+                        FROM DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_BASE
+                        WHERE 1=1
+                        <if test="contextList != null">
+                            <foreach collection="contextList" item="item">
+                                AND #{item} = any(CONTEXT)
+                            </foreach>
+                        </if>
+                        <if test="geoCondition != null">
+                            AND ${geoCondition}
+                        </if>
+                        <if test="limit != null">
+                            LIMIT #{limit}
+                        </if>
+                        <if test="offset != null">
+                            OFFSET #{offset}
+                        </if>
+                      ) AS BASE
+                LEFT JOIN DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_INFO AS INFO
+                ON BASE.ID = INFO.CSOURCE_REGISTRATION_BASE_ID
+            ) AS MERGED
+        LEFT JOIN (
+                    SELECT  *
+                    FROM    DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_ENTITY
+                   ) AS ENTITY
+        ON MERGED.CSOURCE_REGISTRATION_INFO_ID = ENTITY.CSOURCE_REGISTRATION_INFO_ID
+        WHERE 1=1
+        <if test="searchIdList != null">
+            AND ENTITY_ID in
+            <foreach collection="searchIdList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="searchTypeList != null">
+            AND ENTITY_TYPE in
+            <foreach collection="searchTypeList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="idPattern != null">
+            AND ENTITY_ID_PATTERN in (#{idPattern})
+        </if>
+        <if test="watchAttributeList != null">
+            <foreach collection="watchAttributeList" item="item">
+                AND ( #{item} = ANY(MERGED.PROPERTIES)
+                OR #{item} = ANY(MERGED.RELATIONSHIPS)
+                )
+            </foreach>
+        </if>
+        <if test="searchQparamList != null">
+            <foreach collection="searchQparamList" item="item">
+                AND ( #{item} = ANY(MERGED.PROPERTIES)
+                OR #{item} = ANY(MERGED.RELATIONSHIPS)
+                )
+            </foreach>
+        </if>
+        <if test="geoCondition != null">
+            AND ${geoCondition}
+        </if>
+        <if test="timerelCondition != null">
+            AND ${timerelCondition}
+        </if>
+        ORDER BY MERGED.ID
+
+    </select>
+
+
+    <select id="selectCsourceRegistrationCount" resultType="integer" parameterType="kr.re.keti.sc.dataservicebroker.common.vo.DbConditionVO">
+
+        SELECT COUNT(*)
+        FROM (
+                SELECT  BASE.*,
+                        INFO.CSOURCE_REGISTRATION_INFO_ID,
+                        INFO.PROPERTIES,
+                        INFO.RELATIONSHIPS
+                FROM (
+                        SELECT  *
+                        FROM    DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_BASE
+                        WHERE   1=1
+                        <if test="contextList != null">
+                            <foreach collection="contextList" item="item">
+                                AND #{item} = any(CONTEXT)
+                            </foreach>
+                        </if>
+                        <if test="geoCondition != null">
+                            AND ${geoCondition}
+                        </if>
+                        ) AS BASE
+                LEFT JOIN DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_INFO AS INFO
+                ON BASE.ID = INFO.CSOURCE_REGISTRATION_BASE_ID
+            ) AS MERGED
+        LEFT JOIN (
+                    SELECT  *
+                    FROM    DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_ENTITY
+                  ) AS ENTITY
+        ON MERGED.CSOURCE_REGISTRATION_INFO_ID = ENTITY.CSOURCE_REGISTRATION_INFO_ID
+        WHERE 1=1
+        <if test="searchIdList != null">
+            AND ENTITY_ID in
+            <foreach collection="searchIdList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="searchTypeList != null">
+            AND ENTITY_TYPE in
+            <foreach collection="searchTypeList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="idPattern != null">
+            AND ENTITY_ID_PATTERN in (#{idPattern})
+        </if>
+        <if test="watchAttributeList != null">
+            <foreach collection="watchAttributeList" item="item">
+                AND ( #{item} = ANY(MERGED.PROPERTIES)
+                    OR #{item} = ANY(MERGED.RELATIONSHIPS)
+                    )
+            </foreach>
+        </if>
+        <if test="searchQparamList != null">
+            <foreach collection="searchQparamList" item="item">
+                AND ( #{item} = ANY(MERGED.PROPERTIES)
+                    OR #{item} = ANY(MERGED.RELATIONSHIPS)
+                    )
+            </foreach>
+        </if>
+        <if test="geoCondition != null">
+            AND ${geoCondition}
+        </if>
+        <if test="timerelCondition != null">
+            AND ${timerelCondition}
+        </if>
+    </select>
+
+
+    <select id="selectCsourceRegistrationByEntityId" resultMap="csourceregistrationBase" parameterType="String">
+
+        SELECT MERGED.*,
+               ENTITY.ENTITY_ID,
+               ENTITY.ENTITY_ID_PATTERN,
+               ENTITY.ENTITY_TYPE
+        FROM (SELECT BASE.*,
+                     INFO.CSOURCE_REGISTRATION_INFO_ID,
+                     INFO.PROPERTIES,
+                     INFO.RELATIONSHIPS
+              FROM (
+                       SELECT *
+                       FROM DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_BASE
+                   ) AS BASE
+                       LEFT JOIN DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_INFO AS INFO
+                                 ON BASE.ID = INFO.CSOURCE_REGISTRATION_BASE_ID) AS MERGED
+                 LEFT JOIN DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_ENTITY AS ENTITY
+                           ON MERGED.CSOURCE_REGISTRATION_INFO_ID =
+                              ENTITY.CSOURCE_REGISTRATION_INFO_ID
+        WHERE 1 = 1
+          AND ENTITY.ENTITY_ID = #{entityId}
+
+    </select>
+    <select id="selectCsourceRegistrationByRegistrationId" resultMap="csourceregistrationBase" parameterType="String">
+
+        SELECT MERGED.*,
+               ENTITY.ENTITY_ID,
+               ENTITY.ENTITY_ID_PATTERN,
+               ENTITY.ENTITY_TYPE
+        FROM (SELECT BASE.*,
+                     INFO.CSOURCE_REGISTRATION_INFO_ID,
+                     INFO.PROPERTIES,
+                     INFO.RELATIONSHIPS
+              FROM (
+                       SELECT *
+                       FROM DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_BASE
+                   ) AS BASE
+                       LEFT JOIN DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_INFO AS INFO
+                                 ON BASE.ID = INFO.CSOURCE_REGISTRATION_BASE_ID) AS MERGED
+                 LEFT JOIN DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_ENTITY AS ENTITY
+                           ON MERGED.CSOURCE_REGISTRATION_INFO_ID =
+                              ENTITY.CSOURCE_REGISTRATION_INFO_ID
+        WHERE 1 = 1
+          AND MERGED.ID = #{registrationId}
+    </select>
+
+    <delete id="deleteCsourceRegistrationBase" parameterType="String">
+        DELETE
+        FROM DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_BASE
+        WHERE ID = #{id}
+    </delete>
+    <delete id="deleteCsourceRegistrationInfo" parameterType="String">
+        DELETE
+        FROM DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_ENTITY
+        WHERE CSOURCE_REGISTRATION_BASE_ID = #{csourceRegistrationBaseId}
+
+    </delete>
+    <delete id="deleteCsourceRegistrationEntity" parameterType="String">
+        DELETE
+        FROM DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_INFO
+        WHERE CSOURCE_REGISTRATION_BASE_ID = #{csourceRegistrationBaseId}
+    </delete>
+
+
+    <update id="updateCsourceRegistrationBase" parameterType="kr.re.keti.sc.dataservicebroker.csource.vo.CsourceRegistrationBaseDaoVO">
+        UPDATE DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_BASE
+        SET
+        id = #{id}
+        <if test="name != null">
+            ,NAME = #{name}
+        </if>
+        <if test="description != null">
+            ,DESCRIPTION = #{description}
+        </if>
+        <if test="observationIntervalStart != null">
+            ,OBSERVATION_INTERVAL_START = #{observationIntervalStart}
+        </if>
+        <if test="observationIntervalEnd != null">
+            ,OBSERVATION_INTERVAL_END = #{observationIntervalEnd}
+        </if>
+        <if test="managementIntervalStart != null">
+            ,MANAGEMENT_INTERVAL_START = #{managementIntervalStart}
+        </if>
+        <if test="managementIntervalEnd != null">
+            ,MANAGEMENT_INTERVAL_END = #{managementIntervalEnd}
+        </if>
+        <if test="location != null">
+            ,LOCATION = ST_SetSRID(ST_GeomFromGeoJSON(#{location}), 4326)
+
+        </if>
+        <if test="observationSpace != null">
+            ,OBSERVATION_SPACE = ST_SetSRID(ST_GeomFromGeoJSON(#{observationSpace}), 4326)
+        </if>
+        <if test="expires != null">
+            ,EXPIRES = #{expires}
+        </if>
+        <if test="endpoint != null">
+            ,ENDPOINT = #{endpoint}
+        </if>
+        <if test="context != null">
+            ,CONTEXT =#{context, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(256)[]
+        </if>
+        <if test="operationSpace != null">
+            ,OPERATION_SPACE = ST_SetSRID(ST_GeomFromGeoJSON(#{operationSpace}), 4326)
+        </if>
+        <if test="supportedAggregationMethod != null">
+            ,SUPPORTED_AGGREGATION_METHOD = #{supportedAggregationMethod, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(50)[]
+        </if>
+        <if test="scope != null">
+        	,SCOPE = #{scope, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.StringArrayListTypeHandler}::VARCHAR(50)[]
+        </if>
+        <if test="scopeDataType != null">
+            ,SCOPE_DATA_TYPE = #{scopeDataType, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.AttributeValueTypeHandler}::VARCHAR(20)
+        </if>
+        WHERE id = #{id}
+    </update>
+</mapper>

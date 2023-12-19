@@ -1,0 +1,47 @@
+server:
+  port: 8082
+
+# DB연결 정보
+datasource:
+  driverClassName: org.postgresql.Driver
+  url: jdbc:postgresql://localhost:5432/datacore_v2_servicebroker01
+  username: postgres
+  password: postgres
+
+  secondary:
+    use.yn: N
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/datacore_v2_servicebroker01
+    username: postgres
+    password: postgres
+
+  hive:
+    use.yn: N
+    driverClassName: org.apache.hive.jdbc.HiveDriver
+    url: jdbc:hive2://203.253.128.181:10187/default
+    username: hive
+    password:
+    baseDirPath: /user/hive/warehouse
+
+  hbase:
+    xmlPath: hbase-site.xml
+
+data-federation:
+  standalone: false
+  csource:
+    id: urn:ngsi-ld:ContextSourceRegistration:IoT_01
+    endpoint: http://localhost:8082
+    regist-interval-millis: 600000
+    entity-infos:
+      - idPattern: 'urn:offstreetparking:.*'
+        type: 'http://uri.citydatahub.kr/ngsi-ld/parking/OffStreetParking'
+    location: '{"type": "GeoProperty", "value": {"type": "MultiPolygon", "coordinates": [[[[127.11132,37.393653],[127.112554,37.393696],[127.1127577,37.3919996],[127.111459,37.391938],[127.11132,37.393653]],[[127.11012959288209,37.39406942288665],[127.1101210152688,37.395925535644096],[127.11249276673757,37.396031425685074],[127.11251239034895,37.394049159260064],[127.11012959288209,37.39406942288665]]]]}}'
+  subscription:
+    id: urn:ngsi-ld:CsourceRegistrationSubscription:IoT_01
+    endpoint: http://localhost:8082/csourceNotifications
+  data-registry:
+    base-uri: http://localhost:9000
+    sub-uri:
+      csource: /csourceRegistrations
+      subscription: /csourceSubscriptions
+

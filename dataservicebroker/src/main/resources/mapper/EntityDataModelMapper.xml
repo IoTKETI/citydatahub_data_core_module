@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dataservicebroker.entityDataModel">
+
+    <resultMap id="entityDataModel" type="kr.re.keti.sc.dataservicebroker.entities.vo.EntityDataModelVO">
+        <id property="id" column="ID"/>
+        <result property="dataModelId" column="DATA_MODEL_ID"/>
+        <result property="dataModelType" column="DATA_MODEL_TYPE"/>
+        <result property="datasetId" column="DATASET_ID"/>
+    </resultMap>
+
+
+    <insert id="createEntityDataModel" parameterType="kr.re.keti.sc.dataservicebroker.entities.vo.EntityDataModelVO">
+
+        INSERT INTO DATA_SERVICE_BROKER.ENTITY_DATA_MODEL_BASE (
+        ID
+        ,DATA_MODEL_ID
+        ,DATA_MODEL_TYPE
+        ,DATASET_ID
+        ,CREATE_DATETIME
+        ,MODIFY_DATETIME
+        )
+        VALUES (
+        #{id}
+        ,#{dataModelId}
+        ,#{dataModelType}
+        ,#{datasetId}
+        ,now()
+        ,now()
+        )
+    </insert>
+
+	<update id="updateEntityDataModel" parameterType="kr.re.keti.sc.dataservicebroker.entities.vo.EntityDataModelVO">
+
+        UPDATE
+        	DATA_SERVICE_BROKER.ENTITY_DATA_MODEL_BASE 
+        SET
+        	MODIFY_DATETIME = now()
+        <if test="datasetId != null">
+            ,DATASET_ID = #{datasetId}
+        </if>
+        <if test="dataModelId != null">
+            ,DATA_MODEL_ID = #{dataModelId}
+        </if>
+        WHERE
+        	ID = #{id}
+    </update>
+
+    <select id="selectAll" resultMap="entityDataModel">
+        SELECT
+	        ID
+	        ,DATA_MODEL_ID
+	        ,DATA_MODEL_TYPE
+	        ,DATASET_ID
+		FROM
+			DATA_SERVICE_BROKER.ENTITY_DATA_MODEL_BASE
+    </select>
+
+    <select id="selectById" resultMap="entityDataModel" parameterType="String">
+        SELECT
+	        ID
+	        ,DATA_MODEL_ID
+	        ,DATA_MODEL_TYPE
+	        ,DATASET_ID
+		FROM
+			DATA_SERVICE_BROKER.ENTITY_DATA_MODEL_BASE
+        WHERE 
+        	ID = #{id}
+    </select>
+
+
+    <update id="deleteEntityDataModel" parameterType="String">
+        DELETE
+        FROM 
+        	DATA_SERVICE_BROKER.ENTITY_DATA_MODEL_BASE
+        WHERE
+        	ID = #{id}
+    </update>
+
+</mapper>

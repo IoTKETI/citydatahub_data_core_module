@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ingestinterface.verificationhistory">
+
+    <resultMap id="verificationHistoryResVO"
+               type="kr.re.keti.sc.ingestinterface.verificationhistory.vo.VerificationHistoryBaseVO">
+        <id property="seq" column="SEQ"/>
+        <result property="testTime" column="TEST_DATETIME"/>
+        <result property="datasetId" column="DATASET_ID"/>
+        <result property="dataModelId" column="DATA_MODEL_ID"/>
+        <result property="entityId" column="ENTITY_ID"/>
+        <result property="verified" column="IS_VERIFIED"/>
+        <result property="errorCode" column="ERROR_CODE"/>
+        <result property="errorCause" column="ERROR_CAUSE"/>
+        <result property="data" column="DATA"/>
+        <result property="successCount" column="SUCCESS_COUNT"/>
+        <result property="failureCount" column="FAILURE_COUNT"/>
+
+    </resultMap>
+
+    <insert id="insertVerificationHistories"
+            parameterType="kr.re.keti.sc.ingestinterface.verificationhistory.vo.VerificationHistoryBaseVO">
+
+        INSERT INTO INGEST_INTERFACE.VERIFICATION_HIST
+        ( TEST_DATETIME
+        , IS_VERIFIED
+        , CREATE_DATETIME
+        , DATASET_ID
+        , DATA_MODEL_ID
+        , ENTITY_ID
+        , ERROR_CODE
+        , ERROR_CAUSE
+        , DATA)
+        VALUES
+        <foreach item="verificationHistoryBaseVO" index="index" collection="list"  separator=",">
+        (
+                #{verificationHistoryBaseVO.testTime, jdbcType=TIMESTAMP}
+               , #{verificationHistoryBaseVO.verified, jdbcType=BOOLEAN}
+               , NOW()
+               , #{verificationHistoryBaseVO.datasetId, jdbcType=VARCHAR}
+               , #{verificationHistoryBaseVO.dataModelId, jdbcType=VARCHAR}
+               , #{verificationHistoryBaseVO.entityId, jdbcType=VARCHAR}
+               , #{verificationHistoryBaseVO.errorCode, jdbcType=VARCHAR}
+               , #{verificationHistoryBaseVO.errorCause, jdbcType=VARCHAR}
+               , #{verificationHistoryBaseVO.data, jdbcType=VARCHAR}
+       )
+        </foreach>
+    </insert>
+    <insert id="insertVerificationHistory"
+            parameterType="kr.re.keti.sc.ingestinterface.verificationhistory.vo.VerificationHistoryBaseVO">
+
+        INSERT INTO INGEST_INTERFACE.VERIFICATION_HIST
+        (
+
+        TEST_DATETIME
+        ,IS_VERIFIED
+        ,CREATE_DATETIME
+        <if test="datasetId != null">
+            ,DATASET_ID
+        </if>
+        <if test="dataModelId != null">
+            ,DATA_MODEL_ID
+        </if>
+        <if test="entityId != null">
+            ,ENTITY_ID
+        </if>
+        <if test="errorCode != null">
+        ,ERROR_CODE
+        </if>
+        <if test="errorCause != null">
+        ,ERROR_CAUSE
+        </if>
+        <if test="data != null">
+        ,DATA
+        </if>
+        )
+        VALUES (
+        #{testTime}
+        ,#{verified}
+        ,NOW()
+        <if test="datasetId != null">
+            ,#{datasetId}
+        </if>
+        <if test="dataModelId != null">
+            ,#{dataModelId}
+        </if>
+        <if test="entityId != null">
+            ,#{entityId}
+        </if>
+        <if test="errorCode != null">
+            ,#{errorCode}
+        </if>
+        <if test="errorCause != null">
+            ,#{errorCause}
+        </if>
+        <if test="data != null">
+            ,#{data}
+        </if>
+        )
+    </insert>
+
+    <select id="selectAll" resultMap="verificationHistoryResVO"
+            parameterType="kr.re.keti.sc.ingestinterface.verificationhistory.vo.VerificationHistoryBaseVO">
+        SELECT
+        SEQ,
+        TEST_DATETIME,
+        DATASET_ID,
+        DATA_MODEL_ID,
+        ENTITY_ID,
+        IS_VERIFIED,
+        ERROR_CODE,
+        ERROR_CAUSE,
+        DATA
+        FROM INGEST_INTERFACE.VERIFICATION_HIST
+        WHERE CREATE_DATETIME BETWEEN #{startTime}::timestamp and #{endTime}::timestamp
+        <if test="datasetId != null">
+            AND DATASET_ID  LIKE '%' || #{datasetId} || '%'
+        </if>
+        <if test="dataModelId != null">
+            AND DATA_MODEL_ID  LIKE '%' || #{dataModelId} || '%'
+        </if>
+        <if test="entityId != null">
+            AND ENTITY_ID  LIKE '%' || #{entityId} || '%'
+        </if>
+        <if test="verified != null">
+            AND IS_VERIFIED  =   #{verified}
+        </if>
+
+        <if test="smartSearchValue != null">
+            AND
+            (
+            DATASET_ID LIKE '%' || #{smartSearchValue} || '%'
+            OR  DATA_MODEL_ID LIKE '%' || #{smartSearchValue} || '%'
+            OR  ENTITY_ID LIKE '%' || #{smartSearchValue} || '%'
+            )
+        </if>
+        ORDER BY SEQ
+        <if test="offset != null">
+            OFFSET #{offset}
+        </if>
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <select id="selectBySeq" resultMap="verificationHistoryResVO"
+            parameterType="Integer">
+        SELECT
+        SEQ,
+        TEST_DATETIME,
+        DATASET_ID,
+        DATA_MODEL_ID,
+        ENTITY_ID,
+        IS_VERIFIED,
+        ERROR_CODE,
+        ERROR_CAUSE,
+        DATA
+        FROM INGEST_INTERFACE.VERIFICATION_HIST
+        WHERE SEQ = #{seq}
+        LIMIT 1
+    </select>
+
+    <select id="selectCount" resultMap="verificationHistoryResVO"
+            parameterType="kr.re.keti.sc.ingestinterface.verificationhistory.vo.VerificationHistoryBaseVO">
+        SELECT SUM(CASE WHEN IS_VERIFIED = true THEN 1 ELSE 0 END)  AS SUCCESS_COUNT,
+        SUM(CASE WHEN IS_VERIFIED = false THEN 1 ELSE 0 END) AS FAILURE_COUNT
+        FROM INGEST_INTERFACE.VERIFICATION_HIST
+        WHERE CREATE_DATETIME BETWEEN #{startTime}::timestamp and #{endTime}::timestamp
+        <if test="datasetId != null">
+            AND DATASET_ID  LIKE '%' || #{datasetId} || '%'
+        </if>
+        <if test="dataModelId != null">
+            AND DATA_MODEL_ID  LIKE '%' || #{dataModelId} || '%'
+        </if>
+        <if test="entityId != null">
+            AND ENTITY_ID  LIKE '%' || #{entityId} || '%'
+        </if>
+        <if test="verified != null">
+            AND IS_VERIFIED  =   #{verified}
+        </if>
+        <if test="smartSearchValue != null">
+            AND
+            (
+            DATASET_ID LIKE '%' || #{smartSearchValue} || '%'
+            OR  DATA_MODEL_ID LIKE '%' || #{smartSearchValue} || '%'
+            OR  ENTITY_ID LIKE '%' || #{smartSearchValue} || '%'
+            )
+        </if>
+
+    </select>
+
+
+    <!-- 전체 리스트 개수  -->
+    <select id="selectTotalCount" resultType="Integer"
+            parameterType="kr.re.keti.sc.ingestinterface.verificationhistory.vo.VerificationHistoryBaseVO">
+        SELECT COUNT(*)
+        FROM INGEST_INTERFACE.VERIFICATION_HIST
+        WHERE CREATE_DATETIME BETWEEN #{startTime}::timestamp and #{endTime}::timestamp
+        <if test="datasetId != null">
+            AND DATASET_ID  LIKE '%' || #{datasetId} || '%'
+        </if>
+        <if test="dataModelId != null">
+            AND DATA_MODEL_ID  LIKE '%' || #{dataModelId} || '%'
+        </if>
+        <if test="entityId != null">
+            AND ENTITY_ID  LIKE '%' || #{entityId} || '%'
+        </if>
+        <if test="verified != null">
+            AND IS_VERIFIED  =  #{verified}
+        </if>
+
+        <if test="smartSearchValue != null">
+            AND
+            (
+            DATASET_ID LIKE '%' || #{smartSearchValue} || '%'
+            OR  DATA_MODEL_ID LIKE '%' || #{smartSearchValue} || '%'
+            OR  ENTITY_ID LIKE '%' || #{smartSearchValue} || '%'
+            )
+        </if>
+    </select>
+
+</mapper>
