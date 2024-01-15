@@ -36,6 +36,7 @@ public class CsourceRegistrationVO {
     private TimeIntervalVO managementInterval;
     private String endpoint;
     private Object scope; // spec: string or string[]
+    private String mode;
 
     @Data
     @JsonInclude(JsonInclude.Include.NON_NULL)

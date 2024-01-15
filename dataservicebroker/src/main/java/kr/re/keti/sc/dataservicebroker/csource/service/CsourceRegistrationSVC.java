@@ -293,7 +293,8 @@ public class CsourceRegistrationSVC {
         csourceRegistrationBaseDaoVO.setExpires(csourceRegistrationVO.getExpiresAt());
         csourceRegistrationBaseDaoVO.setEndpoint(csourceRegistrationVO.getEndpoint());
         
-        if(csourceRegistrationVO.getSupportedAggregationMethod() != null && csourceRegistrationVO.getSupportedAggregationMethod().size() > 0) {
+        if(csourceRegistrationVO.getSupportedAggregationMethod() != null && !csourceRegistrationVO.getSupportedAggregationMethod()
+                                                                                                  .isEmpty()) {
         	csourceRegistrationBaseDaoVO.setSupportedAggregationMethod(csourceRegistrationVO.getSupportedAggregationMethod());
         }
         
@@ -369,6 +370,10 @@ public class CsourceRegistrationSVC {
             csourceRegistrationBaseDaoVO.setObservationIntervalEnd(csourceRegistrationVO.getObservationInterval().getEndAt());
         }
 
+        if(csourceRegistrationVO.getMode() != null) {
+            csourceRegistrationBaseDaoVO.setMode(csourceRegistrationVO.getMode());
+        }
+
         return csourceRegistrationBaseDaoVO;
     }
 
@@ -389,8 +394,9 @@ public class CsourceRegistrationSVC {
         csourceRegistrationVO.setExpiresAt(csourceRegistrationBaseDaoVO.getExpires());
         csourceRegistrationVO.setEndpoint(csourceRegistrationBaseDaoVO.getEndpoint());
         csourceRegistrationVO.setSupportedAggregationMethod(csourceRegistrationBaseDaoVO.getSupportedAggregationMethod());
+        csourceRegistrationVO.setMode(csourceRegistrationBaseDaoVO.getMode());
 
-        if(csourceRegistrationBaseDaoVO.getScope() != null && csourceRegistrationBaseDaoVO.getScope().size() > 0) {
+        if(csourceRegistrationBaseDaoVO.getScope() != null && !csourceRegistrationBaseDaoVO.getScope().isEmpty()) {
         	if(csourceRegistrationBaseDaoVO.getScopeDataType() == AttributeValueType.ARRAY_STRING) {
         		csourceRegistrationVO.setScope(csourceRegistrationBaseDaoVO.getScope());
         	} else {

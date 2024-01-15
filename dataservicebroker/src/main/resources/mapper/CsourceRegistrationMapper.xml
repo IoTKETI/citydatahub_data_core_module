@@ -43,12 +43,12 @@
                 typeHandler="kr.re.keti.sc.dataservicebroker.common.datamapperhandler.ListTypeHandler"/>
         <result property="scopeDataType" column="SCOPE_DATA_TYPE" javaType="String" jdbcType="VARCHAR"
                 typeHandler="kr.re.keti.sc.dataservicebroker.common.datamapperhandler.AttributeValueTypeHandler"/>
+        <result property="mode" column="MODE"/>
 
         <collection property="information" javaType="java.util.ArrayList" resultMap="csourceRegistrationInfos"/>
     </resultMap>
 
-    <update id="createCsourceRegistrationBase" parameterType="kr.re.keti.sc.dataservicebroker.csource.vo.CsourceRegistrationBaseDaoVO">
-
+    <insert id="createCsourceRegistrationBase" parameterType="kr.re.keti.sc.dataservicebroker.csource.vo.CsourceRegistrationBaseDaoVO">
         INSERT INTO DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_BASE
         (
         ID
@@ -99,6 +99,9 @@
         </if>
         <if test="scopeDataType != null">
             ,SCOPE_DATA_TYPE
+        </if>
+        <if test="mode != null">
+            ,MODE
         </if>
         )
         VALUES (
@@ -151,12 +154,14 @@
         <if test="scopeDataType != null">
             ,#{scopeDataType, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.AttributeValueTypeHandler}::VARCHAR(20)
         </if>
+        <if test="mode != null">
+            ,#{mode}
+        </if>
         )
+    </insert>
 
-    </update>
 
-
-    <update id="createCsourceRegistrationInfo" parameterType="java.util.Map">
+    <insert id="createCsourceRegistrationInfo" parameterType="java.util.Map">
         INSERT INTO DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_INFO
         (
         CSOURCE_REGISTRATION_INFO_ID,
@@ -176,10 +181,10 @@
             , now()
             )
         </foreach>
-    </update>
+    </insert>
 
 
-    <update id="createCsourceRegistrationEntity" parameterType="java.util.Map">
+    <insert id="createCsourceRegistrationEntity" parameterType="java.util.Map">
         INSERT INTO DATA_SERVICE_BROKER.CSOURCE_REGISTRATION_ENTITY
         (
         CSOURCE_REGISTRATION_BASE_ID,
@@ -198,7 +203,7 @@
             , #{item.entityType}
             )
         </foreach>
-    </update>
+    </insert>
 
 
     <select id="selectCsourceRegistration" resultMap="csourceregistrationBase" parameterType="kr.re.keti.sc.dataservicebroker.common.vo.DbConditionVO">
