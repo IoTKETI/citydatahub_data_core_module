@@ -467,6 +467,9 @@
         <if test="scopeDataType != null">
             ,SCOPE_DATA_TYPE = #{scopeDataType, typeHandler=kr.re.keti.sc.dataservicebroker.common.datamapperhandler.AttributeValueTypeHandler}::VARCHAR(20)
         </if>
+        <if test="mode != null">
+            ,mode = #{mode}
+        </if>
         WHERE id = #{id}
     </update>
 </mapper>
