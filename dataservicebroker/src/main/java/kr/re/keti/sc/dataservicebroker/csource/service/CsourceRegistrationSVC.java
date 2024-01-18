@@ -95,13 +95,13 @@ public class CsourceRegistrationSVC {
 
         if(ValidateUtil.isEmptyData(csourceRegistrationVO.getMode())) {
             throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "should include mode");
-        } else if(!csourceRegistrationVO.getMode().equals("inclusive")) {
+        } else if(!csourceRegistrationVO.getMode().equals(CsourceRegistrationMode.INCLUSIVE)) {
             throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "only supports inclusive mode");
         }
 
         if(ValidateUtil.isEmptyData(csourceRegistrationVO.getOperations())) {
             throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "should include operations");
-        } else if(!csourceRegistrationVO.getOperations().equals("retrieveOps")) {
+        } else if(!csourceRegistrationVO.getOperations().equals(CsourceRegistrationOperations.RETRIEVE_OPS)) {
             throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "only supports retrieveOps operations");
         }
 
