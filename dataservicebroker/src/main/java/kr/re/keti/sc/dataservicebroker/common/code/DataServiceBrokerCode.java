@@ -1144,6 +1144,7 @@ public class DataServiceBrokerCode {
       this.code = code;
     }
 
+    @JsonValue
     public String getCode() {
       return code;
     }
@@ -1170,6 +1171,7 @@ public class DataServiceBrokerCode {
       this.code = code;
     }
 
+    @JsonValue
     public String getCode() {
       return code;
     }
