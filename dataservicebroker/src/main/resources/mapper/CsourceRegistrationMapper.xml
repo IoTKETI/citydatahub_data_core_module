@@ -44,6 +44,7 @@
         <result property="scopeDataType" column="SCOPE_DATA_TYPE" javaType="String" jdbcType="VARCHAR"
                 typeHandler="kr.re.keti.sc.dataservicebroker.common.datamapperhandler.AttributeValueTypeHandler"/>
         <result property="mode" column="MODE"/>
+        <result property="operations" column="OPERATIONS"/>
 
         <collection property="information" javaType="java.util.ArrayList" resultMap="csourceRegistrationInfos"/>
     </resultMap>
@@ -103,6 +104,9 @@
         <if test="mode != null">
             ,MODE
         </if>
+        <if test="operations != null">
+            ,OPERATIONS
+        </if>
         )
         VALUES (
         #{id}
@@ -157,6 +161,9 @@
         <if test="mode != null">
             ,#{mode}
         </if>
+        <if test="operations != null">
+            ,#{operations}
+        </if>
         )
     </insert>
 
@@ -207,7 +214,6 @@
 
 
     <select id="selectCsourceRegistration" resultMap="csourceregistrationBase" parameterType="kr.re.keti.sc.dataservicebroker.common.vo.DbConditionVO">
-
         SELECT  MERGED.*,
                 ENTITY.ENTITY_ID,
                 ENTITY.ENTITY_ID_PATTERN,
@@ -281,7 +287,6 @@
             AND ${timerelCondition}
         </if>
         ORDER BY MERGED.ID
-
     </select>
 
 
@@ -441,7 +446,6 @@
         </if>
         <if test="location != null">
             ,LOCATION = ST_SetSRID(ST_GeomFromGeoJSON(#{location}), 4326)
-
         </if>
         <if test="observationSpace != null">
             ,OBSERVATION_SPACE = ST_SetSRID(ST_GeomFromGeoJSON(#{observationSpace}), 4326)
@@ -469,6 +473,9 @@
         </if>
         <if test="mode != null">
             ,MODE = #{mode}
+        </if>
+        <if test="operations != null">
+            ,OPERATIONS = #{operations}
         </if>
         WHERE id = #{id}
     </update>

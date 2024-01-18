@@ -26,6 +26,7 @@ public class DataFederationProperty {
         private String location;
         private String mode;
         private Object scope;
+        private String operations;
     }
 
     @Data

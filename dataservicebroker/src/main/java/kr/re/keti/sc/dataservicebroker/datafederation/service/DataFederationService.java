@@ -38,6 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode.*;
+
 @Component
 @Slf4j
 public class DataFederationService {
@@ -191,7 +193,7 @@ public class DataFederationService {
         // 1. 구독 요청 객체 생성 
         SubscriptionVO subscriptionVO = new SubscriptionVO();
         subscriptionVO.setId(dataFederationProperty.getSubscription().getId());
-        subscriptionVO.setType(DataServiceBrokerCode.JsonLdType.SUBSCRIPTION.getCode());
+        subscriptionVO.setType(JsonLdType.SUBSCRIPTION.getCode());
         subscriptionVO.setIsActive(true);
         NotificationParams notificationParams = new NotificationParams();
         Endpoint endpoint = new Endpoint();
@@ -247,15 +249,13 @@ public class DataFederationService {
 
         // 2-1. CsourceRegistrationVO 기본 데이터 설정
         csourceRegistrationVO.setId(dataFederationProperty.getCsource().getId());
-        csourceRegistrationVO.setType(DataServiceBrokerCode.JsonLdType.CSOURCE_REGISTRATION.getCode());
+        csourceRegistrationVO.setType(JsonLdType.CSOURCE_REGISTRATION.getCode());
         csourceRegistrationVO.setEndpoint(dataFederationProperty.getCsource().getEndpoint());
         csourceRegistrationVO.setScope(dataFederationProperty.getCsource().getScope());
-
-        if(ValidateUtil.isEmptyData(dataFederationProperty.getCsource().getMode())) {
-            csourceRegistrationVO.setMode("inclusive");
-        } else {
-            csourceRegistrationVO.setMode(dataFederationProperty.getCsource().getMode());
-        }
+        csourceRegistrationVO.setMode(
+                CsourceRegistrationMode.parseType(dataFederationProperty.getCsource().getMode()));
+        csourceRegistrationVO.setOperations(CsourceRegistrationOperations.parseType(
+                dataFederationProperty.getCsource().getOperations()));
 
         // 2-2. 조회된 DataModel 및 entity-info 기반 CsourceRegistrationVO(information) 데이터 생성
         csourceRegistrationVO.setInformation(
@@ -282,6 +282,8 @@ public class DataFederationService {
 
     private List<Information> generateInformation(List<DataModelBaseVO> dataModelBaseVOs,
                                                   List<EntityInfo> entityInfos) {
+        //TODO: EntityInfos에 값이 설정 된 경우, EntityInfos만 사용.
+        //TODO: EntityInfos에 값이 설정되어 있지 않은 경우, 브로커에 등록된 Data Model 정보를 등록함
         dataModelBaseVOs = dataModelBaseVOs.stream()
                                            .filter(d -> entityInfos.stream()
                                                                    .anyMatch(e -> e.getType().equals(d.getTypeUri())))

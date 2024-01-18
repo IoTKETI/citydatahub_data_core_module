@@ -1131,4 +1131,56 @@ public class DataServiceBrokerCode {
       return null;
     }
   }
+
+  public static enum CsourceRegistrationMode {
+    INCLUSIVE("inclusive"),
+    AUXILIARY("auxiliary"),
+    EXCLUSIVE("exclusive"),
+    REDIRECT("redirect");
+
+    private String code;
+
+    private CsourceRegistrationMode(String code) {
+      this.code = code;
+    }
+
+    public String getCode() {
+      return code;
+    }
+
+    public static CsourceRegistrationMode parseType(String code) {
+      for (CsourceRegistrationMode registrationMode : values()) {
+        if (registrationMode.getCode().equals(code)) {
+          return registrationMode;
+        }
+      }
+      return null;
+    }
+  }
+
+  public static enum CsourceRegistrationOperations {
+    FEDERATION_OPS("federationOps"),
+    UPDATE_OPS("updateOps"),
+    RETRIEVE_OPS("retrieveOps"),
+    REDIRECTION_OPS("redirectionOps");
+
+    private String code;
+
+    private CsourceRegistrationOperations(String code) {
+      this.code = code;
+    }
+
+    public String getCode() {
+      return code;
+    }
+
+    public static CsourceRegistrationOperations parseType(String code) {
+      for (CsourceRegistrationOperations operations : values()) {
+        if (operations.getCode().equals(code)) {
+          return operations;
+        }
+      }
+      return null;
+    }
+  }
 }

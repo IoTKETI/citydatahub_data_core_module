@@ -26,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+import static kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode.*;
+
 @Service
 @Slf4j
 public class CsourceRegistrationSVC {
@@ -48,26 +50,27 @@ public class CsourceRegistrationSVC {
 
         if (isCreateMode) {
             if (csourceRegistrationVO.getType() == null) {
-                throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "should include type");
+                throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "should include type");
             }
 
             if (csourceRegistrationVO.getInformation() == null) {
-                throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "should include information");
+                throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "should include information");
             }
 
             if (csourceRegistrationVO.getEndpoint() == null) {
-                throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "should include Endpoint");
+                throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "should include Endpoint");
             }
 
             // If the data types and restrictions expressed by clause 5.2.9 are not met by the Context Source Registration, then an error of type BadRequestData shall be raised.
-            if (!csourceRegistrationVO.getType().equalsIgnoreCase(DataServiceBrokerCode.JsonLdType.CSOURCE_REGISTRATION.getCode())) {
-                throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "should include valid type");
+            if (!csourceRegistrationVO.getType().equalsIgnoreCase(JsonLdType.CSOURCE_REGISTRATION.getCode())) {
+                throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "should include valid type");
             }
 
 
         } else {
-            if (csourceRegistrationVO.getType() != null && !csourceRegistrationVO.getType().equalsIgnoreCase(DataServiceBrokerCode.JsonLdType.CSOURCE_REGISTRATION.getCode())) {
-                throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "should include valid type");
+            if (csourceRegistrationVO.getType() != null && !csourceRegistrationVO.getType().equalsIgnoreCase(
+                    JsonLdType.CSOURCE_REGISTRATION.getCode())) {
+                throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "should include valid type");
             }
 
             //Any attempt to remove (by setting them to null in the Fragment) mandatory properties of a Context Source
@@ -78,7 +81,7 @@ public class CsourceRegistrationSVC {
         //공통
         if (csourceRegistrationVO.getId() == null) {
             //ID가 없는 경우
-            throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "should include id");
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "should include id");
         }
 
         if (csourceRegistrationVO.getExpiresAt() != null) {
@@ -86,13 +89,24 @@ public class CsourceRegistrationSVC {
 
             if ((csourceRegistrationVO.getExpiresAt().getTime() < now.getTime()) || (csourceRegistrationVO.getExpiresAt().getTime() < now.getTime())) {
                 //• If expires is a date and time in the past, an error of type BadRequestData shall be raised.
-                throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "expires has passed.");
+                throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "expires has passed.");
             }
+        }
+
+        if(ValidateUtil.isEmptyData(csourceRegistrationVO.getMode())) {
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "should include mode");
+        } else if(!csourceRegistrationVO.getMode().equals("inclusive")) {
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "only supports inclusive mode");
+        }
+
+        if(ValidateUtil.isEmptyData(csourceRegistrationVO.getOperations())) {
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "should include operations");
+        } else if(!csourceRegistrationVO.getOperations().equals("retrieveOps")) {
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "only supports retrieveOps operations");
         }
 
         // information 및 location 필드 유효성 체크
         validateParameterByContext(csourceRegistrationVO);
-
     }
 
     /**
@@ -213,7 +227,7 @@ public class CsourceRegistrationSVC {
 
         if (csourceRegistrationBaseDaoVOs == null || csourceRegistrationBaseDaoVOs.size() == 0) {
             // 2. 조회된 CsourceRegistration 없을 경우, ResourceNotFound 처리
-            throw new NgsiLdResourceNotFoundException(DataServiceBrokerCode.ErrorCode.NOT_EXIST_ID, "There is no an existing registration which id");
+            throw new NgsiLdResourceNotFoundException(ErrorCode.NOT_EXIST_ID, "There is no an existing registration which id");
         }
 
         return csourceRegistrationsDaoToVo(csourceRegistrationBaseDaoVOs.get(0));
@@ -371,7 +385,11 @@ public class CsourceRegistrationSVC {
         }
 
         if(csourceRegistrationVO.getMode() != null) {
-            csourceRegistrationBaseDaoVO.setMode(csourceRegistrationVO.getMode());
+            csourceRegistrationBaseDaoVO.setMode(csourceRegistrationVO.getMode().getCode());
+        }
+
+        if(csourceRegistrationVO.getOperations() != null) {
+            csourceRegistrationBaseDaoVO.setOperations(csourceRegistrationVO.getOperations().getCode());
         }
 
         return csourceRegistrationBaseDaoVO;
@@ -393,8 +411,11 @@ public class CsourceRegistrationSVC {
         csourceRegistrationVO.setDescription(csourceRegistrationBaseDaoVO.getDescription());
         csourceRegistrationVO.setExpiresAt(csourceRegistrationBaseDaoVO.getExpires());
         csourceRegistrationVO.setEndpoint(csourceRegistrationBaseDaoVO.getEndpoint());
-        csourceRegistrationVO.setSupportedAggregationMethod(csourceRegistrationBaseDaoVO.getSupportedAggregationMethod());
-        csourceRegistrationVO.setMode(csourceRegistrationBaseDaoVO.getMode());
+        csourceRegistrationVO.setSupportedAggregationMethod(
+                csourceRegistrationBaseDaoVO.getSupportedAggregationMethod());
+        csourceRegistrationVO.setMode(CsourceRegistrationMode.parseType(csourceRegistrationBaseDaoVO.getMode()));
+        csourceRegistrationVO.setOperations(
+                CsourceRegistrationOperations.parseType(csourceRegistrationBaseDaoVO.getOperations()));
 
         if(csourceRegistrationBaseDaoVO.getScope() != null && !csourceRegistrationBaseDaoVO.getScope().isEmpty()) {
         	if(csourceRegistrationBaseDaoVO.getScopeDataType() == AttributeValueType.ARRAY_STRING) {
@@ -503,8 +524,8 @@ public class CsourceRegistrationSVC {
                             }
                             // entityType이 short name 인 경우 context 정보에 존재하는 지 유효성 검증
                             if(contextMap == null || !contextMap.containsKey(entityInfo.getType())) {
-                                throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER,
-                                        "Invalid Parameter. Not exists entityType in context. entityType=" + entityInfo.getType());
+                                throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER,
+                                                                    "Invalid Parameter. Not exists entityType in context. entityType=" + entityInfo.getType());
                             }
                         }
                     }
@@ -518,8 +539,8 @@ public class CsourceRegistrationSVC {
                         }
                         // propertyName이 short name 인 경우 context 정보에 존재하는 지 유효성 검증
                         if(contextMap == null || !contextMap.containsKey(propertyName)) {
-                            throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER,
-                                    "Invalid Parameter. Not exists propertyName in context. propertyName=" + propertyName);
+                            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER,
+                                                                "Invalid Parameter. Not exists propertyName in context. propertyName=" + propertyName);
                         }
                     }
                 }
@@ -532,8 +553,8 @@ public class CsourceRegistrationSVC {
                         }
                         // relationshipName이 short name 인 경우 context 정보에 존재하는 지 유효성 검증
                         if(contextMap == null || !contextMap.containsKey(relationshipName)) {
-                            throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER,
-                                    "Invalid Parameter. Not exists relationshipName in context. relationshipName=" + relationshipName);
+                            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER,
+                                                                "Invalid Parameter. Not exists relationshipName in context. relationshipName=" + relationshipName);
                         }
                     }
                 }
