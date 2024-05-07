@@ -1,6 +1,16 @@
 spring:
   application:
     name: dh-datacore-data-service-broker-test
+  kafka:
+    bootstrap-servers: broker:29092 # Docker 내부 네트워크용 주소
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: group_id
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
 server:
   port: 9082
@@ -13,14 +23,14 @@ logging.base.dir: logs_test
 # DB연결 정보
 datasource:
   driverClassName: org.postgresql.Driver
-  url: jdbc:postgresql://localhost:5432/smart_city
+  url: jdbc:postgresql://localhost:15432/smart_city
   username: postgres
   password: postgres
 
   secondary:
     use.yn: Y
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/smart_city
+    url: jdbc:postgresql://localhost:15432/smart_city
     username: postgres
     password: postgres
 
@@ -44,7 +54,7 @@ bulk:
 
 # 카프카 설정
 kafka:
-  url: k1:9092,k2:9092,k3:9092
+  url: localhost:9092
   message.version: 1.0
   security.yn: N
   security.protocol: SASL_PLAINTEXT
@@ -159,7 +169,7 @@ security:
   acl:
     useYn: N
 
-  publicKey: -----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx4AkUiGyxa7sizeGLFFw\n5lveLj44y1eOSpYqR/EyEtJ4h+3oGlhq/X64lAOxD4Bnca5ONZmHaxF2gUX9yUkD\n9kEMDlF2YHWDNLayN6GDnrDgBYS/q6jsW78+0T8TQ6sjnltpzMlbPATJbHmyup8y\nofhZIBc59wNyRjxGa98I9okvrZERrdF8gh7WDQ15sp6rB0tr+tYVv+klzabtjCgT\nDrAqaT/BNeUDmjSPLtXbt75nbPmVZDzd48rWSNVbUZesE/EETh/lEFZ6ck/VHf7w\nV6GwOhkL8KM6oEE8wW0loXl4HrSAhynEYqBz4QMBaY9sk2Os7DMKnF+P1stoFU7n\nTwIDAQAB\n-----END PUBLIC KEY-----
+  publicKey: -----BEGIN PUBLIC KEY-----
 
   headers:
     admin:

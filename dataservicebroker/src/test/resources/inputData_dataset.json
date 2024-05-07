@@ -1,0 +1,15 @@
+{
+    "id": "%s",
+    "name": "%s",
+    "updateInterval": "-",
+    "category": "환경",
+    "providerOrganization": "-",
+    "providerSystem": "-",
+    "isProcessed": "원천데이터",
+    "ownership": "-",
+    "license": "CCBY",
+    "datasetItems": "-",
+    "targetRegions": "-",
+    "qualityCheckEnabled": false,
+    "dataModelId": "%s"
+}

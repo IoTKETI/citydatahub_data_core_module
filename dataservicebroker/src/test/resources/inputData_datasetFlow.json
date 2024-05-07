@@ -1,0 +1,5 @@
+{
+    "historyStoreType": "all",
+    "enabled": true,
+    "bigDataStorageTypes": ["rdb"]
+}

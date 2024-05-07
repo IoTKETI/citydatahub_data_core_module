@@ -1,0 +1,196 @@
+{
+    "context": [
+    "http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld",
+    "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld"
+    ],
+    "id": "%s",
+    "type": "TestModel3",
+    "typeUri": "http://uri.citydatahub.kr/ngsi-ld/TestModel3",
+    "name": "TestModel3",
+    "attributes": [
+    {
+        "name": "location",
+        "isRequired": false,
+        "valueType": "GeoJson",
+        "attributeType": "GeoProperty",
+        "hasObservedAt": true,
+        "hasUnitCode": false,
+        "attributeUri": "https://uri.etsi.org/ngsi-ld/location"
+    },
+    {
+        "name": "objects",
+        "isRequired": false,
+        "valueType": "Object",
+        "objectMembers": [
+        { "name": "interger", "valueType": "Integer" },
+        { "name": "boolean", "valueType": "Boolean" },
+        { "name": "string", "valueType": "String" },
+        { "name": "date", "valueType": "Date" },
+        { "name": "double", "valueType": "Double" }
+        ],
+        "attributeType": "Property",
+        "hasObservedAt": false,
+        "hasUnitCode": false,
+        "attributeUri": "https://uri.etsi.org/ngsi-ld/hasObjects"
+    },
+    {
+        "name": "observationSpace",
+        "isRequired": false,
+        "valueType": "GeoJson",
+        "attributeType": "GeoProperty",
+        "hasObservedAt": false,
+        "hasUnitCode": false,
+        "attributeUri": "https://uri.etsi.org/ngsi-ld/observationSpace"
+    },
+    {
+        "name": "testArrayBoolean",
+        "isRequired": false,
+        "valueType": "ArrayBoolean",
+        "attributeType": "Property",
+        "hasObservedAt": false,
+        "hasUnitCode": false,
+        "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean"
+    },
+    {
+        "name": "testArrayDouble",
+        "isRequired": false,
+        "valueType": "ArrayDouble",
+        "attributeType": "Property",
+        "hasObservedAt": false,
+        "hasUnitCode": false,
+        "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testArrayDouble"
+    },
+    {
+        "name": "testArrayInteger",
+        "isRequired": false,
+        "valueType": "ArrayInteger",
+        "attributeType": "Property",
+        "hasObservedAt": false,
+        "hasUnitCode": false,
+        "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testArrayInteger"
+    },
+    {
+        "name": "testArrayObject",
+        "isRequired": false,
+        "valueType": "ArrayObject",
+        "objectMembers": [
+        { "name": "testArrObjString", "valueType": "String" },
+        { "name": "testArrObjInteger", "valueType": "Integer" },
+        { "name": "testArrObjDouble", "valueType": "Double" },
+        { "name": "testArrObjBoolean", "valueType": "Boolean" },
+        { "name": "testArrObjDate", "valueType": "Date" }
+        ],
+        "attributeType": "Property",
+        "hasObservedAt": false,
+        "hasUnitCode": false,
+        "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testArrayObject"
+    },
+    {
+        "name": "testArrayString",
+        "isRequired": false,
+        "valueType": "ArrayString",
+        "attributeType": "Property",
+        "hasObservedAt": false,
+        "hasUnitCode": false,
+        "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testArrayString"
+    },
+    {
+        "name": "testBoolean",
+        "isRequired": false,
+        "valueType": "Boolean",
+        "attributeType": "Property",
+        "hasObservedAt": false,
+        "hasUnitCode": false,
+        "childAttributes": [
+        {
+            "name": "testInteger",
+            "isRequired": false,
+            "valueType": "Integer",
+            "attributeType": "Property",
+            "hasObservedAt": false,
+            "hasUnitCode": false,
+            "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testInteger"
+        },
+        {
+            "name": "testObject",
+            "isRequired": false,
+            "valueType": "Object",
+            "objectMembers": [
+            { "name": "string", "valueType": "String" }
+            ],
+            "attributeType": "Property",
+            "hasObservedAt": false,
+            "hasUnitCode": false,
+            "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testObject"
+        },
+        {
+            "name": "testString",
+            "isRequired": false,
+            "valueType": "String",
+            "attributeType": "Property",
+            "hasObservedAt": false,
+            "hasUnitCode": false,
+            "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testString"
+        }
+        ],
+        "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testBoolean"
+    },
+    {
+        "name": "testDate",
+        "isRequired": false,
+        "valueType": "Date",
+        "attributeType": "Property",
+        "hasObservedAt": false,
+        "hasUnitCode": false,
+        "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testDate"
+    },
+    {
+        "name": "testDouble",
+        "isRequired": false,
+        "valueType": "Double",
+        "attributeType": "Property",
+        "hasObservedAt": false,
+        "hasUnitCode": false,
+        "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testDouble"
+    },
+    {
+        "name": "testGeoJson",
+        "isRequired": false,
+        "valueType": "GeoJson",
+        "attributeType": "GeoProperty",
+        "hasObservedAt": true,
+        "hasUnitCode": false,
+        "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testGeoJson"
+    },
+    {
+        "name": "testInteger",
+        "isRequired": false,
+        "valueType": "Integer",
+        "attributeType": "Property",
+        "hasObservedAt": false,
+        "hasUnitCode": false,
+        "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testInteger"
+    },
+    {
+        "name": "testRelationshipString",
+        "isRequired": false,
+        "valueType": "String",
+        "attributeType": "Relationship",
+        "hasObservedAt": false,
+        "hasUnitCode": false,
+        "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testRelationshipString"
+    },
+    {
+        "name": "testString",
+        "isRequired": false,
+        "valueType": "String",
+        "attributeType": "Property",
+        "hasObservedAt": false,
+        "hasUnitCode": false,
+        "childAttributes": [],
+        "attributeUri": "http://uri.citydatahub.kr/ngsi-ld/testString"
+    }
+    ],
+    "createdAt": "2022-03-29T04:04:28.836Z",
+    "modifiedAt": "2022-10-25T04:12:09.291Z"
+}

@@ -1,0 +1,64 @@
+[
+  {
+  "@context": [
+    "http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld",
+    "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld"
+  ],
+  "datasetId": "TestModel3Flow",
+  "testInteger": {
+    "type": "Property",
+    "value": 100
+  },
+  "testDouble": {
+    "type": "Property",
+    "value": 10.5
+  },
+  "testString": {
+    "type": "Property",
+    "value": "example"
+  },
+  "testBoolean": {
+    "type": "Property",
+    "value": true
+  },
+  "testDate": {
+    "type": "Property",
+    "value": "2024-01-01T00:00:00.000Z"
+  },
+  "testArrayInteger": {
+    "type": "Property",
+    "value": [1, 100]
+  },
+  "testArrayDouble": {
+    "type": "Property",
+    "value": [1.7976931348623157E308, 10.5]
+  },
+  "testArrayString": {
+    "type": "Property",
+    "value": ["example", "test"]
+  },
+  "testArrayBoolean": {
+    "type": "Property",
+    "value": [true, false]
+  },
+  "testArrayObject": {
+    "type": "Property",
+    "value": [{
+        "testArrObjString": "example",
+        "testArrObjInteger": 1,
+        "testArrObjDouble": 10.5,
+        "testArrObjBoolean": true,
+        "testArrObjDate": "2024-01-01 00:00:00.+09:00"
+      },
+      {
+        "testArrObjString": "test",
+        "testArrObjInteger": 100,
+        "testArrObjDouble": 1.7976931348623157E308,
+        "testArrObjBoolean": false,
+        "testArrObjDate": "2025-01-01 00:00:00.+09:00"
+      }
+    ]
+  },
+  "id": "urn:datahub:TestModel3:queryUnitTest:queryUnitTestSetId",
+  "type": "TestModel3"
+}]

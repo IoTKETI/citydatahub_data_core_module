@@ -1,0 +1,142 @@
+[
+  {
+    "@context": [
+      "http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld",
+      "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld"
+    ],
+    "datasetId": "TestModel3Flow",
+    "testGeoJson": {
+      "observedAt": "2024-01-01T00:00:00.000Z",
+      "type": "GeoProperty",
+      "value": {
+        "type": "Point",
+        "coordinates": [127.12871304788501, 37.41129752305784]
+      }
+    },
+    "id": "urn:datahub:TestModel3:geoQueryUnitTest:PointData:YatapStation",
+    "type": "TestModel3"
+  },
+  {
+    "@context": [
+      "http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld",
+      "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld"
+    ],
+    "datasetId": "TestModel3Flow",
+    "testGeoJson": {
+      "observedAt": "2024-01-01T00:00:00.000Z",
+      "type": "GeoProperty",
+      "value": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [127.0, 37.0],
+          [127.0, 37.001]
+        ]
+      }
+    },
+    "id": "urn:datahub:TestModel3:geoQueryUnitTest:MultiPointData:YatapStation",
+    "type": "TestModel3"
+  },
+  {
+    "@context": [
+      "http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld",
+      "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld"
+    ],
+    "datasetId": "TestModel3Flow",
+    "testGeoJson": {
+      "observedAt": "2024-01-01T00:00:00.000Z",
+      "type": "GeoProperty",
+      "value": {
+        "type": "LineString",
+        "coordinates": [
+          [40.7128, -74.006],
+          [41.7128, -74.006]
+        ]
+      }
+    },
+    "id": "urn:datahub:TestModel3:geoQueryUnitTest:LineStringData:YatapStation",
+    "type": "TestModel3"
+  },
+  {
+    "@context": [
+      "http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld",
+      "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld"
+    ],
+    "datasetId": "TestModel3Flow",
+    "testGeoJson": {
+      "observedAt": "2024-01-01T00:00:00.000Z",
+      "type": "GeoProperty",
+      "value": {
+        "type": "MultiLineString",
+        "coordinates": [
+            [
+              [40.7128, -74.0060], [41.7128, -74.0060]
+            ],
+            [
+              [40.7128, -73.0060], [41.7128, -73.0060]
+            ]
+        ]
+      }
+    },
+    "id": "urn:datahub:TestModel3:geoQueryUnitTest:MultiLineStringData:YatapStation",
+    "type": "TestModel3"
+  },
+  {
+    "@context": [
+      "http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld",
+      "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld"
+    ],
+    "datasetId": "TestModel3Flow",
+    "testGeoJson": {
+      "observedAt": "2024-01-01T00:00:00.000Z",
+      "type": "GeoProperty",
+      "value": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [127.12845064888569, 37.411435828265155],
+            [127.12845064888569, 37.411072436074434],
+            [127.12893909372298, 37.411072436074434],
+            [127.12893909372298, 37.411435828265155],
+            [127.12845064888569, 37.411435828265155]
+          ]
+        ]
+      }
+    },
+    "id": "urn:datahub:TestModel3:geoQueryUnitTest:PolygonData:YatapStation",
+    "type": "TestModel3"
+  },
+  {
+    "@context": [
+      "http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld",
+      "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld"
+    ],
+    "datasetId": "TestModel3Flow",
+    "testGeoJson": {
+      "observedAt": "2024-01-01T00:00:00.000Z",
+      "type": "GeoProperty",
+      "value": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [127.12845064888569, 37.411435828265155],
+              [127.12845064888569, 37.411072436074434],
+              [127.12893909372298, 37.411072436074434],
+              [127.12893909372298, 37.411435828265155],
+              [127.12845064888569, 37.411435828265155]
+            ],
+            [
+              [127.12846138131374, 37.410962998025866],
+              [127.12846138131374, 37.41061494462876],
+              [127.12894694177623, 37.41061494462876],
+              [127.12894694177623, 37.410962998025866],
+              [127.12846138131374, 37.410962998025866]
+            ]
+          ]
+        ]
+      }
+    },
+    "id": "urn:datahub:TestModel3:geoQueryUnitTest:MultiPolygonData:YatapStation",
+    "type": "TestModel3"
+  }
+]

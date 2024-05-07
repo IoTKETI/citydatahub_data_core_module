@@ -1,0 +1,58 @@
+[
+    {
+        "attributeName": "testInteger",
+        "value": [100, 101, "0..150", "0..0"]
+    },
+    {
+        "attributeName": "testDouble",
+        "value": [10.5, "0..20.5", "0..0", "11.5"]
+    },
+    {
+        "attributeName": "testString",
+        "value": ["\"example\"", "\"^exa.*\"", "\"test\""]
+    },
+    {
+        "attributeName": "testBoolean",
+        "value": [true, false]
+    },
+    {
+        "attributeName": "testDate",
+        "value": ["\"2024-01-01 00:00:00.+09:00\"", "\"2025-01-01 00:00:00.+09:00\"", "\"2024-01-01T00:00:00.000Z\""]
+    },
+    {
+        "attributeName": "testArrayInteger",
+        "value": [1, 50]
+    },
+    {
+        "attributeName": "testArrayDouble",
+        "value": [1.7976931348623157E308, 10.5, "0..20.5"]
+    },
+    {
+        "attributeName": "testArrayString",
+        "value": ["\"example\"", "\"sample\""]
+    },
+    {
+        "attributeName": "testArrayBoolean",
+        "value": [true, false]
+    },
+    {
+        "attributeName": "testArrayObject[testArrObjString]",
+        "value": ["\"example\"", "\"고양이는야옹\""]
+    },
+    {
+        "attributeName": "testArrayObject[testArrObjInteger]",
+        "value": [1, 100, "0..150"]
+    },
+    {
+        "attributeName": "testArrayObject[testArrObjDouble]",
+        "value": [10.5, "0..20.5"]
+    },
+    {
+        "attributeName": "testArrayObject[testArrObjBoolean]",
+        "value": [true, false]
+    },
+    {
+        "attributeName": "testObject[testArrObjDate]",
+        "value": ["\"2024-01-01 00:00:00+09:00\"", "\"2025-01-01 00:00:00+09:00\""]
+    }
+]
