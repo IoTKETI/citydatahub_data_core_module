@@ -13,6 +13,8 @@ import kr.re.keti.sc.dataservicebroker.common.vo.TimeIntervalVO;
 import kr.re.keti.sc.dataservicebroker.util.TimeIntervalValueNullFilter;
 import lombok.Data;
 
+import static kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode.*;
+
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -21,7 +23,7 @@ public class CsourceRegistrationVO {
 	@JsonProperty("@context")
     private List<String> context;
     private String id;
-    private String type = DataServiceBrokerCode.JsonLdType.CSOURCE_REGISTRATION.getCode();
+    private String type = JsonLdType.CSOURCE_REGISTRATION.getCode();
     private String name;
     private String description;
     private List<Information> information;
@@ -36,6 +38,8 @@ public class CsourceRegistrationVO {
     private TimeIntervalVO managementInterval;
     private String endpoint;
     private Object scope; // spec: string or string[]
+    private CsourceRegistrationMode mode;
+    private CsourceRegistrationOperations operations;
 
     @Data
     @JsonInclude(JsonInclude.Include.NON_NULL)

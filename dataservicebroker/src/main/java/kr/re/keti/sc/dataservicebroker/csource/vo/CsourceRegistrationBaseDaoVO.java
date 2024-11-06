@@ -40,4 +40,6 @@ public class CsourceRegistrationBaseDaoVO {
     private List<String> supportedAggregationMethod;
     private List<String> scope;
     private AttributeValueType scopeDataType; // scope 은 ARRAY_STRING or STRING 이 올 수 있음
+    private String mode;
+    private String operations;
 }

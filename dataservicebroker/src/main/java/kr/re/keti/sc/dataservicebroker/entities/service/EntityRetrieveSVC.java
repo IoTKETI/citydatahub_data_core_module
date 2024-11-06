@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import kr.re.keti.sc.dataservicebroker.common.code.Constants;
+import kr.re.keti.sc.dataservicebroker.common.exception.ngsild.NgsiLdOperationNotSupportedException;
 import kr.re.keti.sc.dataservicebroker.datafederation.service.DataFederationProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -95,45 +96,47 @@ public class EntityRetrieveSVC {
 	}
 
 	public CommonEntityVO getEntityById(QueryVO queryVO, String queryString, String accept, String link) {
-
 		validateEntityId(queryVO);
 
-		// standalone 으로 동작
 		if (federationProperty.getStandalone()) {
+			// standalone 으로 동작
 			return queryEntityByIdStandalone(queryVO, accept);
-			
-		// data-registry 연계
 		} else {
-
+			// data-registry 연계
 			// 2. 조회 대상이 되는 Csource Registration 검색
 			List<CsourceRegistrationVO> csourceRegistrationVOs = queryTargetCsourceRegistration(queryVO);
 
 			// 3. 목록의 서비스브로커로 요청 전송 ( 내 자신이 포함되는 경우 내 자신도 Query )
 			CommonEntityVO entity = null;
 			if(!ValidateUtil.isEmptyData(csourceRegistrationVOs)) {
-
 				for(CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationVOs) {
+					// 4. CsourceRegistration의 registration mode 확인
+					switch (csourceRegistrationVO.getMode()) {
+						case INCLUSIVE:
+							if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
+								// 5-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
+								try {
+									entity = queryEntityByIdStandalone(queryVO, accept);
+									if(entity != null) {
+										return entity;
+									}
+								} catch (NgsiLdResourceNotFoundException e) { }
+							} else {
+								// 5-2. 대상이 원격 서비스브로커인 경우 HTTP 로 요청
+								List<String> alreadyTraversedCsourceIds = getAlreadyTraversedCSourceIds(csourceRegistrationVOs, csourceRegistrationVO.getId());
+								queryString = buildQueryStringIfNeedAlreadyTraverse(queryString, alreadyTraversedCsourceIds);
 
-					// 3-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
-					if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
-
-						try {
-							entity = queryEntityByIdStandalone(queryVO, accept);
-							if(entity != null) {
-								return entity;
+								String requestUri = csourceRegistrationVO.getEndpoint() + BROKER_URI_GET_ENTITY + "/" + queryVO.getId();
+								entity = queryToOtherServiceBroker(requestUri, queryString, accept, link, new ParameterizedTypeReference<CommonEntityVO>() {});
+								if(entity != null) {
+									return entity;
+								}
 							}
-						} catch (NgsiLdResourceNotFoundException e) { }
-
-					// 3-2. 대상이 원격 서비스브로커인 경우 HTTP 로 요청
-					} else {
-						List<String> alreadyTraversedCsourceIds = getAlreadyTraversedCSourceIds(csourceRegistrationVOs, csourceRegistrationVO.getId());
-						queryString = buildQueryStringIfNeedAlreadyTraverse(queryString, alreadyTraversedCsourceIds);
-						
-						String requestUri = csourceRegistrationVO.getEndpoint() + BROKER_URI_GET_ENTITY + "/" + queryVO.getId();
-						entity = queryToOtherServiceBroker(requestUri, queryString, accept, link, new ParameterizedTypeReference<CommonEntityVO>() {});
-						if(entity != null) {
-							return entity;
-						}
+							break;
+						case AUXILIARY:
+						case REDIRECT:
+						case EXCLUSIVE:
+							throw new NgsiLdOperationNotSupportedException(ErrorCode.OPERATION_NOT_SUPPORTED, "Only inclusive mode is supported.");
 					}
 				}
 			}
@@ -151,40 +154,44 @@ public class EntityRetrieveSVC {
 	}
 
 	public EntityRetrieveVO getEntity(QueryVO queryVO, String queryString, String accept, String link) {
-
-		// standalone 으로 동작
 		if (federationProperty.getStandalone()) {
+			// standalone 으로 동작
 			return queryEntityStandalone(queryVO, accept);
-
-		// data-registry 연계
 		} else {
-
+			// data-registry 연계
 			// 2. 조회 대상이 되는 Csource Registration 검색
 			List<CsourceRegistrationVO> csourceRegistrationVOs = queryTargetCsourceRegistration(queryVO);
 
-			// 3. 목록의 서비스브로커로 요청 전송 ( 내 자신이 포함되는 경우 내 자신도 Query )
 			List<EntityRetrieveVO> entityRetrieveVOs = new ArrayList<>();
 			if(!ValidateUtil.isEmptyData(csourceRegistrationVOs)) {
-
+				// 3. 목록의 서비스브로커로 요청 전송 ( 내 자신이 포함되는 경우 내 자신도 Query )
 				for(CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationVOs) {
+					// 4. CsourceRegistration의 registration mode 확인
+					switch (csourceRegistrationVO.getMode()) {
+						case INCLUSIVE:
+							if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
+								// 5-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
+								EntityRetrieveVO entityRetrieveVO = queryEntityStandalone(queryVO, accept);
+								entityRetrieveVOs.add(entityRetrieveVO);
+							} else {
+								// 5-2. 대상이 원격 서비스브로커인 경우 HTTP 로 요청
+								List<String> alreadyTraversedCsourceIds = getAlreadyTraversedCSourceIds(csourceRegistrationVOs, csourceRegistrationVO.getId());
+								queryString = buildQueryStringIfNeedAlreadyTraverse(queryString, alreadyTraversedCsourceIds);
 
-					// 3-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
-					if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
-						EntityRetrieveVO entityRetrieveVO = queryEntityStandalone(queryVO, accept);
-						entityRetrieveVOs.add(entityRetrieveVO);
-					// 3-2. 대상이 원격 서비스브로커인 경우 HTTP 로 요청
-					} else {
-						List<String> alreadyTraversedCsourceIds = getAlreadyTraversedCSourceIds(csourceRegistrationVOs, csourceRegistrationVO.getId());
-						queryString = buildQueryStringIfNeedAlreadyTraverse(queryString, alreadyTraversedCsourceIds);
-						
-						String requestUri = csourceRegistrationVO.getEndpoint() + BROKER_URI_GET_ENTITY;
-						List<CommonEntityVO> entities = queryToOtherServiceBroker(requestUri, queryString, accept, link, new ParameterizedTypeReference<List<CommonEntityVO>>() {});
-						if(entities != null) {
-							EntityRetrieveVO entityRetrieveVO = new EntityRetrieveVO();
-							entityRetrieveVO.setEntities(entities);
-							entityRetrieveVO.setTotalCount(entities.size());
-							entityRetrieveVOs.add(entityRetrieveVO);
-						}
+								String requestUri = csourceRegistrationVO.getEndpoint() + BROKER_URI_GET_ENTITY;
+								List<CommonEntityVO> entities = queryToOtherServiceBroker(requestUri, queryString, accept, link, new ParameterizedTypeReference<List<CommonEntityVO>>() {});
+								if(entities != null) {
+									EntityRetrieveVO entityRetrieveVO = new EntityRetrieveVO();
+									entityRetrieveVO.setEntities(entities);
+									entityRetrieveVO.setTotalCount(entities.size());
+									entityRetrieveVOs.add(entityRetrieveVO);
+								}
+							}
+							break;
+						case AUXILIARY:
+						case REDIRECT:
+						case EXCLUSIVE:
+							throw new NgsiLdOperationNotSupportedException(ErrorCode.OPERATION_NOT_SUPPORTED, "Only inclusive mode is supported.");
 					}
 				}
 			}
@@ -211,36 +218,37 @@ public class EntityRetrieveSVC {
 	}
 
 	public Integer getEntityCount(QueryVO queryVO, String queryString, String link) {
-
-		// standalone 으로 동작
 		if (federationProperty.getStandalone()) {
+			// standalone 으로 동작
 			return queryEntityCountStandalone(queryVO);
-			
-		// data-registry 연계
 		} else {
-
+			// data-registry 연계
 			// 2. 조회 대상이 되는 Csource Registration 검색
 			List<CsourceRegistrationVO> csourceRegistrationVOs = queryTargetCsourceRegistration(queryVO);
 
 			// 3. 목록의 서비스브로커로 요청 전송 ( 내 자신이 포함되는 경우 내 자신도 Query )
 			Integer totalCount = 0;
 			if(!ValidateUtil.isEmptyData(csourceRegistrationVOs)) {
-
 				for(CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationVOs) {
+					// 4. CsourceRegistration의 registration mode 확인
+					switch (csourceRegistrationVO.getMode()) {
+						case INCLUSIVE:
+							if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
+								// 5-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
+								totalCount += queryEntityCountStandalone(queryVO);
+							} else {
+								// 5-2. 대상이 원격 서비스브로커인 경우 HTTP 로 요청
+								List<String> alreadyTraversedCsourceIds = getAlreadyTraversedCSourceIds(csourceRegistrationVOs, csourceRegistrationVO.getId());
+								queryString = buildQueryStringIfNeedAlreadyTraverse(queryString, alreadyTraversedCsourceIds);
 
-					// 3-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
-					if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
-						
-						totalCount += queryEntityCountStandalone(queryVO);
-
-					// 3-2. 대상이 원격 서비스브로커인 경우 HTTP 로 요청
-					} else {
-
-						List<String> alreadyTraversedCsourceIds = getAlreadyTraversedCSourceIds(csourceRegistrationVOs, csourceRegistrationVO.getId());
-						queryString = buildQueryStringIfNeedAlreadyTraverse(queryString, alreadyTraversedCsourceIds);
-						
-						String requestUri = csourceRegistrationVO.getEndpoint() + BROKER_URI_GET_ENTITY_COUNT;
-						totalCount += queryToOtherServiceBroker(requestUri, queryString, null, link, new ParameterizedTypeReference<Integer>() {});
+								String requestUri = csourceRegistrationVO.getEndpoint() + BROKER_URI_GET_ENTITY_COUNT;
+								totalCount += queryToOtherServiceBroker(requestUri, queryString, null, link, new ParameterizedTypeReference<Integer>() {});
+							}
+							break;
+						case AUXILIARY:
+						case REDIRECT:
+						case EXCLUSIVE:
+							throw new NgsiLdOperationNotSupportedException(ErrorCode.OPERATION_NOT_SUPPORTED, "Only inclusive mode is supported.");
 					}
 				}
 			}
@@ -432,42 +440,45 @@ public class EntityRetrieveSVC {
 	}
 
 	public List<CommonEntityVO> getTemporalEntity(QueryVO queryVO, String queryString, String accept, String link) {
-
-		// standalone 으로 동작
 		if (federationProperty.getStandalone()) {
+			// standalone 으로 동작
 			return queryTemporalEntityStandalone(queryVO, accept);
-			
-		// data-registry 연계
 		} else {
-
+			// data-registry 연계
 			// 2. 조회 대상이 되는 Csource Registration 검색
 			List<CsourceRegistrationVO> csourceRegistrationVOs = queryTargetCsourceRegistration(queryVO);
 
 			// 3. 목록의 서비스브로커로 요청 전송 ( 내 자신이 포함되는 경우 내 자신도 Query )
 			List<CommonEntityVO> totalEntities = new ArrayList<>();
 			if(!ValidateUtil.isEmptyData(csourceRegistrationVOs)) {
-
 				for(CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationVOs) {
+					// 4. CsourceRegistration의 registration mode 확인
+					switch (csourceRegistrationVO.getMode()) {
+						case INCLUSIVE:
+							if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
+								// 5-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
+								List<CommonEntityVO> entities = queryTemporalEntityStandalone(queryVO, accept);
+								if(entities != null) {
+									totalEntities.addAll(entities);
+								}
+							} else {
+								// 5-2. 대상이 원격 서비스브로커인 경우 HTTP 로 요청
+								List<String> alreadyTraversedCsourceIds = getAlreadyTraversedCSourceIds(csourceRegistrationVOs, csourceRegistrationVO.getId());
+								queryString = buildQueryStringIfNeedAlreadyTraverse(queryString, alreadyTraversedCsourceIds);
 
-					// 3-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
-					if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
-						List<CommonEntityVO> entities = queryTemporalEntityStandalone(queryVO, accept);
-						if(entities != null) {
-							totalEntities.addAll(entities);
-						}
-					// 3-2. 대상이 원격 서비스브로커인 경우 HTTP 로 요청
-					} else {
-						List<String> alreadyTraversedCsourceIds = getAlreadyTraversedCSourceIds(csourceRegistrationVOs, csourceRegistrationVO.getId());
-						queryString = buildQueryStringIfNeedAlreadyTraverse(queryString, alreadyTraversedCsourceIds);
-						
-						String requestUri = csourceRegistrationVO.getEndpoint() + BROKER_URI_GET_TEMPORAL_ENTITY;
-						List<CommonEntityVO> entities = queryToOtherServiceBroker(requestUri, queryString, accept, link, new ParameterizedTypeReference<List<CommonEntityVO>>() {});
-						if(entities != null) {
-							totalEntities.addAll(entities);
-						}
+								String requestUri = csourceRegistrationVO.getEndpoint() + BROKER_URI_GET_TEMPORAL_ENTITY;
+								List<CommonEntityVO> entities = queryToOtherServiceBroker(requestUri, queryString, accept, link, new ParameterizedTypeReference<List<CommonEntityVO>>() {});
+								if(entities != null) {
+									totalEntities.addAll(entities);
+								}
+							}
+							break;
+						case AUXILIARY:
+						case REDIRECT:
+						case EXCLUSIVE:
+							throw new NgsiLdOperationNotSupportedException(ErrorCode.OPERATION_NOT_SUPPORTED, "Only inclusive mode is supported.");
 					}
 				}
-
 				// 4. 결과 merge
 				Collections.sort(totalEntities);
 			}
@@ -476,41 +487,45 @@ public class EntityRetrieveSVC {
 	}
 	
 	public CommonEntityVO getTemporalEntityById(QueryVO queryVO, String queryString, String accept, String link) {
-
-		// standalone 으로 동작
 		if (federationProperty.getStandalone()) {
+			// standalone 으로 동작
 			return queryTemporalEntityByIdStandalone(queryVO, accept);
-			
-		// data-registry 연계
 		} else {
-
+			// data-registry 연계
 			// 2. 조회 대상이 되는 Csource Registration 검색
 			List<CsourceRegistrationVO> csourceRegistrationVOs = queryTargetCsourceRegistration(queryVO);
 
-			// 3. 목록의 서비스브로커로 요청 전송 ( 내 자신이 포함되는 경우 내 자신도 Query )
 			if(!ValidateUtil.isEmptyData(csourceRegistrationVOs)) {
-
+				// 3. 목록의 서비스브로커로 요청 전송 ( 내 자신이 포함되는 경우 내 자신도 Query )
 				for(CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationVOs) {
+					// 4. CsourceRegistration의 registration mode 확인
+					switch (csourceRegistrationVO.getMode()) {
+						case INCLUSIVE:
+							// 3-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
+							if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
 
-					// 3-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
-					if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
-						
-						try {
-							CommonEntityVO entity = queryTemporalEntityByIdStandalone(queryVO, accept);
-							if(entity != null) {
-								return entity;
+								try {
+									CommonEntityVO entity = queryTemporalEntityByIdStandalone(queryVO, accept);
+									if(entity != null) {
+										return entity;
+									}
+								} catch (NgsiLdResourceNotFoundException e) { }
+								// 3-2. 대상이 원격 서비스브로커인 경우 HTTP 로 요청
+							} else {
+								List<String> alreadyTraversedCsourceIds = getAlreadyTraversedCSourceIds(csourceRegistrationVOs, csourceRegistrationVO.getId());
+								queryString = buildQueryStringIfNeedAlreadyTraverse(queryString, alreadyTraversedCsourceIds);
+
+								String requestUri = csourceRegistrationVO.getEndpoint() + BROKER_URI_GET_TEMPORAL_ENTITY + "/" + queryVO.getId();
+								CommonEntityVO entity = queryToOtherServiceBroker(requestUri, queryString, accept, link, new ParameterizedTypeReference<CommonEntityVO>() {});
+								if(entity != null) {
+									return entity;
+								}
 							}
-						} catch (NgsiLdResourceNotFoundException e) { }
-					// 3-2. 대상이 원격 서비스브로커인 경우 HTTP 로 요청
-					} else {
-						List<String> alreadyTraversedCsourceIds = getAlreadyTraversedCSourceIds(csourceRegistrationVOs, csourceRegistrationVO.getId());
-						queryString = buildQueryStringIfNeedAlreadyTraverse(queryString, alreadyTraversedCsourceIds);
-						
-						String requestUri = csourceRegistrationVO.getEndpoint() + BROKER_URI_GET_TEMPORAL_ENTITY + "/" + queryVO.getId();
-						CommonEntityVO entity = queryToOtherServiceBroker(requestUri, queryString, accept, link, new ParameterizedTypeReference<CommonEntityVO>() {});
-						if(entity != null) {
-							return entity;
-						}
+							break;
+						case AUXILIARY:
+						case REDIRECT:
+						case EXCLUSIVE:
+							throw new NgsiLdOperationNotSupportedException(ErrorCode.OPERATION_NOT_SUPPORTED, "Only inclusive mode is supported.");
 					}
 				}
 			}
@@ -581,36 +596,37 @@ public class EntityRetrieveSVC {
 	}
 
 	public Integer getTemporalEntityCount(QueryVO queryVO, String queryString, String link) {
-
-		// standalone 으로 동작
 		if (federationProperty.getStandalone()) {
+			// standalone 으로 동작
 			return queryTemporalEntityCountStandalone(queryVO);
-			
-		// data-registry 연계
 		} else {
-
+			// data-registry 연계
 			// 2. 조회 대상이 되는 Csource Registration 검색
 			List<CsourceRegistrationVO> csourceRegistrationVOs = queryTargetCsourceRegistration(queryVO);
 
-			// 3. 목록의 서비스브로커로 요청 전송 ( 내 자신이 포함되는 경우 내 자신도 Query )
 			Integer totalCount = 0;
 			if(!ValidateUtil.isEmptyData(csourceRegistrationVOs)) {
-
+				// 3. 목록의 서비스브로커로 요청 전송 ( 내 자신이 포함되는 경우 내 자신도 Query )
 				for(CsourceRegistrationVO csourceRegistrationVO : csourceRegistrationVOs) {
+					// 4. CsourceRegistration의 registration mode 확인
+					switch (csourceRegistrationVO.getMode()) {
+						case INCLUSIVE:
+							if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
+								// 5-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
+								totalCount += queryTemporalEntityCountStandalone(queryVO);
+							} else {
+								// 5-2. 대상이 원격 서비스브로커인 경우 HTTP 로 요청
+								List<String> alreadyTraversedCsourceIds = getAlreadyTraversedCSourceIds(csourceRegistrationVOs, csourceRegistrationVO.getId());
+								queryString = buildQueryStringIfNeedAlreadyTraverse(queryString, alreadyTraversedCsourceIds);
 
-					// 3-1. 대상이 내 자신 서비스브로커 경우 Method 직접 호출
-					if(federationProperty.getCsource().getId().equals(csourceRegistrationVO.getId())) {
-						
-						totalCount += queryTemporalEntityCountStandalone(queryVO);
-
-					// 3-2. 대상이 원격 서비스브로커인 경우 HTTP 로 요청
-					} else {
-
-						List<String> alreadyTraversedCsourceIds = getAlreadyTraversedCSourceIds(csourceRegistrationVOs, csourceRegistrationVO.getId());
-						queryString = buildQueryStringIfNeedAlreadyTraverse(queryString, alreadyTraversedCsourceIds);
-						
-						String requestUri = csourceRegistrationVO.getEndpoint() + BROKER_URI_GET_TEMPORAL_ENTITY_COUNT;
-						totalCount += queryToOtherServiceBroker(requestUri, queryString, null, link, new ParameterizedTypeReference<Integer>() {});
+								String requestUri = csourceRegistrationVO.getEndpoint() + BROKER_URI_GET_TEMPORAL_ENTITY_COUNT;
+								totalCount += queryToOtherServiceBroker(requestUri, queryString, null, link, new ParameterizedTypeReference<Integer>() {});
+							}
+							break;
+						case AUXILIARY:
+						case REDIRECT:
+						case EXCLUSIVE:
+							throw new NgsiLdOperationNotSupportedException(ErrorCode.OPERATION_NOT_SUPPORTED, "Only inclusive mode is supported.");
 					}
 				}
 			}
@@ -629,9 +645,10 @@ public class EntityRetrieveSVC {
 		List<CsourceRegistrationVO> targetCsourceRegistrationVO = csourceRegistrationManager.getCsourceRegistrationAllCache();
 
 		// 2. query에 csourceRegistrationIds 가 포함된 경우 (해당 serviceBroker 로만 요청을 전달하기 위해 나머지 Csource 를 필터링 함)
+		/* // 표준 명세되지 않은 동작
 		if (!ValidateUtil.isEmptyData(queryVO.getCSourceRegistrationIds())) {
 			targetCsourceRegistrationVO = csourceRegistrationManager.getCsourceRegistrationCacheByIds(queryVO.getCSourceRegistrationIds());
-		}
+		}*/
 		
 		// 3. query에 alreadyTraversedCSourceIds가 포함된 경우 필터링 (serviceBroker 간 순환 호출을 방지하기 위한 파라미터)
 		if (!ValidateUtil.isEmptyData(queryVO.getAlreadyTraversedCSourceIds())) {

@@ -24,6 +24,9 @@ public class DataFederationProperty {
         private String registIntervalMillis;
         private List<CsourceRegistrationVO.EntityInfo> entityInfos;
         private String location;
+        private String mode;
+        private Object scope;
+        private String operations;
     }
 
     @Data
