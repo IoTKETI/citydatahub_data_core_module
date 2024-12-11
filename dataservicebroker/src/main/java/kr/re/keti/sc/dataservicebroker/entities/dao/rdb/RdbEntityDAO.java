@@ -677,12 +677,13 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         // 결과 리스트
         List<ProcessResultVO> processResultVOList = new ArrayList<>(deleteList.size());
 
+        // DELETE
+        RdbEntitySqlProvider batchMapper = batchSqlSession.getMapper(RdbEntitySqlProvider.class);
+
         for (DynamicEntityDaoVO entityDaoVO : deleteList) {
 
             log.debug("bulkDelete. id=" + entityDaoVO.getId());
 
-            // DELETE
-            RdbEntitySqlProvider batchMapper = batchSqlSession.getMapper(RdbEntitySqlProvider.class);
             int result = batchMapper.delete(entityDaoVO);
 
             if (result > 0) {
