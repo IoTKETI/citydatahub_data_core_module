@@ -68,7 +68,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Autowired
     private SqlSessionTemplate sqlSession;
     @Autowired
-//	@Qualifier("batchSqlSession")
+	// @Qualifier("batchSqlSession")
     private SqlSessionTemplate batchSqlSession;
     @Autowired
 	@Qualifier("retrieveSqlSession")
@@ -89,13 +89,13 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
     @Value("${entity.history.retrieve.full.yn:N}")
     public String retrieveFullHistoryYn;    //Entity 전체 이력 조회 여부
-    
+
     @Value("${entity.retrieve.default.limit:1000}")
     private Integer defaultLimit;
 
     public static String[] MANDATORY_ATTRIBUTE = new String[]{"id", "dataset_id", "created_at", "modified_at"};
     public static String[] MANDATORY_TEMPORAL_ATTRIBUTE = new String[]{"id", "dataset_id", "operation", "modified_at"};
-    
+
     /**
      * 벌크 CREATE 처리
      * @param createList CREATE 대상 VO 리스트
@@ -108,12 +108,13 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         // 결과 리스트
         List<ProcessResultVO> processResultVOList = new ArrayList<>(createList.size());
 
+        RdbEntitySqlProvider batchMapper = batchSqlSession.getMapper(RdbEntitySqlProvider.class);
+
         for (DynamicEntityDaoVO entityDaoVO : createList) {
 
             log.debug("bulkCreate. id=" + entityDaoVO.getId());
 
             // CREATE
-            RdbEntitySqlProvider batchMapper = batchSqlSession.getMapper(RdbEntitySqlProvider.class);
             batchMapper.create(entityDaoVO);
 
             // 결과 생성
@@ -806,7 +807,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         return resultList;
     }
 
-    
+
     /**
      * 최종 데이터 조회 by ID
      * @param queryVO(id)
@@ -934,7 +935,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         if (queryVO.getSearchIdList() != null) {
             dbConditionVO.setSearchIdList(queryVO.getSearchIdList());
         }
-        
+
         // id pattern 조건 넣기
         if (queryVO.getIdPattern() != null) {
         	try {
@@ -945,7 +946,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         	}
             dbConditionVO.setIdPattern(queryVO.getIdPattern());
         }
-        
+
         //1. 조회 대상 컬럼 세팅
         String selectCondition = getSelectCondition(queryVO, isTemproal);
         dbConditionVO.setSelectCondition(selectCondition);
@@ -963,7 +964,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
         //4. 시간 조건(time rel) param 처리
         if (isTemproal == true) {
-            // timerel param 처리, 이력 데이터 조회시에만 적용 
+            // timerel param 처리, 이력 데이터 조회시에만 적용
             if (queryVO.getTimerel() != null) {
                 queryVO = convertTimerel(queryVO);
                 dbConditionVO.setTimerelCondition(queryVO.getTimeQuery());
@@ -1074,7 +1075,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
         // 1-1. attr 조건이 있을 경우
         if (queryVO.getAttrs() != null) {
-        	
+
         	for (String attr : queryVO.getAttrs()) {
         		List<String> hierarchyAttrNames = new ArrayList<>();
             	Map<String, DataModelDbColumnVO> dbColumnInfoVOMap = dataModelCacheVO.getDataModelStorageMetadataVO().getDbColumnInfoVOMap();
@@ -1099,7 +1100,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
            				hierarchyAttrNames.add(splitAttrName);
            			}
            		}
-           		
+
            		for(DataModelDbColumnVO dataModelDbColumnVO : dbColumnInfoVOMap.values()) {
            			boolean isMatch = true;
        				for(int i=0; i<hierarchyAttrNames.size(); i++) {
@@ -1127,13 +1128,13 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
        						} else {
        							observedAtColumnName = hierarchyAttrNames.get(i) + Constants.COLUMN_DELIMITER + PropertyKey.OBSERVED_AT.getCode();
        						}
-       						
+
        						DataModelDbColumnVO observedAtColumnVO = dbColumnInfoVOMap.get(observedAtColumnName);
            					if(observedAtColumnVO != null) {
            						targetColumnList.add(observedAtColumnVO.getColumnName());
            					}
        					}
-       					
+
        					// options 에 sysAttr이 포함된 경우 property의 createdAt, modifiedAt 포함
        					if(!isTemproal && queryVO.getOptions() != null && queryVO.getOptions().contains(RetrieveOptions.SYS_ATTRS.getCode())) {
        						for(int i=0; i<hierarchyAttrNames.size(); i++) {
@@ -1152,19 +1153,19 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
            							}
            							createdAtColumNameBuilder.append(Constants.COLUMN_DELIMITER).append(PropertyKey.CREATED_AT.getCode());
            							modifiedAtColumNameBuilder.append(Constants.COLUMN_DELIMITER).append(PropertyKey.MODIFIED_AT.getCode());
-           							
+
            							createdAtColumnName = createdAtColumNameBuilder.toString();
            							modifiedAtColumnName = modifiedAtColumNameBuilder.toString();
            						} else {
            							createdAtColumnName = hierarchyAttrNames.get(i) + Constants.COLUMN_DELIMITER + PropertyKey.CREATED_AT.getCode();
            							modifiedAtColumnName = hierarchyAttrNames.get(i) + Constants.COLUMN_DELIMITER + PropertyKey.MODIFIED_AT.getCode();
            						}
-           						
+
                					DataModelDbColumnVO createdAtColumnVO = dbColumnInfoVOMap.get(createdAtColumnName);
                					if(createdAtColumnVO != null) {
                						targetColumnList.add(createdAtColumnVO.getColumnName());
                					}
-               					
+
                					DataModelDbColumnVO modifiedAtColumnVO = dbColumnInfoVOMap.get(modifiedAtColumnName);
                					if(modifiedAtColumnVO != null) {
                						targetColumnList.add(modifiedAtColumnVO.getColumnName());
@@ -1174,7 +1175,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
        				}
        			}
         	}
-        	
+
         } else {
             // 1-2. attr 조건이 없을 경우
             for (Map.Entry<String, DataModelDbColumnVO> entry : dataModelCacheVO.getDataModelStorageMetadataVO().getDbColumnInfoVOMap().entrySet()) {
