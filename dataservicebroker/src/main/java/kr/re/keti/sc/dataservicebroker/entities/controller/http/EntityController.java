@@ -1133,17 +1133,17 @@ public class EntityController {
         if (operation != Operation.DELETE_ENTITY) {
             /* 단건 Delete 경우 body없으므로 JacksonMapper 적용X */
             Map<String, Object> obj = objectMapper.readValue(requestBody, Map.class);
-            if(StringUtils.isEmpty(id))
+            if(StringUtils.isEmpty(id) && obj.get(DefaultAttributeKey.ID.getCode()) != null)
                 id = obj.get(DefaultAttributeKey.ID.getCode()).toString();
-            if(StringUtils.isEmpty(entityType))
+            if(StringUtils.isEmpty(entityType) && obj.get(DefaultAttributeKey.TYPE.getCode()) != null)
                 entityType = obj.get(DefaultAttributeKey.TYPE.getCode()).toString();
-            if(StringUtils.isEmpty(datasetId))
+            if(StringUtils.isEmpty(datasetId) && obj.get(DefaultAttributeKey.DATASET_ID.getCode()) != null)
                 datasetId = obj.get(DefaultAttributeKey.DATASET_ID.getCode()).toString();
-            
-        } 
-        
+
+        }
+
         aasSVC.checkCUDAccessRule(request, datasetId, operation);
-        
+
         requestMessageVO.setEntityType(entityType);
         requestMessageVO.setContent(requestBody);
         requestMessageVO.setDatasetId(datasetId);
@@ -1198,10 +1198,16 @@ public class EntityController {
                     requestMessageVO.setContentType(contentType);
                 } else {
                     HashMap<String, Object> obj = (HashMap<String, Object>) jsonStr;
-                    entityId = obj.get(DefaultAttributeKey.ID.getCode()).toString();
-                    datasetId = obj.get(DefaultAttributeKey.DATASET_ID.getCode()).toString();
+
+                    if(obj.get(DefaultAttributeKey.ID.getCode()) != null)
+                        entityId = obj.get(DefaultAttributeKey.ID.getCode()).toString();
+
+                    if(obj.get(DefaultAttributeKey.DATASET_ID.getCode()) != null)
+                        datasetId = obj.get(DefaultAttributeKey.DATASET_ID.getCode()).toString();
+
                     if (operation == Operation.CREATE_ENTITY) {
-                        entityType = obj.get(DefaultAttributeKey.TYPE.getCode()).toString();
+                        if(obj.get(DefaultAttributeKey.TYPE.getCode()) != null)
+                            entityType = obj.get(DefaultAttributeKey.TYPE.getCode()).toString();
                     } else if ((operation == Operation.CREATE_ENTITY_OR_REPLACE_ENTITY_ATTRIBUTES)
                             || (operation == Operation.APPEND_ENTITY_ATTRIBUTES)) {
 
