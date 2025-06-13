@@ -59,10 +59,17 @@ public class RdbDataSourceConfiguration {
 		dataSource.setUrl(jdbcUrl);
 		dataSource.setUsername(jdbcUserName);
 		dataSource.setPassword(jdbcPassword);
+		dataSource.setInitialSize(30); // 초기 커넥션 풀 크기
+    dataSource.setMaxTotal(30);   // 최대 커넥션 수
+    dataSource.setMaxIdle(30);     // 최대 유휴 커넥션 수
+    dataSource.setMinIdle(30);     // 최소 유휴 커넥션 수
+    dataSource.setMaxWaitMillis(3000); // 최대 대기 시간
+    dataSource.setTestOnBorrow(true);
+    dataSource.setTestWhileIdle(true);
 
 		return dataSource;
 	}
-	
+
 	@Bean
 	@Primary
 	@Qualifier("dataSourceTransactionManager")
