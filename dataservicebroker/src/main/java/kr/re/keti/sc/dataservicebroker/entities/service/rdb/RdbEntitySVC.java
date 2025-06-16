@@ -619,6 +619,9 @@ public class RdbEntitySVC extends DefaultEntitySVC {
 
             CommonEntityFullVO commonEntityVO = (CommonEntityFullVO) filterdMap.get(id);
 
+            //Sorting 처리
+            commonEntityVO = sortingByObservedAt(commonEntityVO, dataModelCacheVO);
+
             // lastN 옵션 처리
             if (lastN != null && lastN > 0) {
                 commonEntityVO = retrieveLastN(commonEntityVO, dataModelCacheVO , lastN);
@@ -985,13 +988,27 @@ public class RdbEntitySVC extends DefaultEntitySVC {
             if (list.size() > lastN) {
                 list = list.subList(0, lastN);
             }
-
-            Collections.sort(list, new ObservedAtReverseOrder());
             commonEntityVO.replace(key, list);
-
         }
 
 
+        return commonEntityVO;
+    }
+
+    private CommonEntityFullVO sortingByObservedAt(CommonEntityFullVO commonEntityVO, DataModelCacheVO dataModelCacheVO) {
+        for (String key : commonEntityVO.keySet()) {
+            Attribute rootAttribute =  dataModelCacheVO.getRootAttribute(key);
+            if (rootAttribute == null) {
+                continue;
+            }
+            if (rootAttribute.getHasObservedAt() == null || rootAttribute.getHasObservedAt() == false) {
+                continue;
+            }
+
+            List list = (List) commonEntityVO.get(key);
+            Collections.sort(list, new ObservedAtReverseOrder());
+            commonEntityVO.replace(key, list);
+        }
         return commonEntityVO;
     }
 

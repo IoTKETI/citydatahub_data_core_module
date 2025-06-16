@@ -41,13 +41,15 @@ public class DbConditionVO {
                 ", id='" + id + '\'' +
                 ", type='" + type + '\'' +
                 ", datasetId='" + datasetId + '\'' +
-                ", searchIdList=" + searchIdList +
                 ", idPattern='" + idPattern + '\'' +
-                ", contextList=" + contextList + '\'' +
-                ", watchAttributeList=" + watchAttributeList + '\'' +
-                ", limit=" + limit + '\'' +
-                ", offset=" + offset + '\'' +
-                ", aclDatasetCondition=" + aclDatasetCondition +
+                ", searchIdList=" + searchIdList +
+                ", searchTypeList=" + searchTypeList +
+                ", searchQparamList=" + searchQparamList +
+                ", contextList=" + contextList +
+                ", watchAttributeList=" + watchAttributeList +
+                ", limit=" + limit +
+                ", offset=" + offset +
+                ", aclDatasetCondition='" + aclDatasetCondition +
                 '}';
     }
 }

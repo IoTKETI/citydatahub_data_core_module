@@ -12,11 +12,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode;
 import kr.re.keti.sc.dataservicebroker.entities.dao.EntityDataModelDAO;
 import kr.re.keti.sc.dataservicebroker.entities.vo.EntityDataModelVO;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.paho.client.mqttv3.logging.Logger;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.postgis.LineString;
 import org.postgis.MultiLineString;
@@ -1005,7 +1003,6 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
         return dbConditionVO;
     }
-
 
     @Override
     public ProcessResultVO deleteAttribute(EntityAttrDaoVO entityAttrDaoVO) {
