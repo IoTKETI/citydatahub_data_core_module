@@ -583,8 +583,16 @@ public class RdbEntitySVC extends DefaultEntitySVC {
                         attributeVOList.add(attributeVO);
                         observedAtEntityVO.replace(key, attributeVOList);
 
-                    }
+                    } else {
+                        // 기존 이력 데이터에 존재하지 않았던 속성 값 처리
+                        if (observedAtEntityVO.get(key) instanceof AttributeVO) {
+                            AttributeVO attributeVO = (AttributeVO) observedAtEntityVO.get(key);
 
+                            List<AttributeVO> attributeVOList = new ArrayList<>();
+                            attributeVOList.add(attributeVO);
+                            innerCommonEntityVO.put(key, attributeVOList);
+                        }
+                    }
                 }
                 filterdMap.put(id, innerCommonEntityVO);
 
