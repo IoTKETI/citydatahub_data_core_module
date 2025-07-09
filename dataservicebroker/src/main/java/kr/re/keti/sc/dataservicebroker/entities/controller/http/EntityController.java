@@ -526,7 +526,8 @@ public class EntityController {
                                   HttpServletResponse response,
                                   @RequestHeader(value = HttpHeaders.LINK, required = false) String link,
                                   @RequestHeader(value = HttpHeaders.CONTENT_TYPE, required = false) String contentType,
-                                  @RequestBody String requestBody) throws Exception {
+                                  @RequestBody String requestBody,
+                                  @RequestParam(value = "options", required = false) String options) throws Exception {
 
         log.info("BatchEntityUpsert Reqeust link={}, contentType={}, body={}", link, contentType, requestBody);
 
@@ -536,9 +537,18 @@ public class EntityController {
 
         validateContextInBachOperation(contentType, links, jsonList);
 
+        Operation operation;
+        if (options == null || options.equals(OperationOption.REPLACE.getCode())) {
+            operation = Operation.CREATE_ENTITY_OR_REPLACE_ENTITY_ATTRIBUTES;
+        } else if (options.equals(OperationOption.UPDATE.getCode())) {
+            operation = Operation.CREATE_ENTITY_OR_APPEND_ENTITY_ATTRIBUTES;
+        } else {
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid options : " + options);
+        }
+
         // 1. entity 생성을 위한 객체 생성
         BatchIngestMessageVO batchIngestMessageVO = makeBatchRequestMessageVO(request, jsonList,
-                Operation.CREATE_ENTITY_OR_REPLACE_ENTITY_ATTRIBUTES, request.getRequestURI(),
+                operation, request.getRequestURI(),
                 null, links, contentType);
         List<IngestMessageVO> ingestMessageVOs = batchIngestMessageVO.getIngestMessageVO();
         List<BatchEntityErrorVO> batchEntityErrorVO = batchIngestMessageVO.getBatchEntityErrorVO();
