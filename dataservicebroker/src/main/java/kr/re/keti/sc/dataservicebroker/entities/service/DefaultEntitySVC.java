@@ -138,6 +138,11 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
                 // 추가로 Property도 임시임 , geo, rel 분기 해야함
                 if (opertaion == Operation.PARTIAL_ATTRIBUTE_UPDATE) {
                     HashMap<String, Object> params = objectMapper.readValue(content, new TypeReference<HashMap<String, Object>>() {});
+                    // NGSI-LD 5.6.4: 갱신할 속성이 없는 조각({} 또는 @context 만)은 BadRequestData
+                    if (ValidateUtil.hasNoAttribute(params)) {
+                        throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER,
+                                "Invalid Request Content. Entity fragment has no attribute to update. attrId=" + attrId);
+                    }
 //        	        params.put(PropertyKey.TYPE.getCode(), DataServiceBrokerCode.AttributeType.PROPERTY.getCode());
 //        	        HashMap<String, Object> convertedHashMap = new HashMap<>();
 //        	        convertedHashMap.put(attrId, params);
