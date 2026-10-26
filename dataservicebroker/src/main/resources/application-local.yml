@@ -122,8 +122,8 @@ entity:
     delete.yn: Y
 
   upsert:
-    # batch upsert options=update 를 replace 로 처리할지 여부. 기본 false(NGSI-LD 5.6.8: 기존 속성 유지 + 추가)
-    # TTA 인증 시험기(ETSI 328491fb 이전 004_04, 기존 엔티티를 순열끼리 공유) 대응용 — 시험 환경에서만 켠다
+    # TTA 인증 시험 대응(upsert 시 동작: update(일부 교체), replace(전체 교체))
+    # true 면 options=update 요청도 replace 로 처리한다. 기본 false, 운영에서는 켜지 않는다
     update-as-replace.enabled: false
 
   validation:
