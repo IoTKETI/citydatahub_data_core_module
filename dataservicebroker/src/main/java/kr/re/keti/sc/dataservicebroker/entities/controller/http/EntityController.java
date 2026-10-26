@@ -4,6 +4,7 @@ package kr.re.keti.sc.dataservicebroker.entities.controller.http;
 import java.io.IOException;
 import java.util.*;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -99,6 +100,15 @@ public class EntityController {
     private String primaryAccept;
     @Value("${entity.default.context-uri}")
     private String defaultContextUri;
+    @Value("${entity.upsert.update-as-replace.enabled:false}")
+    private boolean upsertUpdateAsReplace;
+
+    @PostConstruct
+    private void warnUpsertUpdateAsReplace() {
+        if (upsertUpdateAsReplace) {
+            log.warn("entity.upsert.update-as-replace.enabled=true — batch upsert options=update 를 replace 로 처리한다(NGSI-LD 5.6.8 과 다름, 시험 환경 전용)");
+        }
+    }
 
     /**
      * 최종 값 건수 조회
@@ -541,7 +551,11 @@ public class EntityController {
         if (options == null || options.equals(OperationOption.REPLACE.getCode())) {
             operation = Operation.CREATE_ENTITY_OR_REPLACE_ENTITY_ATTRIBUTES;
         } else if (options.equals(OperationOption.UPDATE.getCode())) {
-            operation = Operation.CREATE_ENTITY_OR_APPEND_ENTITY_ATTRIBUTES;
+            // TTA 시험기의 004_04 는 ETSI 328491fb 이전 판이라 기존 엔티티를 순열끼리 공유한다.
+            // 규격대로 append 하면 앞 순열 속성이 남아 FAIL 하므로, 시험 환경에서만 replace 로 처리한다(기본 false)
+            operation = upsertUpdateAsReplace
+                    ? Operation.CREATE_ENTITY_OR_REPLACE_ENTITY_ATTRIBUTES
+                    : Operation.CREATE_ENTITY_OR_APPEND_ENTITY_ATTRIBUTES;
         } else {
             throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid options : " + options);
         }

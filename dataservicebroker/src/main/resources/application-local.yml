@@ -121,6 +121,11 @@ entity:
     # Entity 삭제 시 이력까지 삭제할 지 여부
     delete.yn: Y
 
+  upsert:
+    # batch upsert options=update 를 replace 로 처리할지 여부. 기본 false(NGSI-LD 5.6.8: 기존 속성 유지 + 추가)
+    # TTA 인증 시험기(ETSI 328491fb 이전 004_04, 기존 엔티티를 순열끼리 공유) 대응용 — 시험 환경에서만 켠다
+    update-as-replace.enabled: false
+
   validation:
     # entityId 가 urn 패턴이 맞는 지 유효성 검증 여부
     id-pattern:
