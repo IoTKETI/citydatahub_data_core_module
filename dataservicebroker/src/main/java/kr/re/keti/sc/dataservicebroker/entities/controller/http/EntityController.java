@@ -1140,8 +1140,8 @@ public class EntityController {
         String entityType = extractEntityTypeById(id);
         String datasetId = extractDatasetIdById(id);
         IngestMessageVO requestMessageVO = new IngestMessageVO();
-        if (operation != Operation.DELETE_ENTITY) {
-            /* 단건 Delete 경우 body없으므로 JacksonMapper 적용X */
+        if (operation != Operation.DELETE_ENTITY && operation != Operation.DELETE_ENTITY_ATTRIBUTES) {
+            /* 단건 Delete·속성 Delete 는 body 가 없으므로 JacksonMapper 적용X (null 을 읽으면 500) */
             Map<String, Object> obj = objectMapper.readValue(requestBody, Map.class);
             if(StringUtils.isEmpty(id) && obj.get(DefaultAttributeKey.ID.getCode()) != null)
                 id = obj.get(DefaultAttributeKey.ID.getCode()).toString();
