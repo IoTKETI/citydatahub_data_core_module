@@ -2500,10 +2500,13 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
             }
 
             // 5. term expand
-            commonEntityVO.expandTerm(
-                    dataModelManager.contextToFlatMap(getLinkOrDefault(queryVO.getLinks())),
-                    dataModelManager.contextToFlatMap(dataModelCacheVO.getDataModelVO().getContext())
-            );
+            // attrs 로 요청한 속성이 하나도 없으면 변환 결과가 null → 호출부가 ResourceNotFound(404)로 응답한다
+            if (commonEntityVO != null) {
+                commonEntityVO.expandTerm(
+                        dataModelManager.contextToFlatMap(getLinkOrDefault(queryVO.getLinks())),
+                        dataModelManager.contextToFlatMap(dataModelCacheVO.getDataModelVO().getContext())
+                );
+            }
         }
 
         // 5. 요청 header의 accept가 'application/ld+json' 일 경우 @context 정보 추가
