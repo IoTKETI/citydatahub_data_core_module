@@ -138,6 +138,11 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
                 // 추가로 Property도 임시임 , geo, rel 분기 해야함
                 if (opertaion == Operation.PARTIAL_ATTRIBUTE_UPDATE) {
                     HashMap<String, Object> params = objectMapper.readValue(content, new TypeReference<HashMap<String, Object>>() {});
+                    // NGSI-LD 5.6.4: 갱신할 속성이 없는 조각({} 또는 @context 만)은 BadRequestData
+                    if (ValidateUtil.hasNoAttribute(params)) {
+                        throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER,
+                                "Invalid Request Content. Entity fragment has no attribute to update. attrId=" + attrId);
+                    }
 //        	        params.put(PropertyKey.TYPE.getCode(), DataServiceBrokerCode.AttributeType.PROPERTY.getCode());
 //        	        HashMap<String, Object> convertedHashMap = new HashMap<>();
 //        	        convertedHashMap.put(attrId, params);
@@ -2353,7 +2358,6 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
 
                 QueryVO innerQueryVO = (QueryVO) SerializationUtils.clone(queryVO);
                 innerQueryVO.setType(dataModelCacheVO.getDataModelVO().getTypeUri());
-                innerQueryVO.setLinks(null);
                 innerQueryVO.setOffset(queryVO.getOffset());
                 innerQueryVO.setLimit(queryVO.getLimit());
                 List<CommonEntityVO> commonEntityVOs = this.selectAllWithType(innerQueryVO, accept);
@@ -2501,10 +2505,13 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
             }
 
             // 5. term expand
-            commonEntityVO.expandTerm(
-                    dataModelManager.contextToFlatMap(getLinkOrDefault(queryVO.getLinks())),
-                    dataModelManager.contextToFlatMap(dataModelCacheVO.getDataModelVO().getContext())
-            );
+            // attrs 로 요청한 속성이 하나도 없으면 변환 결과가 null → 호출부가 ResourceNotFound(404)로 응답한다
+            if (commonEntityVO != null) {
+                commonEntityVO.expandTerm(
+                        dataModelManager.contextToFlatMap(getLinkOrDefault(queryVO.getLinks())),
+                        dataModelManager.contextToFlatMap(dataModelCacheVO.getDataModelVO().getContext())
+                );
+            }
         }
 
         // 5. 요청 header의 accept가 'application/ld+json' 일 경우 @context 정보 추가

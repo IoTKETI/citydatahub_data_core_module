@@ -11,7 +11,7 @@ public class Constants {
     /** Content Date Format */
     public static final String CONTENT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
-    
+
     public static final String[] HIVE_MULTI_DATE_FORMATS = new String[] {
             "yyyy-MM-dd HH:mm:ss",
             "yyyy-MM-dd HH:mm:ss.S",
@@ -21,9 +21,19 @@ public class Constants {
             "yyyy-MM-dd HH:mm:ss.SSSSS",
             "yyyy-MM-dd HH:mm:ss.SSSSSS"
         };
-    
+
     public static final String[] MULTI_DATE_FORMATS = new String[] {
+            "yyyy-MM-dd HH:mm:ssXXX",
             "yyyy-MM-dd HH:mm:ss.XXX",
+            "yyyy-MM-dd HH:mm:ss.SXXX",
+            "yyyy-MM-dd HH:mm:ss.SSXXX",
+            "yyyy-MM-dd HH:mm:ss.SSSXXX",
+            "yyyy-MM-dd HH:mm:ss.SSSSXXX",
+            "yyyy-MM-dd HH:mm:ss.SSSSSXXX",
+            "yyyy-MM-dd HH:mm:ss.SSSSSSXXX",
+            "yyyy-MM-dd HH:mm:ss,SSSXXX", // 하위 호환
+            "yyyy-MM-dd'T'HH:mm:ssXXX",
+            "yyyy-MM-dd'T'HH:mm:ss.XXX",
             "yyyy-MM-dd'T'HH:mm:ss.SXXX",
             "yyyy-MM-dd'T'HH:mm:ss.SSXXX",
             "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
@@ -32,15 +42,15 @@ public class Constants {
             "yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX",
             "yyyy-MM-dd'T'HH:mm:ss,SSSXXX" // 하위 호환
         };
-    
+
     /** PostgreSQL SELECT Date Format */
     public static final String POSTGRES_DATE_FORMAT = "yyyy-MM-dd' 'HH:mm:ss";
     /** PostgreSQL INSERT Date Format */
     public static final String POSTGRES_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
-    
+
     /** Hive INSERT Date Format */
     public static final String HIVE_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
-    
+
     /** application/ld+json Key */
     public static final String APPLICATION_LD_JSON_VALUE = "application/ld+json";
     public static final String APPLICATION_JSON_VALUE = "application/json";
@@ -77,5 +87,5 @@ public class Constants {
 
     public static final String LOCATION_ATTR_DEFAULT_NAME = "location";
     public static final String PATIAL_HIST_TABLE_SUFFIX = null;
-    
+
 }

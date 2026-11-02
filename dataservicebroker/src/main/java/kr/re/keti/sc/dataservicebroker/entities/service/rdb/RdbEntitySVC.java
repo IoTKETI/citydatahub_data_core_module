@@ -583,8 +583,16 @@ public class RdbEntitySVC extends DefaultEntitySVC {
                         attributeVOList.add(attributeVO);
                         observedAtEntityVO.replace(key, attributeVOList);
 
-                    }
+                    } else {
+                        // 기존 이력 데이터에 존재하지 않았던 속성 값 처리
+                        if (observedAtEntityVO.get(key) instanceof AttributeVO) {
+                            AttributeVO attributeVO = (AttributeVO) observedAtEntityVO.get(key);
 
+                            List<AttributeVO> attributeVOList = new ArrayList<>();
+                            attributeVOList.add(attributeVO);
+                            innerCommonEntityVO.put(key, attributeVOList);
+                        }
+                    }
                 }
                 filterdMap.put(id, innerCommonEntityVO);
 
@@ -618,6 +626,9 @@ public class RdbEntitySVC extends DefaultEntitySVC {
         for (String id : filterdMap.keySet()) {
 
             CommonEntityFullVO commonEntityVO = (CommonEntityFullVO) filterdMap.get(id);
+
+            //Sorting 처리
+            commonEntityVO = sortingByObservedAt(commonEntityVO, dataModelCacheVO);
 
             // lastN 옵션 처리
             if (lastN != null && lastN > 0) {
@@ -985,13 +996,27 @@ public class RdbEntitySVC extends DefaultEntitySVC {
             if (list.size() > lastN) {
                 list = list.subList(0, lastN);
             }
-
-            Collections.sort(list, new ObservedAtReverseOrder());
             commonEntityVO.replace(key, list);
-
         }
 
 
+        return commonEntityVO;
+    }
+
+    private CommonEntityFullVO sortingByObservedAt(CommonEntityFullVO commonEntityVO, DataModelCacheVO dataModelCacheVO) {
+        for (String key : commonEntityVO.keySet()) {
+            Attribute rootAttribute =  dataModelCacheVO.getRootAttribute(key);
+            if (rootAttribute == null) {
+                continue;
+            }
+            if (rootAttribute.getHasObservedAt() == null || rootAttribute.getHasObservedAt() == false) {
+                continue;
+            }
+
+            List list = (List) commonEntityVO.get(key);
+            Collections.sort(list, new ObservedAtReverseOrder());
+            commonEntityVO.replace(key, list);
+        }
         return commonEntityVO;
     }
 

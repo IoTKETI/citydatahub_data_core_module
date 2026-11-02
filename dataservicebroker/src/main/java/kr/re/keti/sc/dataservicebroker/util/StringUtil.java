@@ -2,6 +2,7 @@ package kr.re.keti.sc.dataservicebroker.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import kr.re.keti.sc.dataservicebroker.common.code.Constants;
@@ -80,5 +81,45 @@ public class StringUtil {
         	sb.append(c);
     	}
     	return sb.toString();
+    }
+
+    /**
+     * SQL 식별자를 큰따옴표로 감싼다 (PostgreSQL).
+     *  - 숫자로 시작하는 이름(예: 5daysrainfallmax)은 따옴표 없이는 문법 오류이기 때문
+     *  - 안의 큰따옴표는 "" 로 이스케이프
+     *  - 이미 따옴표로 감싼 이름은 그대로 반환 (이중 인용 방지)
+     * @param identifier 식별자
+     * @return 따옴표로 감싼 식별자 (null 이면 null)
+     */
+    public static String quoteIdentifier(String identifier) {
+        if (identifier == null) {
+            return null;
+        }
+        if (isQuotedIdentifier(identifier)) {
+            return identifier;
+        }
+        return "\"" + identifier.replace("\"", "\"\"") + "\"";
+    }
+
+    /**
+     * RDB 동적 컬럼명을 소문자로 바꾼 뒤 큰따옴표로 감싼다.
+     *  - 기존 테이블의 동적 컬럼은 따옴표 없이 만들어져 PostgreSQL 이 소문자로 접어 두었다.
+     *    소문자로 맞춘 뒤 감싸야 기존 컬럼과 같은 컬럼을 가리킨다.
+     *  - 고정 컬럼(ID, DATASET_ID 등)에도 써도 안전하다 (모두 소문자로 접혀 있음)
+     * @param columnName 컬럼명
+     * @return 따옴표로 감싼 소문자 컬럼명 (null 이면 null)
+     */
+    public static String quoteColumnName(String columnName) {
+        if (columnName == null) {
+            return null;
+        }
+        if (isQuotedIdentifier(columnName)) {
+            return columnName;
+        }
+        return quoteIdentifier(columnName.toLowerCase(Locale.ROOT));
+    }
+
+    private static boolean isQuotedIdentifier(String identifier) {
+        return identifier.length() >= 2 && identifier.startsWith("\"") && identifier.endsWith("\"");
     }
 }

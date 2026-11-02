@@ -13,6 +13,7 @@ import kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode.Propert
 import kr.re.keti.sc.dataservicebroker.common.vo.CommonEntityDaoVO;
 import kr.re.keti.sc.dataservicebroker.common.vo.DbConditionVO;
 import kr.re.keti.sc.dataservicebroker.datamodel.vo.DataModelDbColumnVO;
+import kr.re.keti.sc.dataservicebroker.util.StringUtil;
 
 public class RdbEntitySqlProviderImpl {
 
@@ -54,7 +55,8 @@ public class RdbEntitySqlProviderImpl {
                         }
 
                         String daoAttributeId = dbColumnInfoVO.getDaoAttributeId();
-                        String columnName = dbColumnInfoVO.getColumnName();
+                        // 동적 컬럼명은 따옴표로 감싼다 (숫자로 시작하는 속성명 지원)
+                        String columnName = StringUtil.quoteColumnName(dbColumnInfoVO.getColumnName());
                         DbColumnType dbColumnType = dbColumnInfoVO.getColumnType();
 
                         if (dbColumnType == DbColumnType.ARRAY_VARCHAR) {
@@ -110,7 +112,8 @@ public class RdbEntitySqlProviderImpl {
                     for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
 
                         String daoAttributeId = dbColumnInfoVO.getDaoAttributeId();
-                        String columnName = dbColumnInfoVO.getColumnName();
+                        // 동적 컬럼명은 따옴표로 감싼다 (숫자로 시작하는 속성명 지원)
+                        String columnName = StringUtil.quoteColumnName(dbColumnInfoVO.getColumnName());
                         DbColumnType dbColumnType = dbColumnInfoVO.getColumnType();
 
                         // property에 포함된 속성인 createdAt 은 null 인 경우만 입력
@@ -192,7 +195,8 @@ public class RdbEntitySqlProviderImpl {
                     for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
 
                         String daoAttributeId = dbColumnInfoVO.getDaoAttributeId();
-                        String columnName = dbColumnInfoVO.getColumnName();
+                        // 동적 컬럼명은 따옴표로 감싼다 (숫자로 시작하는 속성명 지원)
+                        String columnName = StringUtil.quoteColumnName(dbColumnInfoVO.getColumnName());
                         DbColumnType dbColumnType = dbColumnInfoVO.getColumnType();
 
                         if (entityDaoVO.get(daoAttributeId) == null) {
@@ -269,7 +273,8 @@ public class RdbEntitySqlProviderImpl {
                     for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
 
                         String daoAttributeId = dbColumnInfoVO.getDaoAttributeId();
-                        String columnName = dbColumnInfoVO.getColumnName();
+                        // 동적 컬럼명은 따옴표로 감싼다 (숫자로 시작하는 속성명 지원)
+                        String columnName = StringUtil.quoteColumnName(dbColumnInfoVO.getColumnName());
                         DbColumnType dbColumnType = dbColumnInfoVO.getColumnType();
 
                         if (entityDaoVO.get(daoAttributeId) == null) {
@@ -344,7 +349,8 @@ public class RdbEntitySqlProviderImpl {
                     for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
 
                         String daoAttributeId = dbColumnInfoVO.getDaoAttributeId();
-                        String columnName = dbColumnInfoVO.getColumnName();
+                        // 동적 컬럼명은 따옴표로 감싼다 (숫자로 시작하는 속성명 지원)
+                        String columnName = StringUtil.quoteColumnName(dbColumnInfoVO.getColumnName());
                         DbColumnType dbColumnType = dbColumnInfoVO.getColumnType();
 
                         if (entityDaoVO.get(daoAttributeId) == null) {
@@ -419,7 +425,8 @@ public class RdbEntitySqlProviderImpl {
                     for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
 
                         String daoAttributeId = dbColumnInfoVO.getDaoAttributeId();
-                        String columnName = dbColumnInfoVO.getColumnName();
+                        // 동적 컬럼명은 따옴표로 감싼다 (숫자로 시작하는 속성명 지원)
+                        String columnName = StringUtil.quoteColumnName(dbColumnInfoVO.getColumnName());
                         DbColumnType dbColumnType = dbColumnInfoVO.getColumnType();
 
                         if (entityDaoVO.get(daoAttributeId) == null) {
@@ -540,8 +547,9 @@ public class RdbEntitySqlProviderImpl {
                     // 3. Dynamic Entity Column 설정
                     for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
                         if (dbColumnInfoVO.getHierarchyAttributeIds().get(0).equals(deleteAttrId)) {
-                            SET(dbColumnInfoVO.getColumnName() + " = NULL");
-                            SET(dbColumnInfoVO.getColumnName() + Constants.COLUMN_DELIMITER + PropertyKey.MODIFIED_AT + " = #{" + DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode() + "}");
+                            SET(StringUtil.quoteColumnName(dbColumnInfoVO.getColumnName()) + " = NULL");
+                            // 원래 식(따옴표 없음)과 같은 컬럼을 가리키도록 소문자로 접어 감싼다 — 식 자체는 원본 그대로
+                            SET(StringUtil.quoteColumnName(dbColumnInfoVO.getColumnName() + Constants.COLUMN_DELIMITER + PropertyKey.MODIFIED_AT) + " = #{" + DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode() + "}");
                         }
                     }
                 }
@@ -576,7 +584,8 @@ public class RdbEntitySqlProviderImpl {
                     for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
 
                         String daoAttributeId = dbColumnInfoVO.getDaoAttributeId();
-                        String columnName = dbColumnInfoVO.getColumnName();
+                        // 동적 컬럼명은 따옴표로 감싼다 (숫자로 시작하는 속성명 지원)
+                        String columnName = StringUtil.quoteColumnName(dbColumnInfoVO.getColumnName());
                         DbColumnType dbColumnType = dbColumnInfoVO.getColumnType();
 
                         if (entityDaoVO.get(daoAttributeId) == null) {
@@ -644,27 +653,29 @@ public class RdbEntitySqlProviderImpl {
                         }
 
                         DbColumnType dbColumnType = dbColumnInfoVO.getColumnType();
+                        // SQL 식별자에는 따옴표로 감싼 이름, #{} 파라미터 키에는 원래 이름
+                        String quotedColumnName = StringUtil.quoteColumnName(columnName);
 
                         if (dbColumnType == DbColumnType.ARRAY_VARCHAR) {
-                            VALUES(columnName, "#{" + columnName + ", typeHandler=" + StringArrayListTypeHandler.class.getName() + "}::VARCHAR[]");
+                            VALUES(quotedColumnName, "#{" + columnName + ", typeHandler=" + StringArrayListTypeHandler.class.getName() + "}::VARCHAR[]");
                         } else if (dbColumnType == DbColumnType.ARRAY_INTEGER) {
-                            VALUES(columnName, "#{" + columnName + ", typeHandler=" + IntegerArrayListTypeHandler.class.getName() + "}::INT[]");
+                            VALUES(quotedColumnName, "#{" + columnName + ", typeHandler=" + IntegerArrayListTypeHandler.class.getName() + "}::INT[]");
                         } else if (dbColumnType == DbColumnType.ARRAY_FLOAT) {
-                            VALUES(columnName, "#{" + columnName + ", typeHandler=" + BigDecimalArrayListTypeHandler.class.getName() + "}::DECIMAL[]");
+                            VALUES(quotedColumnName, "#{" + columnName + ", typeHandler=" + BigDecimalArrayListTypeHandler.class.getName() + "}::DECIMAL[]");
                         } else if (dbColumnType == DbColumnType.ARRAY_BIGINT) {
-                            VALUES(columnName, "#{" + columnName + ", typeHandler=" + LongArrayListTypeHandler.class.getName() + "}::BIGINT[]");
+                            VALUES(quotedColumnName, "#{" + columnName + ", typeHandler=" + LongArrayListTypeHandler.class.getName() + "}::BIGINT[]");
                         } else if (dbColumnType == DbColumnType.ARRAY_TIMESTAMP) {
-                            VALUES(columnName, "#{" + columnName + ", typeHandler=" + DateArrayListTypeHandler.class.getName() + "}::TIMESTAMP WITH TIME ZONE[]");
+                            VALUES(quotedColumnName, "#{" + columnName + ", typeHandler=" + DateArrayListTypeHandler.class.getName() + "}::TIMESTAMP WITH TIME ZONE[]");
                         } else if (dbColumnType == DbColumnType.ARRAY_BOOLEAN) {
-                            VALUES(columnName, "#{" + columnName + ", typeHandler=" + BooleanArrayListTypeHandler.class.getName() + "}::BOOLEAN[]");
+                            VALUES(quotedColumnName, "#{" + columnName + ", typeHandler=" + BooleanArrayListTypeHandler.class.getName() + "}::BOOLEAN[]");
                         } else if (dbColumnType == DbColumnType.TIMESTAMP) {
-                            VALUES(columnName, "#{" + columnName + "}");
+                            VALUES(quotedColumnName, "#{" + columnName + "}");
                         } else if (dbColumnType == DbColumnType.GEOMETRY_4326) {
-                            VALUES(columnName, "ST_SetSRID(ST_GeomFromGeoJSON(#{" + columnName + "}), 4326)");
+                            VALUES(quotedColumnName, "ST_SetSRID(ST_GeomFromGeoJSON(#{" + columnName + "}), 4326)");
                         } else if (dbColumnType == DbColumnType.GEOMETRY_3857) {
-                            VALUES(columnName, "ST_Transform(ST_SetSRID(ST_GeomFromGeoJSON(#{" + columnName + "}), 4326), 3857)");
+                            VALUES(quotedColumnName, "ST_Transform(ST_SetSRID(ST_GeomFromGeoJSON(#{" + columnName + "}), 4326), 3857)");
                         } else {
-                            VALUES(columnName, "#{" + columnName + "}");
+                            VALUES(quotedColumnName, "#{" + columnName + "}");
                         }
                     }
                 }

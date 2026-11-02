@@ -4,6 +4,7 @@ package kr.re.keti.sc.dataservicebroker.entities.controller.http;
 import java.io.IOException;
 import java.util.*;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -99,6 +100,15 @@ public class EntityController {
     private String primaryAccept;
     @Value("${entity.default.context-uri}")
     private String defaultContextUri;
+    @Value("${entity.upsert.update-as-replace.enabled:false}")
+    private boolean upsertUpdateAsReplace;
+
+    @PostConstruct
+    private void warnUpsertUpdateAsReplace() {
+        if (upsertUpdateAsReplace) {
+            log.warn("entity.upsert.update-as-replace.enabled=true — batch upsert options=update 를 replace 로 처리한다(NGSI-LD 5.6.8 과 다름, 시험 환경 전용)");
+        }
+    }
 
     /**
      * 최종 값 건수 조회
@@ -526,7 +536,8 @@ public class EntityController {
                                   HttpServletResponse response,
                                   @RequestHeader(value = HttpHeaders.LINK, required = false) String link,
                                   @RequestHeader(value = HttpHeaders.CONTENT_TYPE, required = false) String contentType,
-                                  @RequestBody String requestBody) throws Exception {
+                                  @RequestBody String requestBody,
+                                  @RequestParam(value = "options", required = false) String options) throws Exception {
 
         log.info("BatchEntityUpsert Reqeust link={}, contentType={}, body={}", link, contentType, requestBody);
 
@@ -536,9 +547,22 @@ public class EntityController {
 
         validateContextInBachOperation(contentType, links, jsonList);
 
+        Operation operation;
+        if (options == null || options.equals(OperationOption.REPLACE.getCode())) {
+            operation = Operation.CREATE_ENTITY_OR_REPLACE_ENTITY_ATTRIBUTES;
+        } else if (options.equals(OperationOption.UPDATE.getCode())) {
+            // TTA 시험기의 004_04 는 ETSI 328491fb 이전 판이라 기존 엔티티를 순열끼리 공유한다.
+            // 규격대로 append 하면 앞 순열 속성이 남아 FAIL 하므로, 시험 환경에서만 replace 로 처리한다(기본 false)
+            operation = upsertUpdateAsReplace
+                    ? Operation.CREATE_ENTITY_OR_REPLACE_ENTITY_ATTRIBUTES
+                    : Operation.CREATE_ENTITY_OR_APPEND_ENTITY_ATTRIBUTES;
+        } else {
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "invalid options : " + options);
+        }
+
         // 1. entity 생성을 위한 객체 생성
         BatchIngestMessageVO batchIngestMessageVO = makeBatchRequestMessageVO(request, jsonList,
-                Operation.CREATE_ENTITY_OR_REPLACE_ENTITY_ATTRIBUTES, request.getRequestURI(),
+                operation, request.getRequestURI(),
                 null, links, contentType);
         List<IngestMessageVO> ingestMessageVOs = batchIngestMessageVO.getIngestMessageVO();
         List<BatchEntityErrorVO> batchEntityErrorVO = batchIngestMessageVO.getBatchEntityErrorVO();
@@ -1130,20 +1154,20 @@ public class EntityController {
         String entityType = extractEntityTypeById(id);
         String datasetId = extractDatasetIdById(id);
         IngestMessageVO requestMessageVO = new IngestMessageVO();
-        if (operation != Operation.DELETE_ENTITY) {
-            /* 단건 Delete 경우 body없으므로 JacksonMapper 적용X */
+        if (operation != Operation.DELETE_ENTITY && operation != Operation.DELETE_ENTITY_ATTRIBUTES) {
+            /* 단건 Delete·속성 Delete 는 body 가 없으므로 JacksonMapper 적용X (null 을 읽으면 500) */
             Map<String, Object> obj = objectMapper.readValue(requestBody, Map.class);
-            if(StringUtils.isEmpty(id))
+            if(StringUtils.isEmpty(id) && obj.get(DefaultAttributeKey.ID.getCode()) != null)
                 id = obj.get(DefaultAttributeKey.ID.getCode()).toString();
-            if(StringUtils.isEmpty(entityType))
+            if(StringUtils.isEmpty(entityType) && obj.get(DefaultAttributeKey.TYPE.getCode()) != null)
                 entityType = obj.get(DefaultAttributeKey.TYPE.getCode()).toString();
-            if(StringUtils.isEmpty(datasetId))
+            if(StringUtils.isEmpty(datasetId) && obj.get(DefaultAttributeKey.DATASET_ID.getCode()) != null)
                 datasetId = obj.get(DefaultAttributeKey.DATASET_ID.getCode()).toString();
-            
-        } 
-        
+
+        }
+
         aasSVC.checkCUDAccessRule(request, datasetId, operation);
-        
+
         requestMessageVO.setEntityType(entityType);
         requestMessageVO.setContent(requestBody);
         requestMessageVO.setDatasetId(datasetId);
@@ -1198,10 +1222,16 @@ public class EntityController {
                     requestMessageVO.setContentType(contentType);
                 } else {
                     HashMap<String, Object> obj = (HashMap<String, Object>) jsonStr;
-                    entityId = obj.get(DefaultAttributeKey.ID.getCode()).toString();
-                    datasetId = obj.get(DefaultAttributeKey.DATASET_ID.getCode()).toString();
+
+                    if(obj.get(DefaultAttributeKey.ID.getCode()) != null)
+                        entityId = obj.get(DefaultAttributeKey.ID.getCode()).toString();
+
+                    if(obj.get(DefaultAttributeKey.DATASET_ID.getCode()) != null)
+                        datasetId = obj.get(DefaultAttributeKey.DATASET_ID.getCode()).toString();
+
                     if (operation == Operation.CREATE_ENTITY) {
-                        entityType = obj.get(DefaultAttributeKey.TYPE.getCode()).toString();
+                        if(obj.get(DefaultAttributeKey.TYPE.getCode()) != null)
+                            entityType = obj.get(DefaultAttributeKey.TYPE.getCode()).toString();
                     } else if ((operation == Operation.CREATE_ENTITY_OR_REPLACE_ENTITY_ATTRIBUTES)
                             || (operation == Operation.APPEND_ENTITY_ATTRIBUTES)) {
 

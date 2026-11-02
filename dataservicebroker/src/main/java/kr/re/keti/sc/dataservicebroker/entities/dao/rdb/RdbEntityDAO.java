@@ -12,11 +12,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode;
 import kr.re.keti.sc.dataservicebroker.entities.dao.EntityDataModelDAO;
 import kr.re.keti.sc.dataservicebroker.entities.vo.EntityDataModelVO;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.paho.client.mqttv3.logging.Logger;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.postgis.LineString;
 import org.postgis.MultiLineString;
@@ -59,6 +57,7 @@ import kr.re.keti.sc.dataservicebroker.entities.dao.EntityDAOInterface;
 import kr.re.keti.sc.dataservicebroker.entities.sqlprovider.rdb.RdbEntitySqlProvider;
 import kr.re.keti.sc.dataservicebroker.util.ConvertTimeParamUtil;
 import kr.re.keti.sc.dataservicebroker.util.QueryUtil;
+import kr.re.keti.sc.dataservicebroker.util.StringUtil;
 import kr.re.keti.sc.dataservicebroker.util.ValidateUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -68,7 +67,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Autowired
     private SqlSessionTemplate sqlSession;
     @Autowired
-//	@Qualifier("batchSqlSession")
+	// @Qualifier("batchSqlSession")
     private SqlSessionTemplate batchSqlSession;
     @Autowired
 	@Qualifier("retrieveSqlSession")
@@ -89,13 +88,13 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
     @Value("${entity.history.retrieve.full.yn:N}")
     public String retrieveFullHistoryYn;    //Entity 전체 이력 조회 여부
-    
+
     @Value("${entity.retrieve.default.limit:1000}")
     private Integer defaultLimit;
 
     public static String[] MANDATORY_ATTRIBUTE = new String[]{"id", "dataset_id", "created_at", "modified_at"};
     public static String[] MANDATORY_TEMPORAL_ATTRIBUTE = new String[]{"id", "dataset_id", "operation", "modified_at"};
-    
+
     /**
      * 벌크 CREATE 처리
      * @param createList CREATE 대상 VO 리스트
@@ -108,12 +107,13 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         // 결과 리스트
         List<ProcessResultVO> processResultVOList = new ArrayList<>(createList.size());
 
+        RdbEntitySqlProvider batchMapper = batchSqlSession.getMapper(RdbEntitySqlProvider.class);
+
         for (DynamicEntityDaoVO entityDaoVO : createList) {
 
             log.debug("bulkCreate. id=" + entityDaoVO.getId());
 
             // CREATE
-            RdbEntitySqlProvider batchMapper = batchSqlSession.getMapper(RdbEntitySqlProvider.class);
             batchMapper.create(entityDaoVO);
 
             // 결과 생성
@@ -676,12 +676,13 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         // 결과 리스트
         List<ProcessResultVO> processResultVOList = new ArrayList<>(deleteList.size());
 
+        // DELETE
+        RdbEntitySqlProvider batchMapper = batchSqlSession.getMapper(RdbEntitySqlProvider.class);
+
         for (DynamicEntityDaoVO entityDaoVO : deleteList) {
 
             log.debug("bulkDelete. id=" + entityDaoVO.getId());
 
-            // DELETE
-            RdbEntitySqlProvider batchMapper = batchSqlSession.getMapper(RdbEntitySqlProvider.class);
             int result = batchMapper.delete(entityDaoVO);
 
             if (result > 0) {
@@ -806,7 +807,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         return resultList;
     }
 
-    
+
     /**
      * 최종 데이터 조회 by ID
      * @param queryVO(id)
@@ -934,7 +935,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         if (queryVO.getSearchIdList() != null) {
             dbConditionVO.setSearchIdList(queryVO.getSearchIdList());
         }
-        
+
         // id pattern 조건 넣기
         if (queryVO.getIdPattern() != null) {
         	try {
@@ -945,7 +946,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         	}
             dbConditionVO.setIdPattern(queryVO.getIdPattern());
         }
-        
+
         //1. 조회 대상 컬럼 세팅
         String selectCondition = getSelectCondition(queryVO, isTemproal);
         dbConditionVO.setSelectCondition(selectCondition);
@@ -957,13 +958,13 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
         //3. 상세쿼리(q-query) param 처리
         if (QueryUtil.includeQQuery(queryVO)) {
-            queryVO = QueryUtil.generateQuery(dataModelCacheVO, queryVO);
+            queryVO = QueryUtil.generateQuery(dataModelCacheVO, queryVO, true); // RDB: 동적 컬럼명 따옴표
             dbConditionVO.setQueryCondition(queryVO.getQuery());
         }
 
         //4. 시간 조건(time rel) param 처리
         if (isTemproal == true) {
-            // timerel param 처리, 이력 데이터 조회시에만 적용 
+            // timerel param 처리, 이력 데이터 조회시에만 적용
             if (queryVO.getTimerel() != null) {
                 queryVO = convertTimerel(queryVO);
                 dbConditionVO.setTimerelCondition(queryVO.getTimeQuery());
@@ -1003,7 +1004,6 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
         return dbConditionVO;
     }
-
 
     @Override
     public ProcessResultVO deleteAttribute(EntityAttrDaoVO entityAttrDaoVO) {
@@ -1074,7 +1074,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
         // 1-1. attr 조건이 있을 경우
         if (queryVO.getAttrs() != null) {
-        	
+
         	for (String attr : queryVO.getAttrs()) {
         		List<String> hierarchyAttrNames = new ArrayList<>();
             	Map<String, DataModelDbColumnVO> dbColumnInfoVOMap = dataModelCacheVO.getDataModelStorageMetadataVO().getDbColumnInfoVOMap();
@@ -1099,7 +1099,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
            				hierarchyAttrNames.add(splitAttrName);
            			}
            		}
-           		
+
            		for(DataModelDbColumnVO dataModelDbColumnVO : dbColumnInfoVOMap.values()) {
            			boolean isMatch = true;
        				for(int i=0; i<hierarchyAttrNames.size(); i++) {
@@ -1110,7 +1110,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
        					}
                		}
        				if(isMatch) {
-       					targetColumnList.add(dataModelDbColumnVO.getColumnName());
+       					targetColumnList.add(StringUtil.quoteColumnName(dataModelDbColumnVO.getColumnName()));
 
        					for(int i=0; i<hierarchyAttrNames.size(); i++) {
        						String observedAtColumnName = null;
@@ -1127,13 +1127,13 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
        						} else {
        							observedAtColumnName = hierarchyAttrNames.get(i) + Constants.COLUMN_DELIMITER + PropertyKey.OBSERVED_AT.getCode();
        						}
-       						
+
        						DataModelDbColumnVO observedAtColumnVO = dbColumnInfoVOMap.get(observedAtColumnName);
            					if(observedAtColumnVO != null) {
-           						targetColumnList.add(observedAtColumnVO.getColumnName());
+           						targetColumnList.add(StringUtil.quoteColumnName(observedAtColumnVO.getColumnName()));
            					}
        					}
-       					
+
        					// options 에 sysAttr이 포함된 경우 property의 createdAt, modifiedAt 포함
        					if(!isTemproal && queryVO.getOptions() != null && queryVO.getOptions().contains(RetrieveOptions.SYS_ATTRS.getCode())) {
        						for(int i=0; i<hierarchyAttrNames.size(); i++) {
@@ -1152,29 +1152,29 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
            							}
            							createdAtColumNameBuilder.append(Constants.COLUMN_DELIMITER).append(PropertyKey.CREATED_AT.getCode());
            							modifiedAtColumNameBuilder.append(Constants.COLUMN_DELIMITER).append(PropertyKey.MODIFIED_AT.getCode());
-           							
+
            							createdAtColumnName = createdAtColumNameBuilder.toString();
            							modifiedAtColumnName = modifiedAtColumNameBuilder.toString();
            						} else {
            							createdAtColumnName = hierarchyAttrNames.get(i) + Constants.COLUMN_DELIMITER + PropertyKey.CREATED_AT.getCode();
            							modifiedAtColumnName = hierarchyAttrNames.get(i) + Constants.COLUMN_DELIMITER + PropertyKey.MODIFIED_AT.getCode();
            						}
-           						
+
                					DataModelDbColumnVO createdAtColumnVO = dbColumnInfoVOMap.get(createdAtColumnName);
                					if(createdAtColumnVO != null) {
-               						targetColumnList.add(createdAtColumnVO.getColumnName());
+               						targetColumnList.add(StringUtil.quoteColumnName(createdAtColumnVO.getColumnName()));
                					}
-               					
+
                					DataModelDbColumnVO modifiedAtColumnVO = dbColumnInfoVOMap.get(modifiedAtColumnName);
                					if(modifiedAtColumnVO != null) {
-               						targetColumnList.add(modifiedAtColumnVO.getColumnName());
+               						targetColumnList.add(StringUtil.quoteColumnName(modifiedAtColumnVO.getColumnName()));
                					}
            					}
        					}
        				}
        			}
         	}
-        	
+
         } else {
             // 1-2. attr 조건이 없을 경우
             for (Map.Entry<String, DataModelDbColumnVO> entry : dataModelCacheVO.getDataModelStorageMetadataVO().getDbColumnInfoVOMap().entrySet()) {
@@ -1186,10 +1186,10 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
                 if (isTemproal) {
                 	if(!columnName.endsWith(Constants.COLUMN_DELIMITER + PropertyKey.CREATED_AT.getCode())
                 			&& !columnName.endsWith(Constants.COLUMN_DELIMITER + PropertyKey.MODIFIED_AT.getCode())){
-                		targetColumnList.add(columnName);
+                		targetColumnList.add(StringUtil.quoteColumnName(columnName));
                 	}
                 } else {
-                	targetColumnList.add(columnName);
+                	targetColumnList.add(StringUtil.quoteColumnName(columnName));
                 }
             }
         }
@@ -1297,7 +1297,8 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
             String pGgeometryValue = pGgeometry.getValue();
 
             queryVO.setGeometryValue(pGgeometryValue);
-            queryVO.setLocationCol(locationCol);
+            // 동적 geo 컬럼명은 따옴표로 감싼다 (위 containsKey 검사처럼 소문자 기준)
+            queryVO.setLocationCol(StringUtil.quoteColumnName(locationCol));
 
             if (log.isDebugEnabled()) {
                 StringBuilder stringBuilder = new StringBuilder();
@@ -2023,6 +2024,10 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
                 List<String> resultQueryList = new ArrayList<>();
 
                 for (String item : entityTimeProperies) {
+                    // observedAt 동적 컬럼은 따옴표로 감싼다 (없을 때 대신 쓰는 고정 컬럼 modified_at 은 그대로)
+                    if (!DefaultDbColumnName.MODIFIED_AT.getCode().equals(item)) {
+                        item = StringUtil.quoteColumnName(item);
+                    }
                     if (timerel.equalsIgnoreCase(TemporalOperator.BETWEEN_REL.getCode())) {
                         resultQueryList.add(makeFragmentBetweenTimeQuery(timerel, item, timeAt, endTimeAt));
                     } else {
