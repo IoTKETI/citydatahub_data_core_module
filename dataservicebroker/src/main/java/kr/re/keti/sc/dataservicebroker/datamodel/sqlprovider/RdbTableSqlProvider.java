@@ -263,32 +263,32 @@ public class RdbTableSqlProvider {
 
 			// 컬럼 alter 쿼리 세팅
 			if(entry.getValue() == DbOperation.ADD_COLUMN) {
-				sql.append(" ADD COLUMN ").append(dataModelDbColumnVO.getColumnName())
+				sql.append(" ADD COLUMN ").append(StringUtil.quoteColumnName(dataModelDbColumnVO.getColumnName()))
 				   .append(" ").append(dataModelDbColumnVO.getColumnType().getRdbCode()).append(",");
 			} else if(entry.getValue() == DbOperation.ALTER_COLUMN_TYPE
 					|| entry.getValue() == DbOperation.ALTER_COLUMN_TYPE_AND_ADD_NOT_NULL
 					|| entry.getValue() == DbOperation.ALTER_COLUMN_TYPE_AND_DROP_NOT_NULL) {
-				sql.append(" ALTER COLUMN ").append(dataModelDbColumnVO.getColumnName());
+				sql.append(" ALTER COLUMN ").append(StringUtil.quoteColumnName(dataModelDbColumnVO.getColumnName()));
 				sql.append(" TYPE ").append(dataModelDbColumnVO.getColumnType().getRdbCode());
 				if(!ValidateUtil.isEmptyData(dataModelDbColumnVO.getMaxLength())) {
 					sql.append("(").append(dataModelDbColumnVO.getMaxLength()).append(")");
 				}
-				sql.append(" USING ").append(dataModelDbColumnVO.getColumnName()).append("::")
+				sql.append(" USING ").append(StringUtil.quoteColumnName(dataModelDbColumnVO.getColumnName())).append("::")
 				   .append(dataModelDbColumnVO.getColumnType().getRdbCode()).append(",");
 			} else if(entry.getValue() == DbOperation.DROP_COLUMN) {
-				sql.append(" DROP COLUMN IF EXISTS ").append(dataModelDbColumnVO.getColumnName()).append(",");
+				sql.append(" DROP COLUMN IF EXISTS ").append(StringUtil.quoteColumnName(dataModelDbColumnVO.getColumnName())).append(",");
 			}
 
 			// 컬럼 not null 쿼리 세팅
 			if(entry.getValue() == DbOperation.ADD_NOT_NULL
 					|| entry.getValue() == DbOperation.ALTER_COLUMN_TYPE_AND_ADD_NOT_NULL) {
 
-				sql.append(" ALTER COLUMN ").append(dataModelDbColumnVO.getColumnName()).append(" SET NOT NULL,");
+				sql.append(" ALTER COLUMN ").append(StringUtil.quoteColumnName(dataModelDbColumnVO.getColumnName())).append(" SET NOT NULL,");
 
 			} else if(entry.getValue() == DbOperation.DROP_NOT_NULL
 					|| entry.getValue() == DbOperation.ALTER_COLUMN_TYPE_AND_DROP_NOT_NULL) {
 
-				sql.append(" ALTER COLUMN ").append(dataModelDbColumnVO.getColumnName()).append(" DROP NOT NULL,");
+				sql.append(" ALTER COLUMN ").append(StringUtil.quoteColumnName(dataModelDbColumnVO.getColumnName())).append(" DROP NOT NULL,");
 			}
 			sql.append(LINE_SEPARATOR);
 		}
@@ -586,15 +586,16 @@ public class RdbTableSqlProvider {
 				for(DataModelDbColumnVO dataModelDbColumnVO : storageMetadataVO.getDbColumnInfoVOMap().values()) {
 					if(dataModelDbColumnVO.getDaoAttributeId().equals(attrId)) {
 						if(dataModelDbColumnVO.getColumnType() == DbColumnType.GEOMETRY_4326) {
-							sql.append(attrId).append(Constants.GEO_PREFIX_4326).append(",");
+							sql.append(StringUtil.quoteColumnName(attrId + Constants.GEO_PREFIX_4326)).append(",");
 						} else if(dataModelDbColumnVO.getColumnType() == DbColumnType.GEOMETRY_3857) {
 
 						} else {
-							sql.append(attrId).append(",");
+							sql.append(StringUtil.quoteColumnName(attrId)).append(",");
 						}
 					}
 				}
 			} else {
+				// storageMetadata 없이 호출되는 경우는 고정 컬럼(ID, MODIFIED_AT)뿐 — 따옴표를 붙이지 않는다
 				sql.append(attrId).append(",");
 			}
 		}
@@ -744,13 +745,13 @@ public class RdbTableSqlProvider {
 
 		sql.append(", ");
 		if(dbOperation == DbOperation.ADD_COLUMN) {
-			sql.append("ADD COLUMN ").append(columnName).append(" ").append(columnType.getRdbCode());
+			sql.append("ADD COLUMN ").append(StringUtil.quoteColumnName(columnName)).append(" ").append(columnType.getRdbCode());
 
 		} else if(dbOperation == DbOperation.DROP_COLUMN) {
-			sql.append("DROP COLUMN IF EXISTS ").append(columnName);
+			sql.append("DROP COLUMN IF EXISTS ").append(StringUtil.quoteColumnName(columnName));
 			
 		} else {
-			sql.append(columnName)
+			sql.append(StringUtil.quoteColumnName(columnName))
 			   .append(" ").append(columnType.getRdbCode());
 			if(!ValidateUtil.isEmptyData(maxLength) && hasMaxLengthColumnType(columnType)) {
 				sql.append("(").append(maxLength).append(")");
@@ -774,14 +775,14 @@ public class RdbTableSqlProvider {
 
 		sql.append(", ");
 		if(dbOperation == DbOperation.ADD_COLUMN) {
-			sql.append("ADD COLUMN ").append(columnName).append(Constants.GEO_PREFIX_3857).append(" ")
+			sql.append("ADD COLUMN ").append(StringUtil.quoteColumnName(columnName + Constants.GEO_PREFIX_3857)).append(" ")
 			   .append(DbColumnType.GEOMETRY_3857.getRdbCode());
 
 		} else if(dbOperation == DbOperation.DROP_COLUMN) {
-			sql.append("DROP COLUMN IF EXISTS ").append(columnName).append(Constants.GEO_PREFIX_3857);
+			sql.append("DROP COLUMN IF EXISTS ").append(StringUtil.quoteColumnName(columnName + Constants.GEO_PREFIX_3857));
 			
 		} else {
-			sql.append(columnName).append(Constants.GEO_PREFIX_3857)
+			sql.append(StringUtil.quoteColumnName(columnName + Constants.GEO_PREFIX_3857))
 			   .append(" ").append(DbColumnType.GEOMETRY_3857.getRdbCode());
 			if(required != null && required) {
 				sql.append(" NOT NULL ");
@@ -791,14 +792,14 @@ public class RdbTableSqlProvider {
 		
 		sql.append(", ");
 		if(dbOperation == DbOperation.ADD_COLUMN) {
-			sql.append("ADD COLUMN ").append(columnName).append(Constants.GEO_PREFIX_4326).append(" ")
+			sql.append("ADD COLUMN ").append(StringUtil.quoteColumnName(columnName + Constants.GEO_PREFIX_4326)).append(" ")
 			   .append(DbColumnType.GEOMETRY_4326.getRdbCode());
 
 		} else if(dbOperation == DbOperation.DROP_COLUMN) {
-			sql.append("DROP COLUMN IF EXISTS ").append(columnName).append(Constants.GEO_PREFIX_4326);
+			sql.append("DROP COLUMN IF EXISTS ").append(StringUtil.quoteColumnName(columnName + Constants.GEO_PREFIX_4326));
 			
 		} else {
-			sql.append(columnName).append(Constants.GEO_PREFIX_4326)
+			sql.append(StringUtil.quoteColumnName(columnName + Constants.GEO_PREFIX_4326))
 			   .append(" ").append(DbColumnType.GEOMETRY_4326.getRdbCode());
 			if(required != null && required) {
 				sql.append(" NOT NULL ");

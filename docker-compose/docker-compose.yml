@@ -147,6 +147,9 @@ services:
       SPRING_SECURITY_ENABLED: false
       SECURITY_ACL_USEYN: "N"
       JVM_OPTS: -Xmx2048m -Xms2048m
+      # TTA 인증 시험 대응(upsert 시 동작: update(일부 교체), replace(전체 교체))
+      # true: options=update 요청도 replace 로 처리. 시험 환경에서만 켠다
+      # ENTITY_UPSERT_UPDATEASREPLACE_ENABLED: "true"
     depends_on:
       broker:
         condition: service_started

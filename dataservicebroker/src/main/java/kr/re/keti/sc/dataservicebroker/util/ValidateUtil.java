@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode.DefaultAttributeKey;
+
 public class ValidateUtil {
 
 	public static boolean isEmptyData(Object ob) {
@@ -427,6 +429,21 @@ public class ValidateUtil {
 			return false;
 		}
 
+		return true;
+	}
+
+	/**
+	 * Entity Fragment 에 속성이 하나도 없는지 확인한다. 빈 객체이거나 @context 만 있으면 true.
+	 */
+	public static boolean hasNoAttribute(Map<String, Object> fragment) {
+		if (fragment == null) {
+			return true;
+		}
+		for (String key : fragment.keySet()) {
+			if (!DefaultAttributeKey.CONTEXT.getCode().equals(key)) {
+				return false;
+			}
+		}
 		return true;
 	}
 }

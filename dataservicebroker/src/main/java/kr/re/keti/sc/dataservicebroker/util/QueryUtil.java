@@ -42,6 +42,19 @@ public class QueryUtil {
      * @return
      */
     public static QueryVO generateQuery(DataModelCacheVO dataModelCacheVO, QueryVO queryVO) {
+        return generateQuery(dataModelCacheVO, queryVO, false);
+    }
+
+    /**
+     * 상세 Query를 위한 조건 생성
+     *
+     * @param dataModelCacheVO
+     * @param queryVO
+     * @param quoteColumnNames true 이면 컬럼명을 큰따옴표로 감싼다 (RDB/PostgreSQL 전용 —
+     *                         숫자로 시작하는 속성명 지원. Hive 는 큰따옴표가 문자열 리터럴이라 false)
+     * @return
+     */
+    public static QueryVO generateQuery(DataModelCacheVO dataModelCacheVO, QueryVO queryVO, boolean quoteColumnNames) {
 
         List<String> queryResultList = new ArrayList<>();
 
@@ -60,7 +73,7 @@ public class QueryUtil {
 
                 List<String> orQueryList = new ArrayList<>();
                 for (String orQuery : splitedOrQuery) {
-                	String innerQuery = makeFragmentQuery(orQuery, dataModelCacheVO);
+                	String innerQuery = makeFragmentQuery(orQuery, dataModelCacheVO, quoteColumnNames);
                 	if(innerQuery != null) {
                 		orQueryList.add("(" + innerQuery + ")");
                 	}
@@ -197,7 +210,7 @@ public class QueryUtil {
      * @return
      * @throws UnsupportedEncodingException
      */
-    private static String makeFragmentQuery(String q_query, DataModelCacheVO dataModelCacheVO) throws UnsupportedEncodingException, ParseException {
+    private static String makeFragmentQuery(String q_query, DataModelCacheVO dataModelCacheVO, boolean quoteColumnNames) throws UnsupportedEncodingException, ParseException {
 
         q_query = q_query.replace("%x", "%");
         q_query = URLDecoder.decode(q_query, Constants.CHARSET_ENCODING);
@@ -248,9 +261,9 @@ public class QueryUtil {
 
                 // 타켓 컬럼이 array[]형일 경우,
                 if (isArrayTypeColumn(attrName, dataModelCacheVO)) {
-                    resultFragmentQuery = makeBetweenQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), leftValue, rightValue);
+                    resultFragmentQuery = makeBetweenQueryWithColumnArrType(sqlColumn(getColumnNameWithType(attrName, dataModelCacheVO), quoteColumnNames), leftValue, rightValue);
                 } else {
-                    resultFragmentQuery = makeBetweenQuery(getColumnName(attrName, dataModelCacheVO), leftValue, rightValue);
+                    resultFragmentQuery = makeBetweenQuery(sqlColumn(getColumnName(attrName, dataModelCacheVO), quoteColumnNames), leftValue, rightValue);
                 }
 
             } else if (!isTimestampValue(qValue) && (qValue.contains(QueryOperator.COMMA.getSign())
@@ -265,13 +278,13 @@ public class QueryUtil {
                 if (isArrayTypeColumn(attrName, dataModelCacheVO)) {
                     List<String> arrayTypeItems = new ArrayList<>();
                     for (String itemValue : splitedValueList) {
-                        String itemQuery =  makeQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), itemValue, QueryOperator.SINGLE_EQUAL.getSign());
+                        String itemQuery =  makeQueryWithColumnArrType(sqlColumn(getColumnNameWithType(attrName, dataModelCacheVO), quoteColumnNames), itemValue, QueryOperator.SINGLE_EQUAL.getSign());
                         arrayTypeItems.add(itemQuery);
                     }
                     resultQuery = String.join(" OR ", arrayTypeItems);
 
                 } else {
-                    resultQuery = getColumnName(attrName, dataModelCacheVO) + " IN (" + String.join(",", splitedValueList) + ")";
+                    resultQuery = sqlColumn(getColumnName(attrName, dataModelCacheVO), quoteColumnNames) + " IN (" + String.join(",", splitedValueList) + ")";
                 }
                 resultFragmentQuery = resultQuery;
 
@@ -286,9 +299,9 @@ public class QueryUtil {
                 }
 
                 if (isArrayTypeColumn(attrName, dataModelCacheVO)) {
-                    resultFragmentQuery = makeQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), qValue, qOperator);
+                    resultFragmentQuery = makeQueryWithColumnArrType(sqlColumn(getColumnNameWithType(attrName, dataModelCacheVO), quoteColumnNames), qValue, qOperator);
                 } else {
-                    resultFragmentQuery = makeQuery(getColumnName(attrName, dataModelCacheVO), qValue, qOperator);
+                    resultFragmentQuery = makeQuery(sqlColumn(getColumnName(attrName, dataModelCacheVO), quoteColumnNames), qValue, qOperator);
                 }
             }
 
@@ -315,9 +328,9 @@ public class QueryUtil {
                 String rightValue = qValue.split("\\.\\.")[1];
 
                 if (isArrayTypeColumn(attrName, dataModelCacheVO)) {
-                    resultFragmentQuery = makeNotBetweenQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), leftValue, rightValue);
+                    resultFragmentQuery = makeNotBetweenQueryWithColumnArrType(sqlColumn(getColumnNameWithType(attrName, dataModelCacheVO), quoteColumnNames), leftValue, rightValue);
                 } else {
-                    resultFragmentQuery = makeNotBetweenQuery(getColumnName(attrName, dataModelCacheVO), leftValue, rightValue);
+                    resultFragmentQuery = makeNotBetweenQuery(sqlColumn(getColumnName(attrName, dataModelCacheVO), quoteColumnNames), leftValue, rightValue);
                 }
 
             } else if (!isTimestampValue(qValue) && (qValue.contains(QueryOperator.COMMA.getSign())
@@ -332,13 +345,13 @@ public class QueryUtil {
                 if (isArrayTypeColumn(attrName, dataModelCacheVO)) {
                     List<String> arrayTypeItems = new ArrayList<>();
                     for (String itemValue : splitedValueList) {
-                        String itemQuery =  makeQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), itemValue, QueryOperator.SINGLE_EQUAL.getSign());
+                        String itemQuery =  makeQueryWithColumnArrType(sqlColumn(getColumnNameWithType(attrName, dataModelCacheVO), quoteColumnNames), itemValue, QueryOperator.SINGLE_EQUAL.getSign());
                         arrayTypeItems.add(itemQuery);
                     }
                     resultQuery = String.join(" OR ", arrayTypeItems);
 
                 } else {
-                    resultQuery = getColumnName(attrName, dataModelCacheVO) + " IN (" + String.join(",", splitedValueList) + ")";
+                    resultQuery = sqlColumn(getColumnName(attrName, dataModelCacheVO), quoteColumnNames) + " IN (" + String.join(",", splitedValueList) + ")";
                 }
                 resultFragmentQuery = " NOT " + resultQuery;
 
@@ -351,9 +364,9 @@ public class QueryUtil {
 
                 // 일반형 처리
                 if (isArrayTypeColumn(attrName, dataModelCacheVO)) {
-                    resultFragmentQuery = makeQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), qValue, qOperator);
+                    resultFragmentQuery = makeQueryWithColumnArrType(sqlColumn(getColumnNameWithType(attrName, dataModelCacheVO), quoteColumnNames), qValue, qOperator);
                 } else {
-                    resultFragmentQuery = makeQuery(getColumnName(attrName, dataModelCacheVO), qValue, qOperator);
+                    resultFragmentQuery = makeQuery(sqlColumn(getColumnName(attrName, dataModelCacheVO), quoteColumnNames), qValue, qOperator);
                 }
             }
 
@@ -375,9 +388,9 @@ public class QueryUtil {
             String dbOperator = QueryOperator.NOT_PATTERN_OP.getDbOperator();
             
             if (isArrayTypeColumn(attrName, dataModelCacheVO)) {
-                resultFragmentQuery = makeQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), qValue, dbOperator);
+                resultFragmentQuery = makeQueryWithColumnArrType(sqlColumn(getColumnNameWithType(attrName, dataModelCacheVO), quoteColumnNames), qValue, dbOperator);
             } else {
-                resultFragmentQuery = makeQuery(getColumnName(attrName, dataModelCacheVO), qValue, dbOperator);
+                resultFragmentQuery = makeQuery(sqlColumn(getColumnName(attrName, dataModelCacheVO), quoteColumnNames), qValue, dbOperator);
             }
 
             return resultFragmentQuery;
@@ -397,9 +410,9 @@ public class QueryUtil {
             
             String dbOperator = QueryOperator.PATTERN_OP.getDbOperator();
             if (isArrayTypeColumn(attrName, dataModelCacheVO)) {
-                resultFragmentQuery = makeQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), qValue, dbOperator);
+                resultFragmentQuery = makeQueryWithColumnArrType(sqlColumn(getColumnNameWithType(attrName, dataModelCacheVO), quoteColumnNames), qValue, dbOperator);
             } else {
-                resultFragmentQuery = makeQuery(getColumnName(attrName, dataModelCacheVO), qValue, dbOperator);
+                resultFragmentQuery = makeQuery(sqlColumn(getColumnName(attrName, dataModelCacheVO), quoteColumnNames), qValue, dbOperator);
             }
 
             return resultFragmentQuery;
@@ -435,15 +448,22 @@ public class QueryUtil {
         }
 
         if (isArrayTypeColumn(attrName, dataModelCacheVO)) {
-            resultFragmentQuery = makeQueryWithColumnArrType(getColumnNameWithType(attrName, dataModelCacheVO), qValue, qOperator);
+            resultFragmentQuery = makeQueryWithColumnArrType(sqlColumn(getColumnNameWithType(attrName, dataModelCacheVO), quoteColumnNames), qValue, qOperator);
         } else {
-            resultFragmentQuery = makeQuery(getColumnName(attrName, dataModelCacheVO), qValue, qOperator);
+            resultFragmentQuery = makeQuery(sqlColumn(getColumnName(attrName, dataModelCacheVO), quoteColumnNames), qValue, qOperator);
         }
 
         return resultFragmentQuery;
     }
     
     
+
+    /**
+     * SQL 에 넣을 컬럼명 반환. quote 가 true 이면 소문자로 접어 큰따옴표로 감싼다 (RDB 전용)
+     */
+    private static String sqlColumn(String columnName, boolean quote) {
+        return quote ? StringUtil.quoteColumnName(columnName) : columnName;
+    }
 
     /**
      * q 쿼리의 value가 timestamp 형인지 확인

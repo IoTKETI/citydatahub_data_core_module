@@ -173,7 +173,8 @@ public class NotificationProcessor implements IBulkProcessor<NotificationProcess
 												    subscriptionBaseDaoVO.getQ(),
 												    subscriptionBaseDaoVO.getGeoQ(),
 												    subscriptionBaseDaoVO.getNotificationFormat(),
-												    subscriptionBaseDaoVO.getNotificationEndpointAccept() );
+												    subscriptionBaseDaoVO.getNotificationEndpointAccept(),
+												    subscriptionBaseDaoVO.getContext() );
 
 			// 2. TimeInterval 기반 Notification인 경우
 			} else {
@@ -281,10 +282,12 @@ public class NotificationProcessor implements IBulkProcessor<NotificationProcess
 	 * @param geoQ
 	 * @param notificationFormat
 	 * @param notificationEndpointAccept
+	 * @param context subscription @context — 알림 본문의 속성 이름을 구독자가 쓴 짧은 이름으로 돌려준다
 	 * @return
 	 */
 	private List<CommonEntityVO> getChangeEventNotiData( String entityId, String entityType,
-			List<String> notificationAttributes, String q, String geoQ, String notificationFormat, String notificationEndpointAccept) {
+			List<String> notificationAttributes, String q, String geoQ, String notificationFormat, String notificationEndpointAccept,
+			List<String> context) {
 
 		if(ValidateUtil.isEmptyData(entityId)) {
 			return null;
@@ -295,6 +298,8 @@ public class NotificationProcessor implements IBulkProcessor<NotificationProcess
 		queryVO.setType(entityType);
 		queryVO.setAttrs(notificationAttributes);
 		queryVO.setQ(q);
+		// 없으면 기본 core context 로 줄여 core 에 없는 속성이 전체 URI 로 나간다(TTA 046_01·046_04)
+		queryVO.setLinks(context);
 		setGeoQuery(queryVO, geoQ);
 		setOptions(queryVO, notificationFormat);
 
