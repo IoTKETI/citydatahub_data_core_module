@@ -198,8 +198,6 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
                 validateEntityId(entityFullVO.getId());
 
                 EntityDataModelVO retrieveEntityDataModelVO = entityDataModelSVC.getEntityDataModelVOById(entityFullVO.getId());
-                entityProcessVO.setRetrievedEntityDataModelVO(retrieveEntityDataModelVO);
-                entityProcessVO.setEntityDataModelRetrieved(true);
                 if (opertaion == Operation.CREATE_ENTITY) {
                     if (retrieveEntityDataModelVO != null) {
                         throw new NgsiLdBadRequestException(ErrorCode.ALREADY_EXISTS,
@@ -1439,8 +1437,6 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
     }
 
     private void storeEntityDataModel(List<EntityProcessVO<DynamicEntityFullVO, DynamicEntityDaoVO>> entityProcessVOList) {
-        // 동일 요청 내에서 등록/삭제로 상태가 바뀐 entityId (이후 같은 id 는 다시 조회)
-        Set<String> changedEntityIds = new HashSet<>();
         for (EntityProcessVO<DynamicEntityFullVO, DynamicEntityDaoVO> entityProcessVO : entityProcessVOList) {
             if (entityProcessVO.getProcessResultVO().isProcessResult()) {
 
@@ -1455,46 +1451,17 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
                     // entity가 삭제된 경우 entity별 데이터 모델 관리 테이블에서 삭제
                     if (Operation.DELETE_ENTITY == entityProcessVO.getProcessResultVO().getProcessOperation()) {
                         entityDataModelSVC.deleteEntityDataModel(entityId);
-                        changedEntityIds.add(entityId);
 
                         // 생성 또는 갱신인 경우
                     } else {
+                        // 조회 후 판단하지 않고 DB 에서 원자적으로 처리 (신규 INSERT / 변경 시 UPDATE / 동일하면 무시)
+                        EntityDataModelVO entityDataModelVO = new EntityDataModelVO();
+                        entityDataModelVO.setId(entityId);
+                        entityDataModelVO.setDatasetId(datasetId);
+                        entityDataModelVO.setDataModelId(dataModelId);
+                        entityDataModelVO.setDataModelType(dataModelType);
 
-                        // 처리 전 조회 결과가 있으면 재사용 (중복 조회 제거), 없으면 조회
-                        EntityDataModelVO retrieveEntityDataModelVO;
-                        if (entityProcessVO.isEntityDataModelRetrieved() && !changedEntityIds.contains(entityId)) {
-                            retrieveEntityDataModelVO = entityProcessVO.getRetrievedEntityDataModelVO();
-                        } else {
-                            retrieveEntityDataModelVO = entityDataModelSVC.getEntityDataModelVOById(entityId);
-                        }
-                        // 기존 정보가 없는 경우 신규 Insert
-                        if (retrieveEntityDataModelVO == null) {
-                            changedEntityIds.add(entityId);
-                            EntityDataModelVO entityDataModelVO = new EntityDataModelVO();
-                            entityDataModelVO.setId(entityId);
-                            entityDataModelVO.setDatasetId(datasetId);
-                            entityDataModelVO.setDataModelId(dataModelId);
-                            entityDataModelVO.setDataModelType(dataModelType);
-
-                            entityDataModelSVC.createEntityDataModel(entityDataModelVO);
-
-                            // 기존 정보가 존재하는 경우
-                        } else {
-
-                            // 변경된 정보가 있는 경우만 갱신
-                            if ((datasetId != null && !datasetId.equals(retrieveEntityDataModelVO.getDatasetId()))
-                                    || !retrieveEntityDataModelVO.getDataModelId().equals(dataModelId)
-                                    || !retrieveEntityDataModelVO.getDataModelType().equals(dataModelType)) {
-
-                                EntityDataModelVO entityDataModelVO = new EntityDataModelVO();
-                                entityDataModelVO.setId(entityId);
-                                entityDataModelVO.setDatasetId(datasetId);
-                                entityDataModelVO.setDataModelId(dataModelId);
-                                entityDataModelVO.setDataModelType(dataModelType);
-
-                                entityDataModelSVC.updateEntityDataModel(entityDataModelVO);
-                            }
-                        }
+                        entityDataModelSVC.upsertEntityDataModel(entityDataModelVO);
                     }
                 } catch (Exception e) {
                     log.error("storeEntityDataModel error. datasetId=" + entityProcessVO.getDatasetId()
