@@ -5,6 +5,7 @@ import java.util.List;
 import kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode.Operation;
 import kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode.OperationOption;
 import kr.re.keti.sc.dataservicebroker.datamodel.vo.DataModelCacheVO;
+import kr.re.keti.sc.dataservicebroker.entities.vo.EntityDataModelVO;
 import lombok.Data;
 
 @Data
@@ -29,6 +30,10 @@ public class EntityProcessVO<T1 extends CommonEntityFullVO, T2 extends CommonEnt
 	private DataModelCacheVO dataModelCacheVO;
 	/** 처리결과 VO */
 	private ProcessResultVO processResultVO = new ProcessResultVO();
+	/** 처리 전 조회한 Entity별 데이터모델 정보 (null 이면 신규 Entity) */
+	private EntityDataModelVO retrievedEntityDataModelVO;
+	/** retrievedEntityDataModelVO 조회 수행 여부 */
+	private boolean entityDataModelRetrieved;
 	/** 처리Options */
 	private List<OperationOption> operationOptions;
 }

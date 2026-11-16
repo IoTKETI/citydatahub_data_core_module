@@ -763,6 +763,25 @@ public class RdbEntitySVC extends DefaultEntitySVC {
 
 
     /**
+     * 이력 저장용 Entity 최종값 조회 (요청 내 동일 Entity 는 1회만 조회)
+     */
+    private DynamicEntityDaoVO selectLatestForHistory(DynamicEntityDaoVO entityDaoVO,
+                                                      Map<DynamicEntityDaoVO, DynamicEntityDaoVO> cache) {
+        if (cache.containsKey(entityDaoVO)) {
+            return cache.get(entityDaoVO);
+        }
+        QueryVO queryVO = new QueryVO();
+        queryVO.setId(entityDaoVO.getId());
+        queryVO.setDatasetId(entityDaoVO.getDatasetId());
+        queryVO.setType(entityDaoVO.getEntityType());
+        queryVO.setOptions(RetrieveOptions.SYS_ATTRS.getCode());
+        queryVO.setLinks(entityDaoVO.getContext());
+        DynamicEntityDaoVO entityFullDaoVO = entityDAO.selectById(queryVO, true);
+        cache.put(entityDaoVO, entityFullDaoVO);
+        return entityFullDaoVO;
+    }
+
+    /**
      * Operation 정상처리 항목 이력 저장
      *
      * @param entityProcessVOList 처리VO리스트
@@ -831,6 +850,9 @@ public class RdbEntitySVC extends DefaultEntitySVC {
 
         if (logMessage.length() > 0) log.info(logMessage.toString());
 
+        // Partial/Full 이력 저장에서 동일 Entity 최종값을 중복 조회하지 않도록 1회 조회 결과를 재사용
+        Map<DynamicEntityDaoVO, DynamicEntityDaoVO> latestEntityCache = new IdentityHashMap<>();
+
         // 5. 이력 벌크 저장
         // 5-1 Partial 이력 저장 (요청받은 Entity 파라미터값만 저장)
         if (createPartialHistoryVOList != null && createPartialHistoryVOList.size() > 0) {
@@ -842,13 +864,7 @@ public class RdbEntitySVC extends DefaultEntitySVC {
                     continue;
                 }
 
-                QueryVO queryVO = new QueryVO();
-                queryVO.setId(entityDaoVO.getId());
-                queryVO.setDatasetId(entityDaoVO.getDatasetId());
-                queryVO.setType(entityDaoVO.getEntityType());
-                queryVO.setOptions(RetrieveOptions.SYS_ATTRS.getCode());
-                queryVO.setLinks(entityDaoVO.getContext());
-                DynamicEntityDaoVO entityFullDaoVO = entityDAO.selectById(queryVO, true);
+                DynamicEntityDaoVO entityFullDaoVO = selectLatestForHistory(entityDaoVO, latestEntityCache);
                 if (entityFullDaoVO == null) {
                     log.warn("Store entity Partial history error. Now exist Entity id=" + entityDaoVO.getId());
                     continue;
@@ -886,13 +902,7 @@ public class RdbEntitySVC extends DefaultEntitySVC {
                     continue;
                 }
 
-                QueryVO queryVO = new QueryVO();
-                queryVO.setId(entityDaoVO.getId());
-                queryVO.setDatasetId(entityDaoVO.getDatasetId());
-                queryVO.setType(entityDaoVO.getEntityType());
-                queryVO.setOptions(RetrieveOptions.SYS_ATTRS.getCode());
-                queryVO.setLinks(entityDaoVO.getContext());
-                DynamicEntityDaoVO entityFullDaoVO = entityDAO.selectById(queryVO, true);
+                DynamicEntityDaoVO entityFullDaoVO = selectLatestForHistory(entityDaoVO, latestEntityCache);
                 if (entityFullDaoVO == null) {
                     log.warn("Store entity FULL history error. Now exist Entity id=" + entityDaoVO.getId());
                     continue;
