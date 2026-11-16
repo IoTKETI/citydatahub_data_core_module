@@ -136,7 +136,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Override
     public ProcessResultVO create(DynamicEntityDaoVO entityDaoVO) {
 
-        log.debug("create. DaoVO=" + entityDaoVO);
+        log.debug("create. DaoVO={}", entityDaoVO);
 
         RdbEntitySqlProvider mapper = sqlSession.getMapper(RdbEntitySqlProvider.class);
         mapper.create(entityDaoVO);
@@ -200,7 +200,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Override
     public ProcessResultVO updateAttr(DynamicEntityDaoVO entityDaoVO) {
 
-        log.debug("Update Entity Attributes. DaoVO=" + entityDaoVO);
+        log.debug("Update Entity Attributes. DaoVO={}", entityDaoVO);
 
         RdbEntitySqlProvider mapper = sqlSession.getMapper(RdbEntitySqlProvider.class);
         int result = mapper.appendAttr(entityDaoVO);
@@ -270,7 +270,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Override
     public ProcessResultVO partialAttrUpdate(DynamicEntityDaoVO entityDaoVO) {
 
-        log.debug("Partial Attribute Update. DaoVO=" + entityDaoVO);
+        log.debug("Partial Attribute Update. DaoVO={}", entityDaoVO);
 
         RdbEntitySqlProvider mapper = sqlSession.getMapper(RdbEntitySqlProvider.class);
         int result = mapper.partialAttrUpdate(entityDaoVO);
@@ -342,7 +342,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Override
     public ProcessResultVO appendAttr(DynamicEntityDaoVO entityDaoVO) {
 
-        log.debug("appendAttr. DaoVO=" + entityDaoVO);
+        log.debug("appendAttr. DaoVO={}", entityDaoVO);
 
         RdbEntitySqlProvider mapper = sqlSession.getMapper(RdbEntitySqlProvider.class);
         int result = mapper.appendAttr(entityDaoVO);
@@ -417,7 +417,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Override
     public ProcessResultVO appendNoOverwriteAttr(DynamicEntityDaoVO entityDaoVO) {
 
-        log.debug("appendNoOverwriteAttr. DaoVO=" + entityDaoVO);
+        log.debug("appendNoOverwriteAttr. DaoVO={}", entityDaoVO);
 
         RdbEntitySqlProvider mapper = sqlSession.getMapper(RdbEntitySqlProvider.class);
         int result = mapper.appendNoOverwriteAttr(entityDaoVO);
@@ -489,7 +489,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Override
     public ProcessResultVO replaceEntity(DynamicEntityDaoVO entityDaoVO) {
 
-        log.debug("Replace Entity Attributes. DaoVO=" + entityDaoVO);
+        log.debug("Replace Entity Attributes. DaoVO={}", entityDaoVO);
 
         RdbEntitySqlProvider mapper = sqlSession.getMapper(RdbEntitySqlProvider.class);
         int result = mapper.replaceAttr(entityDaoVO);
@@ -569,7 +569,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         ProcessResultVO processResultVO = new ProcessResultVO();
         processResultVO.setProcessOperation(Operation.REPLACE_ENTITY_ATTRIBUTES);
 
-        log.debug("fullUpsert. DaoVO=" + entityDaoVO);
+        log.debug("fullUpsert. DaoVO={}", entityDaoVO);
 
         // Replace Entity Attributes
         RdbEntitySqlProvider mapper = sqlSession.getMapper(RdbEntitySqlProvider.class);
@@ -645,7 +645,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         ProcessResultVO processResultVO = new ProcessResultVO();
         processResultVO.setProcessOperation(Operation.APPEND_ENTITY_ATTRIBUTES);
 
-        log.debug("partialUpsert. DaoVO=" + entityDaoVO);
+        log.debug("partialUpsert. DaoVO={}", entityDaoVO);
 
         RdbEntitySqlProvider mapper = sqlSession.getMapper(RdbEntitySqlProvider.class);
         int result = mapper.appendAttr(entityDaoVO);
