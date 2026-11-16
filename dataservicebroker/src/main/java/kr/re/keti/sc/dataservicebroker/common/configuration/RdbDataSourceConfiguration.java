@@ -39,6 +39,11 @@ public class RdbDataSourceConfiguration {
 	@Value("${datasource.password}")
 	private String jdbcPassword;
 
+	@Value("${datasource.pool.max-total:30}")
+	private int poolMaxTotal;
+	@Value("${datasource.pool.max-wait-millis:3000}")
+	private long poolMaxWaitMillis;
+
 	@Value("${datasource.secondary.use.yn}")
 	private String secondaryDatasourceUseYn;
 	@Value("${datasource.secondary.driverClassName}")
@@ -59,13 +64,14 @@ public class RdbDataSourceConfiguration {
 		dataSource.setUrl(jdbcUrl);
 		dataSource.setUsername(jdbcUserName);
 		dataSource.setPassword(jdbcPassword);
-		dataSource.setInitialSize(30); // 초기 커넥션 풀 크기
-    dataSource.setMaxTotal(30);   // 최대 커넥션 수
-    dataSource.setMaxIdle(30);     // 최대 유휴 커넥션 수
-    dataSource.setMinIdle(30);     // 최소 유휴 커넥션 수
-    dataSource.setMaxWaitMillis(3000); // 최대 대기 시간
-    dataSource.setTestOnBorrow(true);
-    dataSource.setTestWhileIdle(true);
+		// 커넥션 풀 설정 (datasource.pool.*, 미설정 시 기본값 사용)
+		dataSource.setInitialSize(poolMaxTotal); // 초기 커넥션 풀 크기
+		dataSource.setMaxTotal(poolMaxTotal);    // 최대 커넥션 수
+		dataSource.setMaxIdle(poolMaxTotal);     // 최대 유휴 커넥션 수
+		dataSource.setMinIdle(poolMaxTotal);     // 최소 유휴 커넥션 수
+		dataSource.setMaxWaitMillis(poolMaxWaitMillis); // 커넥션 대여 최대 대기 시간
+		dataSource.setTestOnBorrow(true);
+		dataSource.setTestWhileIdle(true);
 
 		return dataSource;
 	}
