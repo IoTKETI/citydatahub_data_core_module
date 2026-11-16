@@ -32,6 +32,39 @@
         )
     </insert>
 
+    <!--
+        Entity별 데이터모델 매핑 원자적 upsert (멀티 인스턴스 환경 경합 대응)
+        - 신규: INSERT
+        - 기존 + 변경 있음: UPDATE (updateEntityDataModel 과 동일 규칙: datasetId 는 null 이면 유지, data_model_type 은 갱신하지 않음)
+        - 기존 + 변경 없음: 아무것도 하지 않음 (modify_datetime 유지)
+    -->
+    <insert id="upsertEntityDataModel" parameterType="kr.re.keti.sc.dataservicebroker.entities.vo.EntityDataModelVO">
+
+        INSERT INTO DATA_SERVICE_BROKER.ENTITY_DATA_MODEL_BASE AS T (
+        ID
+        ,DATA_MODEL_ID
+        ,DATA_MODEL_TYPE
+        ,DATASET_ID
+        ,CREATE_DATETIME
+        ,MODIFY_DATETIME
+        )
+        VALUES (
+        #{id}
+        ,#{dataModelId}
+        ,#{dataModelType}
+        ,#{datasetId}
+        ,now()
+        ,now()
+        )
+        ON CONFLICT (ID) DO UPDATE SET
+            MODIFY_DATETIME = now()
+            ,DATASET_ID = COALESCE(EXCLUDED.DATASET_ID, T.DATASET_ID)
+            ,DATA_MODEL_ID = EXCLUDED.DATA_MODEL_ID
+        WHERE (EXCLUDED.DATASET_ID IS NOT NULL AND EXCLUDED.DATASET_ID IS DISTINCT FROM T.DATASET_ID)
+            OR T.DATA_MODEL_ID &lt;&gt; EXCLUDED.DATA_MODEL_ID
+            OR T.DATA_MODEL_TYPE &lt;&gt; EXCLUDED.DATA_MODEL_TYPE
+    </insert>
+
 	<update id="updateEntityDataModel" parameterType="kr.re.keti.sc.dataservicebroker.entities.vo.EntityDataModelVO">
 
         UPDATE
