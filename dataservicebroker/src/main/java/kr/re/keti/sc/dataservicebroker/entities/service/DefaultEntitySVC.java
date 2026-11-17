@@ -1454,35 +1454,14 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
 
                         // 생성 또는 갱신인 경우
                     } else {
+                        // 조회 후 판단하지 않고 DB 에서 원자적으로 처리 (신규 INSERT / 변경 시 UPDATE / 동일하면 무시)
+                        EntityDataModelVO entityDataModelVO = new EntityDataModelVO();
+                        entityDataModelVO.setId(entityId);
+                        entityDataModelVO.setDatasetId(datasetId);
+                        entityDataModelVO.setDataModelId(dataModelId);
+                        entityDataModelVO.setDataModelType(dataModelType);
 
-                        EntityDataModelVO retrieveEntityDataModelVO = entityDataModelSVC.getEntityDataModelVOById(entityId);
-                        // 기존 정보가 없는 경우 신규 Insert
-                        if (retrieveEntityDataModelVO == null) {
-                            EntityDataModelVO entityDataModelVO = new EntityDataModelVO();
-                            entityDataModelVO.setId(entityId);
-                            entityDataModelVO.setDatasetId(datasetId);
-                            entityDataModelVO.setDataModelId(dataModelId);
-                            entityDataModelVO.setDataModelType(dataModelType);
-
-                            entityDataModelSVC.createEntityDataModel(entityDataModelVO);
-
-                            // 기존 정보가 존재하는 경우
-                        } else {
-
-                            // 변경된 정보가 있는 경우만 갱신
-                            if ((datasetId != null && !datasetId.equals(retrieveEntityDataModelVO.getDatasetId()))
-                                    || !retrieveEntityDataModelVO.getDataModelId().equals(dataModelId)
-                                    || !retrieveEntityDataModelVO.getDataModelType().equals(dataModelType)) {
-
-                                EntityDataModelVO entityDataModelVO = new EntityDataModelVO();
-                                entityDataModelVO.setId(entityId);
-                                entityDataModelVO.setDatasetId(datasetId);
-                                entityDataModelVO.setDataModelId(dataModelId);
-                                entityDataModelVO.setDataModelType(dataModelType);
-
-                                entityDataModelSVC.updateEntityDataModel(entityDataModelVO);
-                            }
-                        }
+                        entityDataModelSVC.upsertEntityDataModel(entityDataModelVO);
                     }
                 } catch (Exception e) {
                     log.error("storeEntityDataModel error. datasetId=" + entityProcessVO.getDatasetId()

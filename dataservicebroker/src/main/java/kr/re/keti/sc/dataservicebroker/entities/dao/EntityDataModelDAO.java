@@ -18,6 +18,10 @@ public class EntityDataModelDAO {
         return sqlSession.update("dataservicebroker.entityDataModel.createEntityDataModel", entityDataModelVO);
     }
 
+    public int upsertEntityDataModel(EntityDataModelVO entityDataModelVO) {
+        return sqlSession.update("dataservicebroker.entityDataModel.upsertEntityDataModel", entityDataModelVO);
+    }
+
     public int updateEntityDataModel(EntityDataModelVO entityDataModelVO) {
         return sqlSession.update("dataservicebroker.entityDataModel.updateEntityDataModel", entityDataModelVO);
     }
