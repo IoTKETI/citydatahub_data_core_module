@@ -547,9 +547,9 @@ public class RdbEntitySqlProviderImpl {
                     // 3. Dynamic Entity Column 설정
                     for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
                         if (dbColumnInfoVO.getHierarchyAttributeIds().get(0).equals(deleteAttrId)) {
+                            // 삭제 대상 속성의 모든 하위 컬럼(값, observedAt, createdAt, modifiedAt 등)을 NULL 처리
+                            // (Entity 의 MODIFIED_AT 은 위 2단계에서 갱신)
                             SET(StringUtil.quoteColumnName(dbColumnInfoVO.getColumnName()) + " = NULL");
-                            // 원래 식(따옴표 없음)과 같은 컬럼을 가리키도록 소문자로 접어 감싼다 — 식 자체는 원본 그대로
-                            SET(StringUtil.quoteColumnName(dbColumnInfoVO.getColumnName() + Constants.COLUMN_DELIMITER + PropertyKey.MODIFIED_AT) + " = #{" + DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode() + "}");
                         }
                     }
                 }

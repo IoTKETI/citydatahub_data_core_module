@@ -21,6 +21,13 @@ public class EntityDataModelSVC {
     	entityDataModelDAO.createEntityDataModel(entityDataModelVO);
     }
 
+    /**
+     * Entity별 데이터모델 매핑 원자적 upsert (신규 INSERT / 변경 시 UPDATE / 동일하면 무시)
+     */
+    public void upsertEntityDataModel(EntityDataModelVO entityDataModelVO) {
+    	entityDataModelDAO.upsertEntityDataModel(entityDataModelVO);
+    }
+
     public void updateEntityDataModel(EntityDataModelVO entityDataModelVO) {
     	entityDataModelDAO.updateEntityDataModel(entityDataModelVO);
     }

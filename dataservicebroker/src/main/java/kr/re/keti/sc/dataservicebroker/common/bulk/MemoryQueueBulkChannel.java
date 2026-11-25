@@ -32,7 +32,9 @@ public class MemoryQueueBulkChannel<T> implements IBulkChannel<T> {
 	/** 디폴트 벌크처리 간격 (millisecond) */
 	private static final int DEFAULT_BULK_INTERVAL_MILLIS = 500;
 	/** 벌크처리 최대 크기 */
-	private static final int MAX_BULK_SIZE = 10000;
+	private static final int MAX_BULK_SIZE = 1000;
+	private static final int MIN_POLL_INTERVAL = 100;
+	private static final int MAX_POLL_INTERVAL = 1000;
 
 	/** 실행모드 */
 	private ExecuteMode executeMode = DEFAULT_EXECUTE_MODE;
@@ -51,6 +53,7 @@ public class MemoryQueueBulkChannel<T> implements IBulkChannel<T> {
 	private IBulkProcessor<T> bulkProcessor = null;
 	/** 쓰레드 그룹 */
 	private Thread[] workThreads = null;
+	private int currentPollInterval = MIN_POLL_INTERVAL;
 
 	public MemoryQueueBulkChannel(String instanceName, IBulkProcessor<T> processor, Integer workThreadCount, Integer queueSize, Integer bulkIntervalMillis) {
 		this(instanceName, processor, ExecuteMode.ASYNC_BULK, workThreadCount, queueSize, bulkIntervalMillis);
@@ -168,27 +171,29 @@ public class MemoryQueueBulkChannel<T> implements IBulkChannel<T> {
 		public void run() {
 			while(!Thread.currentThread().isInterrupted()) {
 				try {
-					// poll 로 벌크처리
 					List<T> objects = pollData();
 					if(objects.size() > 0) {
 						bulkProcessor.processBulk(objects);
+						currentPollInterval = Math.max(MIN_POLL_INTERVAL, currentPollInterval - 100);
+					} else {
+						currentPollInterval = Math.min(MAX_POLL_INTERVAL, currentPollInterval + 100);
 					}
 				} catch(Exception e) {
 					log.error("Process error. name=[" + instanceName + "]", e);
 				}
 
-				// queue에 잔여 데이터가 있으면 sleep 하지 않음
 				if(queue.size() == 0) {
 					try {
-						Thread.sleep(bulkIntervalMillis);
+						Thread.sleep(currentPollInterval);
 					} catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
 					}
 				}
 			}
-			// 종료시 queue에 있는 모든 잔여 데이터를 처리
 			List<T> objects = pollData();
-			bulkProcessor.processBulk(objects);
+			if (!objects.isEmpty()) {
+				bulkProcessor.processBulk(objects);
+			}
 		}
 
 		/**
