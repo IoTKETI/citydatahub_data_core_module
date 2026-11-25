@@ -288,7 +288,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Override
     public ProcessResultVO updateAttr(DynamicEntityDaoVO entityDaoVO) {
 
-        logger.debug("Update Entity Attributes. DaoVO=" + entityDaoVO);
+        logger.debug("Update Entity Attributes. DaoVO={}", entityDaoVO);
 
         HiveEntitySqlProvider mapper = sqlSession.getMapper(HiveEntitySqlProvider.class);
         List<String> tableColumns = hiveTableSVC.getTableScheme(entityDaoVO.getDbTableName());
@@ -372,7 +372,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Override
     public ProcessResultVO partialAttrUpdate(DynamicEntityDaoVO entityDaoVO) {
 
-        logger.debug("Partial Attribute Update. DaoVO=" + entityDaoVO);
+        logger.debug("Partial Attribute Update. DaoVO={}", entityDaoVO);
 
         HiveEntitySqlProvider mapper = sqlSession.getMapper(HiveEntitySqlProvider.class);
         List<String> tableColumns = hiveTableSVC.getTableScheme(entityDaoVO.getDbTableName());
@@ -459,7 +459,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Override
     public ProcessResultVO appendAttr(DynamicEntityDaoVO entityDaoVO) {
 
-        logger.debug("appendAttr. DaoVO=" + entityDaoVO);
+        logger.debug("appendAttr. DaoVO={}", entityDaoVO);
 
         HiveEntitySqlProvider mapper = sqlSession.getMapper(HiveEntitySqlProvider.class);
         List<String> tableColumns = hiveTableSVC.getTableScheme(entityDaoVO.getDbTableName());
@@ -548,7 +548,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Override
     public ProcessResultVO appendNoOverwriteAttr(DynamicEntityDaoVO entityDaoVO) {
 
-        logger.debug("appendNoOverwriteAttr. DaoVO=" + entityDaoVO);
+        logger.debug("appendNoOverwriteAttr. DaoVO={}", entityDaoVO);
 
         HiveEntitySqlProvider mapper = sqlSession.getMapper(HiveEntitySqlProvider.class);
         List<String> tableColumns = hiveTableSVC.getTableScheme(entityDaoVO.getDbTableName());
@@ -636,7 +636,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Override
     public ProcessResultVO replaceEntity(DynamicEntityDaoVO entityDaoVO) {
 
-        logger.debug("Replace Entity Attributes. DaoVO=" + entityDaoVO);
+        logger.debug("Replace Entity Attributes. DaoVO={}", entityDaoVO);
 
         HiveEntitySqlProvider mapper = sqlSession.getMapper(HiveEntitySqlProvider.class);
         List<String> tableColumns = hiveTableSVC.getTableScheme(entityDaoVO.getDbTableName());
@@ -738,7 +738,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         ProcessResultVO processResultVO = new ProcessResultVO();
         processResultVO.setProcessOperation(Operation.REPLACE_ENTITY_ATTRIBUTES);
 
-        logger.info("fullUpsert. DaoVO=" + entityDaoVO);
+        logger.info("fullUpsert. DaoVO={}", entityDaoVO);
 
         // Replace Entity Attributes
         HiveEntitySqlProvider mapper = sqlSession.getMapper(HiveEntitySqlProvider.class);
@@ -846,7 +846,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         ProcessResultVO processResultVO = new ProcessResultVO();
         processResultVO.setProcessOperation(Operation.APPEND_ENTITY_ATTRIBUTES);
 
-        logger.debug("partialUpsert. DaoVO=" + entityDaoVO);
+        logger.debug("partialUpsert. DaoVO={}", entityDaoVO);
 
         HiveEntitySqlProvider mapper = sqlSession.getMapper(HiveEntitySqlProvider.class);
         List<String> tableColumns = hiveTableSVC.getTableScheme(entityDaoVO.getDbTableName());
